@@ -1,0 +1,68 @@
+#![allow(clippy::unwrap_used)]
+use zcash_protocol::consensus::NetworkType;
+use zutti_protocol::encoding::Canonical;
+use zutti_prover::{
+    program::{Program, ProgramKind},
+    source::{SourceJob, SourcePrograms},
+};
+use zutti_source::proof::{SourceInput, SourceWitness};
+
+#[test]
+fn archived_programs_preserve_their_identity_and_reject_wrong_kinds_or_changed_elfs() {
+    for kind in [
+        ProgramKind::Pool,
+        ProgramKind::Preparation,
+        ProgramKind::HistoryQuery,
+    ] {
+        let original = Program::current(kind);
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("program");
+        original.export_new(&path).unwrap();
+        assert!(original.export_new(&path).is_err());
+        let restored = Program::read(kind, &path.join("program.elf")).unwrap();
+        assert_eq!(restored.image(), original.image());
+        assert_eq!(restored.bytes(), original.bytes());
+        assert!(Program::from_bytes(ProgramKind::Source, original.bytes().to_vec()).is_err());
+        let mut altered = original.bytes().to_vec();
+        altered[0] ^= 1;
+        assert!(Program::from_bytes(kind, altered).is_err());
+    }
+}
+
+#[test]
+fn source_jobs_resume_from_archived_coherent_programs_and_detect_elf_substitution() {
+    let directory = tempfile::tempdir().unwrap();
+    for kind in [ProgramKind::Source, ProgramKind::SourceUpdate] {
+        Program::current(kind)
+            .export_new(&directory.path().join(kind.name()))
+            .unwrap();
+    }
+    let programs = SourcePrograms::read(directory.path()).unwrap();
+    let policy = programs.policy(NetworkType::Main, 0, 3);
+    let genesis = zebra_test::vectors::MAINNET_BLOCKS[&0].to_vec();
+    let witness = SourceWitness {
+        policy,
+        input: SourceInput::Genesis(genesis),
+    };
+    let job = SourceJob::transition_with(&witness, None, &programs).unwrap();
+    let path = directory.path().join("job");
+    job.export_public(&path, 268_435_456).unwrap();
+    let restored = SourceJob::read_public(&path).unwrap();
+    assert_eq!(
+        restored.statement().to_bytes().unwrap(),
+        job.statement().to_bytes().unwrap()
+    );
+    std::fs::write(
+        path.join("program.elf"),
+        Program::current(ProgramKind::Pool).bytes(),
+    )
+    .unwrap();
+    assert!(SourceJob::read_public(&path).is_err());
+    assert!(
+        SourcePrograms::new(
+            Program::current(ProgramKind::Pool),
+            Program::current(ProgramKind::SourceUpdate)
+        )
+        .is_err()
+    );
+}

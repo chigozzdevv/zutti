@@ -1,4 +1,8 @@
-use crate::{Error, ProofEnvelope, local::LocalProver};
+use crate::{
+    Error, ProofEnvelope,
+    local::LocalProver,
+    program::{Program, ProgramKind},
+};
 use zeroize::Zeroizing;
 use zutti_protocol::{
     Digest,
@@ -21,24 +25,38 @@ pub fn proof_kind(kind: OperationKind) -> ProofKind {
     }
 }
 pub fn pool_statement(claim: &PoolClaim) -> Result<Statement, Error> {
+    pool_statement_with(claim, &Program::current(ProgramKind::Pool))
+}
+pub fn pool_statement_with(claim: &PoolClaim, program: &Program) -> Result<Statement, Error> {
+    if program.kind() != ProgramKind::Pool {
+        return Err(Error::Binding);
+    }
     Ok(Statement::new(
         proof_kind(claim.kind),
         claim.domain,
-        pool_image_id(),
+        program.image(),
         claim.to_bytes()?,
     )?)
 }
 impl LocalProver {
     pub fn prove_pool(&self, witness: &PoolWitness) -> Result<(Statement, ProofEnvelope), Error> {
+        self.prove_pool_with(witness, &Program::current(ProgramKind::Pool))
+    }
+    pub fn prove_pool_with(
+        &self,
+        witness: &PoolWitness,
+        program: &Program,
+    ) -> Result<(Statement, ProofEnvelope), Error> {
         let claim = witness.evaluate()?;
+        pool_statement_with(&claim, program)?;
         let bytes = Zeroizing::new(witness.to_bytes()?);
         if bytes.len() > MAX_POOL_WITNESS {
             return Err(Error::Witness);
         }
         self.prove(
             bytes,
-            pool_statement(&claim)?,
-            zutti_methods::POOL_ELF,
+            pool_statement_with(&claim, program)?,
+            program.bytes(),
             268_435_456,
             20,
         )
@@ -47,8 +65,16 @@ impl LocalProver {
         &self,
         witness: &PoolWitness,
     ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
+        self.execute_pool_with(witness, &Program::current(ProgramKind::Pool))
+    }
+    pub fn execute_pool_with(
+        &self,
+        witness: &PoolWitness,
+        program: &Program,
+    ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
         use risc0_zkvm::{Executor, ExecutorEnv, ExternalProver};
         let claim = witness.evaluate()?;
+        pool_statement_with(&claim, program)?;
         let bytes = Zeroizing::new(witness.to_bytes()?);
         if bytes.len() > MAX_POOL_WITNESS {
             return Err(Error::Witness.into());
@@ -61,7 +87,7 @@ impl LocalProver {
             .build()?;
         let started = std::time::Instant::now();
         let session = ExternalProver::new("zutti-pool-executor", &self.executable)
-            .execute(env, zutti_methods::POOL_ELF)?;
+            .execute(env, program.bytes())?;
         if session.journal.bytes != claim.to_bytes()? {
             return Err(Error::Journal.into());
         }

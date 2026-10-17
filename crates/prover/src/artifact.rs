@@ -47,18 +47,7 @@ impl ProofArtifact {
         if bytes.len() > MAX_ARTIFACT {
             return Err("proof artifact exceeds its size limit".into());
         }
-        let parent = path
-            .parent()
-            .filter(|p| !p.as_os_str().is_empty())
-            .unwrap_or(Path::new("."));
-        let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
-        temporary.write_all(&bytes)?;
-        temporary.as_file().sync_all()?;
-        temporary
-            .persist_noclobber(path)
-            .map_err(|error| error.error)?;
-        File::open(parent)?.sync_all()?;
-        Ok(())
+        persist_bounded(path, &bytes, MAX_ARTIFACT)
     }
 }
 impl Canonical for ProofArtifact {
@@ -77,4 +66,26 @@ impl Canonical for ProofArtifact {
         Self::new(statement, proof)
             .map_err(|_| zutti_protocol::Error::Invalid("artifact statement binding"))
     }
+}
+
+pub(crate) fn persist_bounded(
+    path: &Path,
+    bytes: &[u8],
+    limit: usize,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if bytes.is_empty() || bytes.len() > limit {
+        return Err("artifact exceeds its size bound".into());
+    }
+    let parent = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
+    temporary.write_all(bytes)?;
+    temporary.as_file().sync_all()?;
+    temporary
+        .persist_noclobber(path)
+        .map_err(|error| error.error)?;
+    File::open(parent)?.sync_all()?;
+    Ok(())
 }

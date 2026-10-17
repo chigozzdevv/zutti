@@ -1,6 +1,9 @@
 use crate::{
-    Error, ProofEnvelope, ProofVerifier, artifact::ProofArtifact, backend::receipt_codec,
+    Error, ProofEnvelope, ProofVerifier,
+    artifact::ProofArtifact,
+    backend::receipt_codec,
     local::LocalProver,
+    program::{Program, ProgramKind},
 };
 use bincode::Options;
 use risc0_zkvm::{Executor, ExecutorEnv, ExternalProver, InnerReceipt, Receipt, sha::Digestible};
@@ -38,30 +41,87 @@ pub fn policy(
     }
 }
 pub fn source_statement(claim: &SourceReceiptClaim) -> Result<Statement, Error> {
-    if claim.program != source_image_id() {
+    source_statement_with(claim, &Program::current(ProgramKind::Source))
+}
+fn source_statement_with(
+    claim: &SourceReceiptClaim,
+    program: &Program,
+) -> Result<Statement, Error> {
+    if program.kind() != ProgramKind::Source || claim.program != program.image() {
         return Err(Error::Binding);
     }
     Ok(Statement::new(
         ProofKind::SourceTransition,
         claim.policy,
-        source_image_id(),
+        program.image(),
         claim.to_bytes()?,
     )?)
 }
 pub fn update_statement(claim: &SourceUpdateClaim) -> Result<Statement, Error> {
+    update_statement_with(claim, &Program::current(ProgramKind::SourceUpdate))
+}
+fn update_statement_with(claim: &SourceUpdateClaim, program: &Program) -> Result<Statement, Error> {
+    if program.kind() != ProgramKind::SourceUpdate {
+        return Err(Error::Binding);
+    }
     Ok(Statement::new(
         ProofKind::Source,
         claim.policy,
-        update_image_id(),
+        program.image(),
         claim.to_bytes()?,
     )?)
 }
-fn check_policy(policy: SourcePolicy) -> Result<(), Error> {
-    if policy.program != source_image_id() || policy.registry_program != update_image_id() {
-        return Err(Error::Binding);
+#[derive(Debug, Clone)]
+pub struct SourcePrograms {
+    source: Program,
+    update: Program,
+}
+impl SourcePrograms {
+    pub fn current() -> Self {
+        Self {
+            source: Program::current(ProgramKind::Source),
+            update: Program::current(ProgramKind::SourceUpdate),
+        }
     }
-    policy.to_bytes()?;
-    Ok(())
+    pub fn new(source: Program, update: Program) -> Result<Self, Error> {
+        if source.kind() != ProgramKind::Source
+            || update.kind() != ProgramKind::SourceUpdate
+            || !crate::backend::admitted_source_pair(source.image(), update.image())
+        {
+            return Err(Error::Binding);
+        }
+        Ok(Self { source, update })
+    }
+    pub fn read(directory: &Path) -> Result<Self, Box<dyn std::error::Error>> {
+        Ok(Self::new(
+            Program::read(ProgramKind::Source, &directory.join("source/program.elf"))?,
+            Program::read(
+                ProgramKind::SourceUpdate,
+                &directory.join("source-update/program.elf"),
+            )?,
+        )?)
+    }
+    pub fn policy(
+        &self,
+        network: zcash_protocol::consensus::NetworkType,
+        index_start: u32,
+        confirmations: u32,
+    ) -> SourcePolicy {
+        SourcePolicy {
+            program: self.source.image(),
+            registry_program: self.update.image(),
+            network,
+            index_start,
+            confirmations,
+        }
+    }
+    fn check(&self, policy: SourcePolicy) -> Result<(), Error> {
+        if policy.program != self.source.image() || policy.registry_program != self.update.image() {
+            return Err(Error::Binding);
+        }
+        policy.to_bytes()?;
+        Ok(())
+    }
 }
 pub fn groth16_seal(artifact: &ProofArtifact, expected: &Statement) -> Result<Vec<u8>, Error> {
     ProofVerifier.verify(artifact.proof(), expected)?;
@@ -88,6 +148,7 @@ pub struct SourceJob {
     statement: Statement,
     stdin: Zeroizing<Vec<u8>>,
     update: bool,
+    code: Program,
 }
 impl SourceJob {
     pub fn read_public(directory: &Path) -> Result<Self, Box<dyn std::error::Error>> {
@@ -95,18 +156,28 @@ impl SourceJob {
             &directory.join("statement.bin"),
             66_560,
         )?)?;
+        let kind = match statement.kind() {
+            ProofKind::Source => ProgramKind::SourceUpdate,
+            ProofKind::SourceTransition => ProgramKind::Source,
+            _ => return Err(Error::Binding.into()),
+        };
+        let code = Program::read(kind, &directory.join("program.elf"))?;
         let update = match statement.kind() {
             ProofKind::Source => {
-                if update_statement(&SourceUpdateClaim::from_bytes(statement.payload())?)?
-                    != statement
+                if update_statement_with(
+                    &SourceUpdateClaim::from_bytes(statement.payload())?,
+                    &code,
+                )? != statement
                 {
                     return Err(Error::Binding.into());
                 }
                 true
             }
             ProofKind::SourceTransition => {
-                if source_statement(&SourceReceiptClaim::from_bytes(statement.payload())?)?
-                    != statement
+                if source_statement_with(
+                    &SourceReceiptClaim::from_bytes(statement.payload())?,
+                    &code,
+                )? != statement
                 {
                     return Err(Error::Binding.into());
                 }
@@ -123,26 +194,36 @@ impl SourceJob {
             statement,
             stdin,
             update,
+            code,
         })
     }
     pub fn transition(
         witness: &SourceWitness,
         previous: Option<&ProofArtifact>,
     ) -> Result<Self, Error> {
-        check_policy(witness.policy)?;
+        Self::transition_with(witness, previous, &SourcePrograms::current())
+    }
+    pub fn transition_with(
+        witness: &SourceWitness,
+        previous: Option<&ProofArtifact>,
+        programs: &SourcePrograms,
+    ) -> Result<Self, Error> {
+        programs.check(witness.policy)?;
         let claim = witness.evaluate().map_err(|_| Error::Witness)?;
         let mut stdin = framed(witness)?;
         match (witness.assumption(), previous) {
-            (Some(claim), Some(artifact)) => {
-                stdin.extend_from_slice(&groth16_seal(artifact, &source_statement(claim)?)?)
-            }
+            (Some(claim), Some(artifact)) => stdin.extend_from_slice(&groth16_seal(
+                artifact,
+                &source_statement_with(claim, &programs.source)?,
+            )?),
             (None, None) => {}
             _ => return Err(Error::Binding),
         }
         Ok(Self {
-            statement: source_statement(&claim)?,
+            statement: source_statement_with(&claim, &programs.source)?,
             stdin,
             update: false,
+            code: programs.source.clone(),
         })
     }
     pub fn update(
@@ -150,32 +231,41 @@ impl SourceJob {
         chain: &ProofArtifact,
         previous: Option<&ProofArtifact>,
     ) -> Result<Self, Error> {
-        check_policy(witness.policy)?;
+        Self::update_with(witness, chain, previous, &SourcePrograms::current())
+    }
+    pub fn update_with(
+        witness: &SourceUpdateWitness,
+        chain: &ProofArtifact,
+        previous: Option<&ProofArtifact>,
+        programs: &SourcePrograms,
+    ) -> Result<Self, Error> {
+        programs.check(witness.policy)?;
         let claim = witness.evaluate().map_err(|_| Error::Witness)?;
         let mut stdin = framed(witness)?;
-        stdin.extend_from_slice(&groth16_seal(chain, &source_statement(&witness.chain)?)?);
+        stdin.extend_from_slice(&groth16_seal(
+            chain,
+            &source_statement_with(&witness.chain, &programs.source)?,
+        )?);
         match (&witness.previous, previous) {
-            (Some(update), Some(artifact)) => {
-                stdin.extend_from_slice(&groth16_seal(artifact, &update_statement(&update.claim)?)?)
-            }
+            (Some(update), Some(artifact)) => stdin.extend_from_slice(&groth16_seal(
+                artifact,
+                &update_statement_with(&update.claim, &programs.update)?,
+            )?),
             (None, None) => {}
             _ => return Err(Error::Binding),
         }
         Ok(Self {
-            statement: update_statement(&claim)?,
+            statement: update_statement_with(&claim, &programs.update)?,
             stdin,
             update: true,
+            code: programs.update.clone(),
         })
     }
     pub const fn statement(&self) -> &Statement {
         &self.statement
     }
-    fn program(&self) -> &'static [u8] {
-        if self.update {
-            zutti_methods::SOURCE_UPDATE_ELF
-        } else {
-            zutti_methods::SOURCE_ELF
-        }
+    fn program(&self) -> &[u8] {
+        self.code.bytes()
     }
     pub fn export_public(
         &self,
@@ -258,17 +348,5 @@ impl LocalProver {
 }
 
 fn persist_public(path: &Path, bytes: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
-    use std::{fs::File, io::Write};
-    if bytes.is_empty() || bytes.len() > MAX_WITNESS + 524 {
-        return Err("source artifact exceeds its size bound".into());
-    }
-    let parent = path.parent().ok_or("missing source artifact directory")?;
-    let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
-    temporary.write_all(bytes)?;
-    temporary.as_file().sync_all()?;
-    temporary
-        .persist_noclobber(path)
-        .map_err(|error| error.error)?;
-    File::open(parent)?.sync_all()?;
-    Ok(())
+    crate::artifact::persist_bounded(path, bytes, MAX_WITNESS + 524)
 }

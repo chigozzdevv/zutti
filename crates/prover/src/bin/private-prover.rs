@@ -9,6 +9,7 @@ use zutti_protocol::{Digest, Secret32, encoding::Canonical};
 use zutti_prover::{
     artifact::ProofArtifact,
     preparation::preparation_image_id,
+    program::{Program, ProgramKind},
     query::{LocalProver, query_image_id},
 };
 use zutti_source::query::{MAX_QUERY_WITNESS, QueryWitness};
@@ -27,12 +28,24 @@ struct Args {
 #[derive(Debug, Subcommand)]
 enum Command {
     Status,
+    ExportPrograms {
+        #[arg(long)]
+        out: PathBuf,
+    },
+    InspectProgram {
+        #[arg(long, value_enum)]
+        kind: ProgramKind,
+        #[arg(long)]
+        program: PathBuf,
+    },
     ProveQuery(ProveArgs),
     ProvePreparation(ProveArgs),
     ProvePool(ProveArgs),
     ExecutePool {
         #[arg(long)]
         witness: PathBuf,
+        #[arg(long)]
+        program: Option<PathBuf>,
         #[arg(long, default_value = "r0vm")]
         prover: PathBuf,
     },
@@ -69,6 +82,8 @@ struct ProveArgs {
     out: PathBuf,
     #[arg(long, default_value = "r0vm")]
     prover: PathBuf,
+    #[arg(long)]
+    program: Option<PathBuf>,
     #[arg(long, hide = true)]
     worker: bool,
 }
@@ -114,6 +129,33 @@ fn report(artifact: &ProofArtifact, kind: ProofKind) -> Result<(), Box<dyn std::
 
 fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
+        Command::ExportPrograms { out } => {
+            std::fs::create_dir(&out)?;
+            let mut images = serde_json::Map::new();
+            for kind in [
+                ProgramKind::Source,
+                ProgramKind::SourceUpdate,
+                ProgramKind::Pool,
+                ProgramKind::Preparation,
+                ProgramKind::HistoryQuery,
+            ] {
+                let program = Program::current(kind);
+                program.export_new(&out.join(kind.name()))?;
+                images.insert(kind.name().to_string(), program.image().to_string().into());
+            }
+            backup::persist_new(
+                &out.join("programs.json"),
+                &serde_json::to_vec_pretty(&serde_json::json!({"version":1,"images":images}))?,
+            )?;
+            println!("{}", serde_json::json!({"programs":out,"images":images}));
+        }
+        Command::InspectProgram { kind, program } => {
+            let program = Program::read(kind, &program)?;
+            println!(
+                "{}",
+                serde_json::json!({"kind":kind.name(),"image_id":program.image().to_string(),"program_verified":true})
+            );
+        }
         Command::Status => println!(
             "{}",
             serde_json::json!({"history_query": "implemented", "preparation": "implemented", "proving": "local", "image_id": query_image_id().to_string(), "preparation_image_id": preparation_image_id().to_string(), "pool_image_id": zutti_prover::pool::pool_image_id().to_string(), "settlement_authority": false})
@@ -124,12 +166,22 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         Command::VerifyPreparation { proof } => {
             report(&ProofArtifact::read(&proof)?, ProofKind::Preparation)?
         }
-        Command::ExecutePool { witness, prover } => {
+        Command::ExecutePool {
+            witness,
+            prover,
+            program,
+        } => {
             let bytes = backup::read_private(&witness, zutti_wallet::pool::MAX_POOL_WITNESS)?;
             let witness = zutti_wallet::pool::PoolWitness::from_bytes(&bytes)?;
             println!(
                 "{}",
-                serde_json::to_string(&LocalProver::new(prover).execute_pool(&witness)?)?
+                serde_json::to_string(&LocalProver::new(prover).execute_pool_with(
+                    &witness,
+                    &match program {
+                        Some(path) => Program::read(ProgramKind::Pool, &path)?,
+                        None => Program::current(ProgramKind::Pool),
+                    }
+                )?)?
             );
         }
         Command::VerifyPool { proof } => {
@@ -169,6 +221,7 @@ fn prove(args: ProveArgs, kind: ProofKind) -> Result<(), Box<dyn std::error::Err
         domain,
         out,
         prover,
+        program,
         worker,
     } = args;
     if out.try_exists()? {
@@ -202,6 +255,16 @@ fn prove(args: ProveArgs, kind: ProofKind) -> Result<(), Box<dyn std::error::Err
     let archive = backup::read_private(&path, backup::MAX_ARCHIVE)?;
     let plaintext = backup::open(domain, &archive, &key)?;
     let prover = LocalProver::new(prover);
+    let program_kind = match kind {
+        ProofKind::HistoryQuery => ProgramKind::HistoryQuery,
+        ProofKind::Preparation => ProgramKind::Preparation,
+        ProofKind::Note => ProgramKind::Pool,
+        _ => return Err("unsupported private proof kind".into()),
+    };
+    let program = match program {
+        Some(path) => Program::read(program_kind, &path)?,
+        None => Program::current(program_kind),
+    };
     let (statement, proof) = match kind {
         ProofKind::HistoryQuery => {
             if plaintext.len() > MAX_QUERY_WITNESS {
@@ -211,7 +274,7 @@ fn prove(args: ProveArgs, kind: ProofKind) -> Result<(), Box<dyn std::error::Err
             if witness.evaluate()?.domain() != domain {
                 return Err("query witness domain mismatch".into());
             }
-            prover.prove_query(&witness)?
+            prover.prove_query_with(&witness, &program)?
         }
         ProofKind::Preparation => {
             if plaintext.len() > MAX_PREPARATION_WITNESS {
@@ -221,7 +284,7 @@ fn prove(args: ProveArgs, kind: ProofKind) -> Result<(), Box<dyn std::error::Err
             if witness.evaluate()?.domain() != domain {
                 return Err("preparation witness domain mismatch".into());
             }
-            prover.prove_preparation(&witness)?
+            prover.prove_preparation_with(&witness, &program)?
         }
         ProofKind::Note => {
             if plaintext.len() > zutti_wallet::pool::MAX_POOL_WITNESS {
@@ -231,7 +294,7 @@ fn prove(args: ProveArgs, kind: ProofKind) -> Result<(), Box<dyn std::error::Err
             if witness.evaluate()?.domain != domain {
                 return Err("pool witness domain mismatch".into());
             }
-            prover.prove_pool(&witness)?
+            prover.prove_pool_with(&witness, &program)?
         }
         _ => return Err("unsupported proof kind".into()),
     };

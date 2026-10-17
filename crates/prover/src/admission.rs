@@ -21,7 +21,8 @@ pub struct SourceAdmission {
 impl SourceAdmission {
     fn validate(&self) -> Result<(), Error> {
         self.policy.to_bytes()?;
-        if self.minimum_work == [0; 32]
+        if !crate::backend::admitted_source_pair(self.policy.program, self.policy.registry_program)
+            || self.minimum_work == [0; 32]
             || self.minimum_height == 0
             || self.maximum_age == 0
             || self.maximum_age > 86_400

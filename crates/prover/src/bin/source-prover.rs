@@ -6,7 +6,7 @@ use zutti_prover::{
     admission::SourceAdmission,
     artifact::ProofArtifact,
     local::LocalProver,
-    source::{SourceJob, policy, source_image_id, update_image_id},
+    source::{SourceJob, SourcePrograms, source_image_id, update_image_id},
 };
 use zutti_source::{
     block::ParsedBlock,
@@ -41,15 +41,27 @@ struct Chain {
     index_start: u32,
     #[arg(long, default_value_t = 100)]
     confirmations: u32,
+    #[arg(long)]
+    programs: Option<PathBuf>,
 }
 impl Chain {
-    fn policy(&self) -> zutti_source::proof::SourcePolicy {
-        policy(self.network.kind(), self.index_start, self.confirmations)
+    fn programs(&self) -> Result<SourcePrograms, Box<dyn std::error::Error>> {
+        match &self.programs {
+            Some(path) => SourcePrograms::read(path),
+            None => Ok(SourcePrograms::current()),
+        }
     }
-    fn source(&self, prefix: &[PathBuf]) -> Result<SourceCandidate, Box<dyn std::error::Error>> {
+    fn policy(&self, programs: &SourcePrograms) -> zutti_source::proof::SourcePolicy {
+        programs.policy(self.network.kind(), self.index_start, self.confirmations)
+    }
+    fn source(
+        &self,
+        prefix: &[PathBuf],
+        programs: &SourcePrograms,
+    ) -> Result<SourceCandidate, Box<dyn std::error::Error>> {
         let genesis = GenesisBlock::parse(&block_bytes(&self.genesis)?, self.network.kind())?;
         let mut source =
-            SourceCandidate::from_genesis(&genesis, self.policy().id()?, self.index_start)?;
+            SourceCandidate::from_genesis(&genesis, self.policy(programs).id()?, self.index_start)?;
         for path in prefix {
             let bytes = block_bytes(path)?;
             let block = match self.network {
@@ -171,11 +183,13 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","current_chain_bootstrap":"unavailable"})
         ),
         Command::Genesis { chain, out } => {
+            let programs = chain.programs()?;
             let witness = SourceWitness {
-                policy: chain.policy(),
+                policy: chain.policy(&programs),
                 input: SourceInput::Genesis(block_bytes(&chain.genesis)?),
             };
-            SourceJob::transition(&witness, None)?.export_public(&out, 268_435_456)?;
+            SourceJob::transition_with(&witness, None, &programs)?
+                .export_public(&out, 268_435_456)?;
             println!(
                 "{}",
                 serde_json::json!({"job":out,"kind":"genesis","proof_generated":false})
@@ -188,22 +202,24 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             block,
             out,
         } => {
+            let programs = chain.programs()?;
             let previous = ProofArtifact::read(&previous)?;
             let claim = read_claim(&previous)?;
-            let mut source = chain.source(&prefix)?;
+            let mut source = chain.source(&prefix, &programs)?;
             let blocks = block
                 .iter()
                 .map(|path| block_bytes(path))
                 .collect::<Result<Vec<_>, _>>()?;
             let transition = source.record_transition(blocks)?;
             let witness = SourceWitness {
-                policy: chain.policy(),
+                policy: chain.policy(&programs),
                 input: SourceInput::Advance {
                     previous: Box::new(claim),
                     transition: Box::new(transition),
                 },
             };
-            SourceJob::transition(&witness, Some(&previous))?.export_public(&out, 268_435_456)?;
+            SourceJob::transition_with(&witness, Some(&previous), &programs)?
+                .export_public(&out, 268_435_456)?;
             println!(
                 "{}",
                 serde_json::json!({"job":out,"height":source.height()?,"proof_generated":false})
@@ -217,9 +233,10 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             previous_checkpoint,
             out,
         } => {
+            let programs = chain.programs()?;
             let proof = ProofArtifact::read(&proof)?;
             let claim = read_claim(&proof)?;
-            let source = chain.source(&block)?;
+            let source = chain.source(&block, &programs)?;
             if source.state_snapshot()?.commitment()? != claim.state {
                 return Err("source prefix differs from its proof".into());
             }
@@ -247,12 +264,12 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 _ => return Err("previous proof and checkpoint must be supplied together".into()),
             };
             let witness = SourceUpdateWitness {
-                policy: chain.policy(),
+                policy: chain.policy(&programs),
                 chain: claim,
                 stable: source.prove_header(checkpoint.stable.height)?,
                 previous: predecessor,
             };
-            SourceJob::update(&witness, &proof, previous.as_ref())?
+            SourceJob::update_with(&witness, &proof, previous.as_ref(), &programs)?
                 .export_public(&out, 268_435_456)?;
             zutti_wallet::backup::persist_new(
                 &out.join("checkpoint.bin"),

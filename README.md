@@ -204,9 +204,26 @@ The rules value is an example index-context identifier, not an admitted consensu
 
 Zebra's standard router retains mandatory historical checkpoint validation even with `checkpoint_sync = false`; this configuration cannot satisfy Zutti's full-prefix requirement. The relevant behavior was checked in `zebra-consensus` 16.0.0, `config.rs` and `router::init_checkpoint_list`. Zutti uses no checkpoint shortcut as verified history. The native verifier includes historical PHGR and Sprout Groth16 verification rather than delegating those transactions to a checkpoint. The recursive source guest verifies that complete prefix and its authenticated state transitions. The historical demonstration does not establish the current chain.
 
+## Retained proof programs
+
+A deployed contract pins its proof program. Keep the matching program files with its deployment and recovery material so rebuilding the SDK cannot silently select a different program.
+
+```sh
+cargo run --locked -p zutti-prover --bin private-prover -- \
+  export-programs --out /absolute/path/deployment-programs
+
+cargo run --locked -p zutti-prover --bin private-prover -- \
+  inspect-program --kind pool \
+  --program /absolute/path/deployment-programs/pool/program.elf
+```
+
+These exports contain public programs and image manifests, without private witnesses or keys. Loading a program recomputes its zkVM image and rejects unknown images or the wrong program kind. Source programs must also form an explicitly admitted source/update pair. An exported job carries its exact ELF; execution checks that ELF against the expected statement instead of substituting the newest build.
+
+The private proving commands accept `--program` for an admitted retained ELF. The source construction commands accept `--programs` for the retained directory. Their native checks, proof verification and development-receipt rejection still apply. Retaining an old program does not admit an unreviewed upgrade or make a historical source root current.
+
 ## Source admission
 
-`SourceAdmission` verifies a genuine registry-update receipt under the expected source policy and registry program, then binds the canonical source state and stable checkpoint to that receipt. It checks minimum cumulative work, minimum head height, the exact confirmation depth, matching index/archive commitments and bounded head age/future skew. The trusted clock and admission profile are local configuration; an evidence server cannot choose them. The resulting `VerifiedSource` has no public constructor and rechecks freshness when its checkpoint is requested.
+`SourceAdmission` verifies a genuine registry-update receipt under the expected source policy and registry program, then binds the canonical source state and stable checkpoint to that receipt. It checks minimum cumulative work, minimum head height, the exact confirmation depth, matching index/archive commitments and bounded head age/future skew. The trusted clock and admission profile are local configuration; an evidence server cannot choose them. Freshness is required when selecting current source state before payment authorization; it does not expire paid-claim rights or invalidate previously accepted checkpoints used for settlement. The resulting `VerifiedSource` has no public constructor and rechecks freshness when its checkpoint is requested.
 
 A mathematically valid historical receipt remains verifiable as historical evidence. It cannot pass current admission merely because its seal is genuine. The tests use the retained genuine source-update proof and reject it at the current date, as well as rejecting changed policy, work floor, state, checkpoint and development receipts. This does not prove that no heavier valid fork exists; source-chain hashpower, data availability and honest relaying remain assumptions.
 

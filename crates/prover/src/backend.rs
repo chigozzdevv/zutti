@@ -205,7 +205,7 @@ const HISTORY_QUERY_V1: Digest = Digest([
     0xb8, 0x09, 0x8b, 0xc4, 0x10, 0xd6, 0xa2, 0xed, 0x4a, 0xd5, 0x2a, 0xab, 0xb8, 0x4e, 0xa9, 0x0b,
 ]);
 
-fn admitted_program(kind: ProofKind, image: Digest) -> bool {
+pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
     match kind {
         ProofKind::Preparation => image == preparation_image_id() || image == PREPARATION_V1,
         ProofKind::HistoryQuery => image == query_image_id() || image == HISTORY_QUERY_V1,
@@ -240,3 +240,8 @@ const SOURCE_UPDATE_V1: Digest = Digest([
     0x6c, 0x90, 0x33, 0x60, 0x5a, 0x58, 0xfa, 0xe8, 0xcb, 0x4a, 0x1d, 0x97, 0x3e, 0x81, 0x92, 0x3f,
     0xec, 0x8d, 0xf4, 0x6b, 0x8d, 0xa5, 0xdf, 0xf8, 0x44, 0x5a, 0x69, 0xe5, 0x22, 0x85, 0x03, 0x8a,
 ]);
+
+pub(crate) fn admitted_source_pair(source: Digest, update: Digest) -> bool {
+    (source == crate::source::source_image_id() && update == crate::source::update_image_id())
+        || (source == SOURCE_V1 && update == SOURCE_UPDATE_V1)
+}
