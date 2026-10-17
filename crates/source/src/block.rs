@@ -19,6 +19,24 @@ pub struct ParsedBlock {
     versions: Vec<u32>,
     auth_root: Digest,
     branch: BranchId,
+    pool_counts: PoolTransactionCounts,
+}
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct PoolTransactionCounts {
+    pub sapling: u64,
+    pub orchard: u64,
+    pub ironwood: u64,
+}
+
+impl PoolTransactionCounts {
+    fn include(&mut self, transaction: &Transaction) {
+        self.sapling += u64::from(transaction.sapling_bundle().is_some_and(|bundle| {
+            !bundle.shielded_spends().is_empty() || !bundle.shielded_outputs().is_empty()
+        }));
+        self.orchard += u64::from(transaction.orchard_bundle().is_some());
+        self.ironwood += u64::from(transaction.ironwood_bundle().is_some());
+    }
 }
 impl ParsedBlock {
     pub fn parse<P: Parameters>(bytes: &[u8], parameters: &P) -> Result<Self> {
@@ -76,6 +94,8 @@ impl ParsedBlock {
         let mut txids = vec![Digest(*coinbase.txid().as_ref())];
         let mut versions = vec![coinbase.version().header() & 0x7fff_ffff];
         let mut auth_digests = vec![crate::auth::transaction_auth_digest(&coinbase)];
+        let mut pool_counts = PoolTransactionCounts::default();
+        pool_counts.include(&coinbase);
         // Stream transactions: an untrusted count cannot preallocate a huge Vec<Transaction>.
         for _ in 1..count {
             let tx = Transaction::read(&mut remaining, branch).map_err(|_| Error::Block)?;
@@ -91,6 +111,7 @@ impl ParsedBlock {
             txids.push(Digest(*tx.txid().as_ref()));
             versions.push(tx.version().header() & 0x7fff_ffff);
             auth_digests.push(crate::auth::transaction_auth_digest(&tx));
+            pool_counts.include(&tx);
         }
         if !remaining.is_empty() {
             return Err(Error::Block);
@@ -111,6 +132,7 @@ impl ParsedBlock {
             versions,
             auth_root: crate::auth::auth_data_root(&auth_digests)?,
             branch,
+            pool_counts,
         })
     }
     pub const fn hash(&self) -> Digest {
@@ -136,6 +158,9 @@ impl ParsedBlock {
     }
     pub const fn branch(&self) -> BranchId {
         self.branch
+    }
+    pub const fn pool_transaction_counts(&self) -> PoolTransactionCounts {
+        self.pool_counts
     }
 }
 fn merkle_root(txids: &[Digest]) -> Result<[u8; 32]> {

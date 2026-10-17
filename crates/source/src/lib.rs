@@ -4,6 +4,8 @@ pub mod auth;
 pub mod block;
 #[cfg(feature = "blocks")]
 pub mod bootstrap;
+#[cfg(feature = "blocks")]
+pub mod chain_history;
 pub mod consensus;
 #[cfg(feature = "blocks")]
 pub mod difficulty;

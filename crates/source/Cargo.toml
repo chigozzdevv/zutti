@@ -7,7 +7,7 @@ publish.workspace = true
 
 [features]
 default = ["blocks", "cli"]
-blocks = ["dep:zcash_primitives", "dep:zcash_protocol", "dep:sha2", "dep:blake2b_simd", "dep:zcash_encoding", "dep:zcash_script", "dep:num-bigint"]
+blocks = ["dep:zcash_primitives", "dep:zcash_protocol", "dep:sha2", "dep:blake2b_simd", "dep:zcash_encoding", "dep:zcash_script", "dep:num-bigint", "dep:zcash_history", "dep:primitive-types"]
 cli = ["blocks", "dep:clap", "dep:serde_json", "dep:hex"]
 
 [[bin]]
@@ -28,6 +28,8 @@ clap = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 hex = { workspace = true, optional = true }
 num-bigint = { version = "=0.4.6", optional = true }
+zcash_history = { version = "=0.5.0", optional = true }
+primitive-types = { version = "=0.12.2", default-features = false, optional = true }
 
 [dev-dependencies]
 zebra-chain = { version = "=13.0.1", default-features = false }
