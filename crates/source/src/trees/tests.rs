@@ -167,3 +167,18 @@ fn frontier_codec_rejects_wrong_shapes_noncanonical_fields_and_trailing_bytes() 
     writer.u8(0);
     assert!(decode_tree::<MerkleHashOrchard, 32>(&mut Reader::new(&writer.finish())).is_err());
 }
+
+#[test]
+fn pinned_empty_nodes_match_upstream_consensus_at_every_depth() {
+    for depth in 0..=32 {
+        let level = Level::from(depth);
+        assert_eq!(
+            SaplingHash::empty_root(level).encode_node(),
+            SaplingNode::empty_root(level).to_bytes()
+        );
+        assert_eq!(
+            OrchardHash::empty_root(level).encode_node(),
+            MerkleHashOrchard::empty_root(level).to_bytes()
+        );
+    }
+}

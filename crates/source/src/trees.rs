@@ -1,4 +1,5 @@
 use crate::chain_history::CommitmentTreeRoots;
+mod empty;
 use incrementalmerkletree::{Hashable, Level, Position, frontier::Frontier};
 use orchard::tree::MerkleHashOrchard;
 use sapling::Node as SaplingNode;
@@ -159,6 +160,38 @@ impl TreeNode for MerkleHashOrchard {
     }
 }
 
+#[derive(Debug, Clone)]
+struct CachedNode<H: TreeNode, const PROFILE: u8>(H);
+impl<H: TreeNode, const PROFILE: u8> Hashable for CachedNode<H, PROFILE> {
+    fn empty_leaf() -> Self {
+        Self(H::empty_leaf())
+    }
+    fn combine(level: Level, left: &Self, right: &Self) -> Self {
+        Self(H::combine(level, &left.0, &right.0))
+    }
+    fn empty_root(level: Level) -> Self {
+        let values = match PROFILE {
+            0 => &empty::SAPLING,
+            1 => &empty::ORCHARD,
+            _ => panic!("unsupported tree profile"),
+        };
+        match H::decode_node(values[usize::from(u8::from(level))]) {
+            Some(node) => Self(node),
+            None => panic!("invalid pinned empty tree node"),
+        }
+    }
+}
+impl<H: TreeNode, const PROFILE: u8> TreeNode for CachedNode<H, PROFILE> {
+    fn encode_node(&self) -> [u8; 32] {
+        self.0.encode_node()
+    }
+    fn decode_node(bytes: [u8; 32]) -> Option<Self> {
+        H::decode_node(bytes).map(Self)
+    }
+}
+type SaplingHash = CachedNode<SaplingNode, 0>;
+type OrchardHash = CachedNode<MerkleHashOrchard, 1>;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CommitmentTreeSizes {
     pub sprout: u64,
@@ -170,9 +203,9 @@ pub struct CommitmentTreeSizes {
 #[derive(Debug, Clone)]
 pub struct CandidateTrees {
     sprout: Frontier<SproutNode, 29>,
-    sapling: Frontier<SaplingNode, 32>,
-    orchard: Frontier<MerkleHashOrchard, 32>,
-    ironwood: Frontier<MerkleHashOrchard, 32>,
+    sapling: Frontier<SaplingHash, 32>,
+    orchard: Frontier<OrchardHash, 32>,
+    ironwood: Frontier<OrchardHash, 32>,
 }
 
 impl Default for CandidateTrees {
@@ -192,9 +225,9 @@ impl CandidateTrees {
     }
     pub fn roots(&self) -> CommitmentTreeRoots {
         CommitmentTreeRoots {
-            sapling: Digest(self.sapling.root().to_bytes()),
-            orchard: Digest(self.orchard.root().to_bytes()),
-            ironwood: Digest(self.ironwood.root().to_bytes()),
+            sapling: Digest(self.sapling.root().encode_node()),
+            orchard: Digest(self.orchard.root().encode_node()),
+            ironwood: Digest(self.ironwood.root().encode_node()),
         }
     }
     pub fn sprout_root(&self) -> Digest {
