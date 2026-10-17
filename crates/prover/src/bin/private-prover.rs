@@ -29,6 +29,17 @@ enum Command {
     Status,
     ProveQuery(ProveArgs),
     ProvePreparation(ProveArgs),
+    ProvePool(ProveArgs),
+    ExecutePool {
+        #[arg(long)]
+        witness: PathBuf,
+        #[arg(long, default_value = "r0vm")]
+        prover: PathBuf,
+    },
+    VerifyPool {
+        #[arg(long)]
+        proof: PathBuf,
+    },
     VerifyQuery {
         #[arg(long)]
         proof: PathBuf,
@@ -90,7 +101,9 @@ fn report(artifact: &ProofArtifact, kind: ProofKind) -> Result<(), Box<dyn std::
         ProofKind::Preparation => "preparation",
         ProofKind::SourceTransition => "source_transition",
         ProofKind::Source => "source_update",
-        _ => return Err("unsupported proof kind".into()),
+        ProofKind::Note => "private_note",
+        ProofKind::Reservation => "reservation",
+        ProofKind::Settlement => "settlement",
     };
     println!(
         "{}",
@@ -103,7 +116,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
         Command::Status => println!(
             "{}",
-            serde_json::json!({"history_query": "implemented", "preparation": "implemented", "proving": "local", "image_id": query_image_id().to_string(), "preparation_image_id": preparation_image_id().to_string(), "settlement_authority": false})
+            serde_json::json!({"history_query": "implemented", "preparation": "implemented", "proving": "local", "image_id": query_image_id().to_string(), "preparation_image_id": preparation_image_id().to_string(), "pool_image_id": zutti_prover::pool::pool_image_id().to_string(), "settlement_authority": false})
         ),
         Command::VerifyQuery { proof } => {
             report(&ProofArtifact::read(&proof)?, ProofKind::HistoryQuery)?
@@ -111,6 +124,26 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         Command::VerifyPreparation { proof } => {
             report(&ProofArtifact::read(&proof)?, ProofKind::Preparation)?
         }
+        Command::ExecutePool { witness, prover } => {
+            let bytes = backup::read_private(&witness, zutti_wallet::pool::MAX_POOL_WITNESS)?;
+            let witness = zutti_wallet::pool::PoolWitness::from_bytes(&bytes)?;
+            println!(
+                "{}",
+                serde_json::to_string(&LocalProver::new(prover).execute_pool(&witness)?)?
+            );
+        }
+        Command::VerifyPool { proof } => {
+            let artifact = ProofArtifact::read(&proof)?;
+            let kind = artifact.statement().kind();
+            if !matches!(
+                kind,
+                ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement
+            ) {
+                return Err("expected a pool proof".into());
+            }
+            report(&artifact, kind)?;
+        }
+        Command::ProvePool(args) => prove(args, ProofKind::Note)?,
         Command::ProveQuery(args) => prove(args, ProofKind::HistoryQuery)?,
         Command::ProvePreparation(args) => prove(args, ProofKind::Preparation)?,
         Command::ImportBoundless {
@@ -143,7 +176,21 @@ fn prove(args: ProveArgs, kind: ProofKind) -> Result<(), Box<dyn std::error::Err
     }
     if !worker {
         run_worker()?;
-        return report(&ProofArtifact::read(&out)?, kind);
+        let artifact = ProofArtifact::read(&out)?;
+        let expected = if kind == ProofKind::Note {
+            artifact.statement().kind()
+        } else {
+            kind
+        };
+        if kind == ProofKind::Note
+            && !matches!(
+                expected,
+                ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement
+            )
+        {
+            return Err("expected a pool proof".into());
+        }
+        return report(&artifact, expected);
     }
     let domain = Digest::from_hex(&domain)?;
     let key = backup::read_private(&key_file, 32)?;
@@ -175,6 +222,16 @@ fn prove(args: ProveArgs, kind: ProofKind) -> Result<(), Box<dyn std::error::Err
                 return Err("preparation witness domain mismatch".into());
             }
             prover.prove_preparation(&witness)?
+        }
+        ProofKind::Note => {
+            if plaintext.len() > zutti_wallet::pool::MAX_POOL_WITNESS {
+                return Err("pool witness exceeds its size limit".into());
+            }
+            let witness = zutti_wallet::pool::PoolWitness::from_bytes(&plaintext)?;
+            if witness.evaluate()?.domain != domain {
+                return Err("pool witness domain mismatch".into());
+            }
+            prover.prove_pool(&witness)?
         }
         _ => return Err("unsupported proof kind".into()),
     };

@@ -1,6 +1,7 @@
 pub mod artifact;
 pub mod backend;
 pub mod local;
+pub mod pool;
 pub mod preparation;
 pub mod query;
 pub mod remote;

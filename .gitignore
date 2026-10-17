@@ -16,3 +16,6 @@
 /contracts/out/
 /contracts/cache/
 .DS_Store
+
+/contracts/broadcast/
+**/__pycache__/

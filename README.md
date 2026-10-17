@@ -6,15 +6,15 @@ This repository implements Rust protocol components, native Zcash transaction va
 
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
-| `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings, operation-bound spending authorization, pool membership trees and settlement journals | Production cryptographic profile, membership/conservation proofs and circuit parameters |
+| `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings, operation-bound spending authorization, pool membership trees and settlement journals | Production profile review and circuit parameters |
 | `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted recovery archives and private-note encryption/recovery | Chain scanning, production profile admission, verified Ethereum finality and source authorization/broadcast integration |
 | `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, current-chain bootstrap evidence, deployed fork/stability admission and durable source storage |
-| `prover` | RISC Zero history-query, preparation, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, private-pool and settlement proofs |
+| `prover` | RISC Zero history-query, preparation, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, cross-chain reservation/settlement integration and independent recovery |
 | `boundless` | Capped Base proof requests, public demo transport, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
-| `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Current-chain bootstrap, pool proof programs, cryptographic settlement composition and deployment |
+| `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Current-chain bootstrap, cross-chain composition, finality and network deployment |
 | `recovery` | Local archive authentication/inspection with private key-file input | Validated swap-record restoration and independent on-chain claim/refund execution |
 
-The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source and pool evidence under its pinned programs. Current-chain source bootstrap and the pool proof guest remain unfinished.
+The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source and pool evidence under its pinned programs. Current-chain source bootstrap, cross-chain composition and verified Ethereum finality remain unfinished.
 
 ## Development
 
@@ -127,7 +127,7 @@ The archive contains canonical `PreparationWitness` bytes. The existing archive 
 
 The expensive test suite includes native/guest agreement, wrong-memo rejection and genuine preparation receipt generation. Execution alone is not proof verification. Local execution measured about 62.6 million cycles for a two-action synthetic PCZT after removal of unused input metadata. A genuine local preparation proof and its tampering checks completed in 15,753.99 seconds on this Mac. This is one synthetic workload; production proving latency is not established. History queries use a segment limit of 2^18 cycles; the heavier preparation prover uses 2^20 to reduce segment overhead without changing the statement.
 
-Guest image IDs can change when dependencies or crate layouts are rebuilt. The verifier retains the explicitly pinned first preparation and history-query images under their existing journal semantics, alongside the current component builds. A committed generated Groth16 fixture checks that the first preparation receipt still verifies; unknown programs, proof-kind substitutions and altered seals are rejected. Source-prefix and registry-update programs are implemented. Current-chain bootstrap and private-pool proof programs remain separate work.
+Guest image IDs can change when dependencies or crate layouts are rebuilt. The verifier retains the explicitly pinned first preparation and history-query images under their existing journal semantics, alongside the current component builds. A committed generated Groth16 fixture checks that the first preparation receipt still verifies; unknown programs, proof-kind substitutions and altered seals are rejected. Source-prefix and registry-update programs are implemented. Current-chain bootstrap and cross-chain reservation/settlement integration remain separate work.
 
 ## Boundless public demonstration
 
@@ -282,3 +282,21 @@ A continuation through mainnet blocks 1 to 4, including in-guest verification of
 The source registry enforces an immutable, nonzero `minimumWork` as well as increasing head work. A deployment must choose a floor appropriate to its source network before accepting liquidity. The local script uses `1` only behind a chain-31337 guard. This work floor does not replace full chain validation or assert a trusted state root. The registry compares proved histories; learning the heaviest available history still depends on permissionless relayers, data availability and the source chain's hash-power assumptions. A reorganization past the accepted stable prefix halts incompatible updates.
 
 `source-update-proof.json` is genuine public registry-update evidence for the early mainnet prefix. The default Solidity test verifies it with the upstream Groth16 verifier and checks changed state, altered seal, replay and bootstrap-floor rejection. This fixture is not a current-chain bootstrap.
+
+## Private pool proof execution
+
+The separate pool guest checks canonical private notes, owner signatures, Merkle membership, secret-derived nullifiers, value conservation and output encryption. Its uniform journal also supports conditional reservations and settlement predicates. The contract separately requires the prepared-payment proof and an accepted source checkpoint for cross-chain operations. A note proof alone cannot authorize ZEC payment.
+
+Genuine public demonstration receipts cover deposit, transfer and withdrawal. The default Rust and Solidity tests verify those receipts, altered-seal rejection, proof-kind binding and replay protection. `PoolLifecycleTest` deploys the actual Groth16 verifier and executes the three operations with a local demonstration token; it does not use a proof mock. The deterministic note keys are intentionally public demonstration data.
+
+The same cycle was broadcast to a fresh Anvil chain. It deposited 200 local demo USDC, transferred private notes, withdrew 100, retained 100 in token backing and rejected every replay. `scripts/execute-local-pool.py` reproduces execution from retained job data and refuses non-loopback RPCs or chain IDs other than 31337. `contracts/script/LocalPool.s.sol` and the public note generator have the same local-chain restriction. They do not deploy or fund a live-network pool.
+
+| Operation | Measured guest cycles |
+| --- | ---: |
+| Deposit | 4,696,038 |
+| Private transfer | 15,690,710 |
+| Withdrawal | 11,014,191 |
+
+`private-prover prove-pool` accepts the encrypted archive/key-file transport used by the other private component provers. `execute-pool` measures a locally supplied owner-only witness, and `verify-pool` verifies an existing artifact. The public generator only creates deterministic local-chain demo witnesses. Real private swap witnesses remain excluded from the public Boundless transport.
+
+These checks establish the private-note execution path. They do not demonstrate a mined Ironwood swap payment, destination finality, full current-chain source bootstrap or independent swap recovery.

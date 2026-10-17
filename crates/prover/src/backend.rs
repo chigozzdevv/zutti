@@ -2,7 +2,7 @@ use crate::preparation::preparation_image_id;
 use crate::query::query_image_id;
 use bincode::Options;
 use risc0_zkvm::{InnerReceipt, Receipt, VerifierContext};
-use zutti_protocol::pool::SourceUpdateClaim;
+use zutti_protocol::pool::{PoolClaim, SourceUpdateClaim};
 use zutti_protocol::{
     Digest,
     encoding::{Canonical, Reader, Writer},
@@ -156,6 +156,18 @@ impl ProofVerifier {
                 SourceUpdateClaim::from_bytes(expected.payload())?.policy,
                 risc0_zkvm::sha::Digest::from(expected.program().0),
             ),
+            ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement
+                if admitted_program(expected.kind(), expected.program()) =>
+            {
+                let claim = PoolClaim::from_bytes(expected.payload())?;
+                if crate::pool::proof_kind(claim.kind) != expected.kind() {
+                    return Err(Error::Binding);
+                }
+                (
+                    claim.domain,
+                    risc0_zkvm::sha::Digest::from(expected.program().0),
+                )
+            }
             _ => return Err(Error::BackendUnavailable),
         };
         if domain != expected.domain() {
@@ -199,7 +211,9 @@ fn admitted_program(kind: ProofKind, image: Digest) -> bool {
             image == crate::source::source_image_id() || image == SOURCE_V1
         }
         ProofKind::Source => image == crate::source::update_image_id(),
-        _ => false,
+        ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement => {
+            image == crate::pool::pool_image_id() || image == POOL_V1
+        }
     }
 }
 
@@ -213,4 +227,9 @@ pub(crate) fn receipt_codec() -> impl Options {
 const SOURCE_V1: Digest = Digest([
     0xc5, 0xa1, 0xd8, 0x68, 0xe1, 0x76, 0x64, 0x79, 0x66, 0xce, 0x6e, 0x72, 0x88, 0x60, 0xc9, 0x22,
     0x5c, 0x99, 0xe0, 0x5a, 0x0d, 0x88, 0x80, 0xa4, 0x74, 0xe1, 0xae, 0xeb, 0x65, 0x2e, 0xc6, 0x69,
+]);
+
+const POOL_V1: Digest = Digest([
+    0x33, 0xe5, 0xd5, 0x57, 0xb9, 0xab, 0x66, 0x53, 0x70, 0x85, 0x93, 0x81, 0xd0, 0x80, 0x85, 0xe5,
+    0xdb, 0xb7, 0x90, 0xef, 0xd8, 0x1b, 0x22, 0x04, 0x9e, 0x57, 0x38, 0xe0, 0x36, 0xc4, 0xb6, 0x02,
 ]);

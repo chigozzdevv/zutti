@@ -61,3 +61,12 @@ impl LocalProver {
         Ok((statement, envelope))
     }
 }
+
+#[derive(Debug, serde::Serialize)]
+pub struct ExecutionMetrics {
+    pub cycles: u64,
+    pub segments: usize,
+    pub seconds: f64,
+    pub journal_matches: bool,
+    pub proof_generated: bool,
+}

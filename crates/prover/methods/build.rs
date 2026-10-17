@@ -16,6 +16,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "source/Cargo.lock",
         "source/src",
         "source/vendor",
+        "pool/Cargo.toml",
+        "pool/Cargo.lock",
+        "pool/src",
     ] {
         println!("cargo:rerun-if-changed={path}");
     }
@@ -59,6 +62,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !status.success() {
         return Err("source proof guest compilation failed".into());
     }
+    let pool_target = risc0_build::get_target_dir(manifest.join("../../../Cargo.toml"))
+        .join("riscv-guest/zutti-pool");
+    let status = risc0_build::cargo_command("build", &[])
+        .env_remove("RUSTC_WORKSPACE_WRAPPER")
+        .env_remove("RUSTC_WRAPPER")
+        .arg("--locked")
+        .arg("--manifest-path")
+        .arg(manifest.join("pool/Cargo.toml"))
+        .arg("--target-dir")
+        .arg(&pool_target)
+        .arg("--release")
+        .status()?;
+    if !status.success() {
+        return Err("pool proof guest compilation failed".into());
+    }
     let kernel = risc0_build::GuestOptions::default().kernel();
     let mut methods = String::new();
     for (name, constant) in [
@@ -66,9 +84,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ("preparation", "PREPARATION"),
         ("source", "SOURCE"),
         ("source_update", "SOURCE_UPDATE"),
+        ("pool", "POOL"),
     ] {
         let directory = if name.starts_with("source") {
             &source_target
+        } else if name == "pool" {
+            &pool_target
         } else {
             &target
         };

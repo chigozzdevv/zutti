@@ -222,19 +222,11 @@ fn framed(value: &impl Canonical) -> Result<Zeroizing<Vec<u8>>, Error> {
     Ok(framed)
 }
 
-#[derive(Debug, serde::Serialize)]
-pub struct SourceExecution {
-    pub cycles: u64,
-    pub segments: usize,
-    pub seconds: f64,
-    pub journal_matches: bool,
-    pub proof_generated: bool,
-}
 impl LocalProver {
     pub fn execute_source(
         &self,
         job: &SourceJob,
-    ) -> Result<SourceExecution, Box<dyn std::error::Error>> {
+    ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
         let env = ExecutorEnv::builder()
             .write_slice(job.stdin.as_slice())
             .session_limit(Some(2_147_483_648))
@@ -246,7 +238,7 @@ impl LocalProver {
         if session.journal.bytes != job.statement.payload() {
             return Err(Error::Journal.into());
         }
-        Ok(SourceExecution {
+        Ok(crate::local::ExecutionMetrics {
             cycles: session.cycles(),
             segments: session.segments.len(),
             seconds: started.elapsed().as_secs_f64(),
