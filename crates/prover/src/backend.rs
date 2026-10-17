@@ -131,13 +131,13 @@ impl ProofVerifier {
     ) -> Result<VerifiedProof, Error> {
         envelope.check_binding(expected)?;
         let (domain, image) = match expected.kind() {
-            ProofKind::HistoryQuery if expected.program() == query_image_id() => (
+            ProofKind::HistoryQuery if admitted_program(expected.kind(), expected.program()) => (
                 QueryClaim::from_bytes(expected.payload())?.domain(),
-                zutti_methods::HISTORY_QUERY_ID,
+                risc0_zkvm::sha::Digest::from(expected.program().0),
             ),
-            ProofKind::Preparation if expected.program() == preparation_image_id() => (
+            ProofKind::Preparation if admitted_program(expected.kind(), expected.program()) => (
                 PreparationClaim::from_bytes(expected.payload())?.domain(),
-                zutti_methods::PREPARATION_ID,
+                risc0_zkvm::sha::Digest::from(expected.program().0),
             ),
             _ => return Err(Error::BackendUnavailable),
         };
@@ -162,6 +162,23 @@ impl ProofVerifier {
             statement: expected.digest()?,
             kind: expected.kind(),
         })
+    }
+}
+
+const PREPARATION_V1: Digest = Digest([
+    0xf9, 0x7a, 0xeb, 0x93, 0xb4, 0x06, 0x64, 0x60, 0xd3, 0x72, 0xb4, 0x33, 0xa8, 0x9b, 0xd0, 0x7d,
+    0x6b, 0xe3, 0x09, 0x34, 0xa5, 0x5f, 0xa5, 0xde, 0x6a, 0x5e, 0x4c, 0x42, 0x1d, 0x9b, 0x39, 0x16,
+]);
+const HISTORY_QUERY_V1: Digest = Digest([
+    0x81, 0xc2, 0x5a, 0x3f, 0x06, 0x8f, 0x64, 0xe4, 0x36, 0x64, 0x44, 0x56, 0xf6, 0xf4, 0xd3, 0x05,
+    0xb8, 0x09, 0x8b, 0xc4, 0x10, 0xd6, 0xa2, 0xed, 0x4a, 0xd5, 0x2a, 0xab, 0xb8, 0x4e, 0xa9, 0x0b,
+]);
+
+fn admitted_program(kind: ProofKind, image: Digest) -> bool {
+    match kind {
+        ProofKind::Preparation => image == preparation_image_id() || image == PREPARATION_V1,
+        ProofKind::HistoryQuery => image == query_image_id() || image == HISTORY_QUERY_V1,
+        _ => false,
     }
 }
 
