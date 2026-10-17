@@ -1,0 +1,36 @@
+[package]
+name = "zutti-source"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[features]
+default = ["blocks", "cli"]
+blocks = ["dep:zcash_primitives", "dep:zcash_protocol", "dep:sha2", "dep:blake2b_simd", "dep:zcash_encoding", "dep:zcash_script", "dep:num-bigint"]
+cli = ["blocks", "dep:clap", "dep:serde_json", "dep:hex"]
+
+[[bin]]
+name = "zutti-source"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[dependencies]
+zutti-protocol.workspace = true
+thiserror.workspace = true
+zcash_primitives = { workspace = true, optional = true }
+zcash_protocol = { workspace = true, optional = true }
+sha2 = { workspace = true, optional = true }
+blake2b_simd = { version = "=1.0.5", optional = true }
+zcash_encoding = { workspace = true, optional = true }
+zcash_script = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+hex = { workspace = true, optional = true }
+num-bigint = { version = "=0.4.6", optional = true }
+
+[dev-dependencies]
+zebra-chain = { version = "=13.0.1", default-features = false }
+
+[lints]
+workspace = true
