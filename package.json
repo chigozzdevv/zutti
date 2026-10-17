@@ -1,0 +1,25 @@
+{
+  "name": "zutti",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.3.4",
+  "engines": {
+    "node": "^22.13.0 || >=24.0.0"
+  },
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "build": "bash scripts/build.sh",
+    "lint": "bash scripts/lint.sh",
+    "typecheck": "bash scripts/typecheck.sh",
+    "test": "bash scripts/test.sh",
+    "test:proofs": "bash scripts/test-proofs.sh",
+    "boundless": "bash scripts/boundless.sh",
+    "test:boundless": "bash scripts/test-boundless.sh"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.0.1",
+    "prettier": "3.9.10"
+  }
+}

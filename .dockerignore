@@ -1,0 +1,8 @@
+.git
+target
+node_modules
+.data
+.cache
+.env
+.env.local
+*.backup
