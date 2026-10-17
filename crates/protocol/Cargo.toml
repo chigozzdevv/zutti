@@ -1,0 +1,28 @@
+[package]
+name = "zutti-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[features]
+default = ["entropy"]
+entropy = ["dep:getrandom"]
+notes = ["dep:k256"]
+
+[dependencies]
+sha2.workspace = true
+zeroize.workspace = true
+getrandom = { workspace = true, optional = true }
+thiserror.workspace = true
+hex.workspace = true
+k256 = { version = "=0.13.4", default-features = false, features = ["ecdsa", "std"], optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true
+
+[target.'cfg(target_os = "zkvm")'.dependencies]
+risc0-zkvm.workspace = true
+
+[lints]
+workspace = true
