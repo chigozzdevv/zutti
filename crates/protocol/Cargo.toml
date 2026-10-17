@@ -6,7 +6,8 @@ rust-version.workspace = true
 publish.workspace = true
 
 [features]
-default = ["entropy"]
+default = ["entropy", "pool"]
+pool = []
 entropy = ["dep:getrandom"]
 notes = ["dep:k256"]
 

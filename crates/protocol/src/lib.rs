@@ -7,6 +7,8 @@ pub mod escrow;
 pub mod note;
 pub mod order;
 pub mod policy;
+#[cfg(feature = "pool")]
+pub mod pool;
 #[cfg(feature = "notes")]
 pub mod private_note;
 pub mod statement;
