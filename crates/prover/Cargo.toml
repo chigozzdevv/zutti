@@ -1,0 +1,32 @@
+[package]
+name = "zutti-prover"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+zutti-protocol.workspace = true
+zutti-source = { workspace = true, default-features = false }
+zutti-methods = { path = "methods" }
+zutti-wallet.workspace = true
+thiserror.workspace = true
+risc0-zkvm = { workspace = true, features = ["client"] }
+bincode.workspace = true
+zeroize.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+zutti-source = { workspace = true, features = ["blocks"] }
+pczt = { workspace = true, features = ["signer"] }
+zcash_protocol = { workspace = true, features = ["local-consensus"] }
+zcash_primitives.workspace = true
+orchard.workspace = true
+rand_core = { version = "=0.6.4", features = ["getrandom"] }
+incrementalmerkletree = "=0.8.2"
+
+[lints]
+workspace = true

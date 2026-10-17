@@ -1,0 +1,16 @@
+[package]
+name = "zutti-methods"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[build-dependencies]
+risc0-build.workspace = true
+risc0-binfmt.workspace = true
+
+[package.metadata.risc0]
+methods = ["guest"]
+
+[lints]
+workspace = true
