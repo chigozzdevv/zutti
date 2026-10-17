@@ -27,6 +27,8 @@ pub enum Error {
     DevelopmentReceipt,
     #[error("receipt journal does not match the expected claim")]
     Journal,
+    #[error("source evidence is stale or too far in the future")]
+    StaleSource,
     #[error("local proof generation failed")]
     Proving,
     #[error("private proof witness is invalid")]

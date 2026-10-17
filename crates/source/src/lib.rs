@@ -54,7 +54,7 @@ pub enum Error {
     Transactions,
     #[error("history path does not match its context and root")]
     Path,
-    #[error("source consensus verifier and genesis bootstrap are not implemented")]
+    #[error("history root lacks admitted consensus evidence")]
     ConsensusUnavailable,
     #[error("history cannot be used with this payment window")]
     Window,

@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use zcash_protocol::consensus::{MAIN_NETWORK, NetworkType, TEST_NETWORK};
 use zutti_protocol::{encoding::Canonical, pool::SourceUpdateClaim, statement::ProofKind};
 use zutti_prover::{
+    admission::SourceAdmission,
     artifact::ProofArtifact,
     local::LocalProver,
     source::{SourceJob, policy, source_image_id, update_image_id},
@@ -13,6 +14,7 @@ use zutti_source::{
     checkpoint::SourceCheckpoint,
     proof::{SourceInput, SourceReceiptClaim, SourceWitness},
     state::SourceCandidate,
+    transition::StateSnapshot,
     update::{PreviousUpdate, SourceUpdateWitness},
 };
 
@@ -117,6 +119,16 @@ enum Command {
     Verify {
         #[arg(long)]
         proof: PathBuf,
+    },
+    Admit {
+        #[arg(long)]
+        profile: PathBuf,
+        #[arg(long)]
+        proof: PathBuf,
+        #[arg(long)]
+        state: PathBuf,
+        #[arg(long)]
+        checkpoint: PathBuf,
     },
 }
 fn block_bytes(path: &Path) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
@@ -246,6 +258,10 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 &out.join("checkpoint.bin"),
                 &checkpoint.to_bytes()?,
             )?;
+            zutti_wallet::backup::persist_new(
+                &out.join("state.bin"),
+                &source.state_snapshot()?.to_bytes()?,
+            )?;
             println!(
                 "{}",
                 serde_json::json!({"job":out,"checkpoint":checkpoint.id()?.to_string(),"stable_height":checkpoint.stable.height,"proof_generated":false})
@@ -266,6 +282,31 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 serde_json::json!({"proof":out,"proof_verified":true,"swap_executed":false})
             );
         }
+        Command::Admit {
+            profile,
+            proof,
+            state,
+            checkpoint,
+        } => {
+            let profile =
+                SourceAdmission::from_bytes(&zutti_wallet::backup::read_private(&profile, 4_096)?)?;
+            let state =
+                StateSnapshot::from_bytes(&zutti_wallet::backup::read_private(&state, 1_048_576)?)?;
+            let checkpoint = SourceCheckpoint::from_bytes(&zutti_wallet::backup::read_private(
+                &checkpoint,
+                65_536,
+            )?)?;
+            let proof = ProofArtifact::read(&proof)?;
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)?
+                .as_secs();
+            let verified = profile.verify(&proof, &state, checkpoint, now)?;
+            let checkpoint = verified.checkpoint(now)?;
+            println!(
+                "{}",
+                serde_json::json!({"source_admitted":true,"height":verified.height(),"stable_height":checkpoint.stable.height,"timestamp":verified.timestamp(),"checkpoint":checkpoint.id()?.to_string(),"swap_executed":false})
+            );
+        }
         Command::Verify { proof } => {
             let artifact = ProofArtifact::read(&proof)?;
             if !matches!(
@@ -277,7 +318,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             artifact.verify(artifact.statement())?;
             println!(
                 "{}",
-                serde_json::json!({"proof_verified":true,"program":artifact.statement().program().to_string(),"policy":artifact.statement().domain().to_string(),"swap_executed":false})
+                serde_json::json!({"proof_verified":true,"program":artifact.statement().program().to_string(),"policy":artifact.statement().domain().to_string(),"current_chain_admitted":false,"swap_executed":false})
             );
         }
     }

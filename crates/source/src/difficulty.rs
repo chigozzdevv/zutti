@@ -104,6 +104,9 @@ impl HeaderCandidate {
         encoded[32 - bytes.len()..].copy_from_slice(&bytes);
         Ok(encoded)
     }
+    pub fn timestamp(&self) -> Result<u32> {
+        Ok(self.headers.back().ok_or(Error::Genesis)?.time)
+    }
     pub fn height(&self) -> Result<u32> {
         Ok(self.headers.back().ok_or(Error::Genesis)?.height)
     }

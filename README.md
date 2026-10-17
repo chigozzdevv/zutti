@@ -57,7 +57,7 @@ cargo run --locked -p zutti-recovery -- inspect \
   --domain DEPLOYMENT_DOMAIN_HEX
 ```
 
-The key file contains exactly 32 raw bytes, independently generated for recovery encryption. Archive and key files must be regular, owner-only files within trusted parent directories. Secret key bytes are never command-line arguments. Inspection prints authentication status and payload size, not plaintext or transaction IDs. It does not validate an economic claim. `claim`, `refund` and `source-prover` return a nonzero unavailable result. The private prover implements the history-query and payment-effects preparation components described below; neither authorizes settlement.
+The key file contains exactly 32 raw bytes, independently generated for recovery encryption. Archive and key files must be regular, owner-only files within trusted parent directories. Secret key bytes are never command-line arguments. Inspection prints authentication status and payload size, not plaintext or transaction IDs. It does not validate an economic claim. `claim` and `refund` return a nonzero unavailable result. `source-prover` implements prefix proving, registry updates and profile-bound source admission. The private prover implements the history-query and payment-effects preparation components described below; neither authorizes settlement.
 
 ## Authenticated source storage
 
@@ -200,9 +200,25 @@ cargo run --locked -p zutti-source -- replay \
   --rules 0101010101010101010101010101010101010101010101010101010101010101
 ```
 
-The rules value is an example index-context identifier, not an admitted consensus profile. Repeat `--block` in consecutive chain order for a longer supplied prefix. The command reports computed public roots and work, rejects skipped ancestry and keeps `consensus_verified` and `settlement_authority` false. Native transaction/spend/monetary checks are connected to replay. Accepted source verification still requires a complete consensus-rule audit, authenticated state witnesses, recursive genesis proofs and the admitted fork/stability policy.
+The rules value is an example index-context identifier, not an admitted consensus profile. Repeat `--block` in consecutive chain order for a longer supplied prefix. The command reports computed public roots and work, rejects skipped ancestry and keeps `consensus_verified` and `settlement_authority` false. Native transaction/spend/monetary checks are connected to replay. Authenticated state witnesses and recursive prefix proofs are implemented. Current-chain use still requires a complete consensus-rule audit, current bootstrap evidence and the intended fork/stability profile.
 
-Zebra's standard router retains mandatory historical checkpoint validation even with `checkpoint_sync = false`; this configuration cannot satisfy Zutti's full-prefix requirement. The relevant behavior was checked in `zebra-consensus` 16.0.0, `config.rs` and `router::init_checkpoint_list`. Zutti uses no checkpoint shortcut as verified history. The native verifier includes historical PHGR and Sprout Groth16 verification rather than delegating those transactions to a checkpoint. Recursive prefix proving and authenticated state admission remain necessary.
+Zebra's standard router retains mandatory historical checkpoint validation even with `checkpoint_sync = false`; this configuration cannot satisfy Zutti's full-prefix requirement. The relevant behavior was checked in `zebra-consensus` 16.0.0, `config.rs` and `router::init_checkpoint_list`. Zutti uses no checkpoint shortcut as verified history. The native verifier includes historical PHGR and Sprout Groth16 verification rather than delegating those transactions to a checkpoint. The recursive source guest verifies that complete prefix and its authenticated state transitions. The historical demonstration does not establish the current chain.
+
+## Source admission
+
+`SourceAdmission` verifies a genuine registry-update receipt under the expected source policy and registry program, then binds the canonical source state and stable checkpoint to that receipt. It checks minimum cumulative work, minimum head height, the exact confirmation depth, matching index/archive commitments and bounded head age/future skew. The trusted clock and admission profile are local configuration; an evidence server cannot choose them. The resulting `VerifiedSource` has no public constructor and rechecks freshness when its checkpoint is requested.
+
+A mathematically valid historical receipt remains verifiable as historical evidence. It cannot pass current admission merely because its seal is genuine. The tests use the retained genuine source-update proof and reject it at the current date, as well as rejecting changed policy, work floor, state, checkpoint and development receipts. This does not prove that no heavier valid fork exists; source-chain hashpower, data availability and honest relaying remain assumptions.
+
+```sh
+cargo run --locked -p zutti-prover --bin source-prover -- admit \
+  --profile /absolute/path/source-admission.bin \
+  --proof /absolute/path/source-update.proof \
+  --state /absolute/path/state.bin \
+  --checkpoint /absolute/path/checkpoint.bin
+```
+
+The profile is the canonical `SourceAdmission` encoding created from reviewed deployment parameters. `source-prover update` exports `state.bin` and `checkpoint.bin` alongside the job. This command uses the system clock and has no option to pretend an old block is current. A live deployment profile and current bootstrap have not been established.
 
 ## Native transaction validation
 

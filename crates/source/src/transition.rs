@@ -37,6 +37,9 @@ impl StateSnapshot {
     pub fn height(&self) -> crate::Result<u32> {
         self.headers.height()
     }
+    pub fn timestamp(&self) -> crate::Result<u32> {
+        self.headers.timestamp()
+    }
     pub fn tip(&self) -> crate::Result<Digest> {
         self.headers.tip()
     }
