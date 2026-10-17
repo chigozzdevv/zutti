@@ -86,6 +86,22 @@ trait TreeNode: Hashable + Clone {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct SproutNode([u8; 32]);
 
+#[derive(Debug, Clone)]
+pub(crate) struct SproutFrontier(Frontier<SproutNode, 29>);
+impl SproutFrontier {
+    pub(crate) fn root(&self) -> Digest {
+        Digest(self.0.root().0)
+    }
+    pub(crate) fn extend(&mut self, commitments: &[[u8; 32]]) -> Result<()> {
+        for cm in commitments {
+            if !self.0.append(SproutNode(*cm)) {
+                return Err(Error::Full);
+            }
+        }
+        Ok(())
+    }
+}
+
 impl Hashable for SproutNode {
     fn empty_leaf() -> Self {
         Self([0; 32])
@@ -162,6 +178,9 @@ impl Default for CandidateTrees {
 }
 
 impl CandidateTrees {
+    pub(crate) fn sprout_frontier(&self) -> SproutFrontier {
+        SproutFrontier(self.sprout.clone())
+    }
     pub fn roots(&self) -> CommitmentTreeRoots {
         CommitmentTreeRoots {
             sapling: Digest(self.sapling.root().to_bytes()),

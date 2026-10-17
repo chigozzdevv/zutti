@@ -51,6 +51,12 @@ pub enum TransitionError {
     History(#[from] crate::chain_history::Error),
     #[error(transparent)]
     Trees(#[from] crate::trees::Error),
+    #[error(transparent)]
+    Transaction(#[from] crate::transaction::Error),
+    #[error(transparent)]
+    Spends(#[from] crate::spends::Error),
+    #[error(transparent)]
+    Subsidy(#[from] crate::subsidy::Error),
     #[error("source prefix has not reached the configured index start")]
     IndexUnavailable,
     #[error("block does not commit to the computed Sapling tree root")]
@@ -63,6 +69,9 @@ pub struct SourceCandidate {
     trees: CandidateTrees,
     history: CandidateHistory,
     index: CandidateIndex,
+    ledger: crate::transaction::CandidateLedger,
+    spends: crate::spends::CandidateSpends,
+    monetary: crate::subsidy::MonetaryState,
 }
 
 impl SourceCandidate {
@@ -77,13 +86,20 @@ impl SourceCandidate {
             trees: CandidateTrees::default(),
             history: CandidateHistory::from_genesis(genesis),
             index: CandidateIndex::new(context),
+            ledger: crate::transaction::CandidateLedger::default(),
+            spends: crate::spends::CandidateSpends::default(),
+            monetary: crate::subsidy::MonetaryState::new(genesis.network())?,
         })
     }
     pub fn append(&mut self, block: &ParsedBlock) -> core::result::Result<(), TransitionError> {
         let mut headers = self.headers.clone();
         headers.append(block)?;
+        let mut ledger = self.ledger.clone();
+        let value = ledger.append(block)?;
+        let monetary = self.monetary.transition(block, value)?;
         let mut trees = self.trees.clone();
         trees.append(block.commitment_updates())?;
+        let spends = self.spends.transition(block, &trees)?;
         let roots = trees.roots();
         if matches!(block.branch(), BranchId::Sapling | BranchId::Blossom)
             && roots.sapling.0 != block.header().final_sapling_root
@@ -99,6 +115,9 @@ impl SourceCandidate {
         self.headers = headers;
         self.trees = trees;
         self.history = history;
+        self.ledger = ledger;
+        self.spends = spends;
+        self.monetary = monetary;
         Ok(())
     }
     pub fn height(&self) -> Result<u32> {
@@ -115,6 +134,15 @@ impl SourceCandidate {
     }
     pub fn sprout_root(&self) -> Digest {
         self.trees.sprout_root()
+    }
+    pub fn ledger(&self) -> &crate::transaction::CandidateLedger {
+        &self.ledger
+    }
+    pub fn spends(&self) -> &crate::spends::CandidateSpends {
+        &self.spends
+    }
+    pub fn monetary(&self) -> &crate::subsidy::MonetaryState {
+        &self.monetary
     }
     pub fn history_root(&self) -> core::result::Result<Option<Digest>, TransitionError> {
         Ok(self.history.root()?)

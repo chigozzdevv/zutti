@@ -1,0 +1,35 @@
+{
+  "license": "MIT OR Apache-2.0",
+  "files": [
+    {
+      "file": "sapling-spend.vk",
+      "source": "https://download.z.cash/downloads/sapling-spend.params",
+      "source_blake2b_512": "8270785a1a0d0bc77196f000ee6d221c9c9894f55307bd9357c3f0105d31ca63991ab91324160d8f53e2bbd3c2633a6eb8bdf5205d822e7f3f73edac51b2b70c",
+      "source_bytes": 47958396,
+      "bytes": 1636,
+      "sha256": "e0e847a3937ce78989e3416e908439a1d853287863645095d5e2bbadeeec9869"
+    },
+    {
+      "file": "sapling-output.vk",
+      "source": "https://download.z.cash/downloads/sapling-output.params",
+      "source_blake2b_512": "657e3d38dbb5cb5e7dd2970e8b03d69b4787dd907285b5a7f0790dcc8072f60bf593b32cc2d1c030e00ff5ae64bf84c5c3beb84ddc841d48264b4a171744d028",
+      "source_bytes": 3592860,
+      "bytes": 1444,
+      "sha256": "d7a655f6f58745f17bf5344682d25d15967e39b575d072335e14ace0a871bd0c"
+    },
+    {
+      "file": "sprout-groth16.vk",
+      "source": "zebra-consensus 16.0.0/src/primitives/groth16/sprout-groth16.vk",
+      "bytes": 1828,
+      "sha256": "4f8894d5456596e912d8a55c138c155f338131ea4ec747847b5dd6dba5efabdc"
+    },
+    {
+      "file": "sprout-phgr.vk",
+      "source": "https://download.z.cash/downloads/sprout-verifying.key",
+      "source_sha256": "4bd498dae0aacfd8e98dc306338d017d9c08dd0918ead18172bd0aec2fc5df82",
+      "conversion": "libsnark uncompressed Montgomery little endian coordinates to canonical big endian affine coordinates; IC indices 0 through 8",
+      "sha256": "6503093db9803a076cba48a068c6adb3eb2c4b3e964951127ed020d0197bf562",
+      "bytes": 1418
+    }
+  ]
+}

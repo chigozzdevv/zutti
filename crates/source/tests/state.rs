@@ -17,6 +17,20 @@ fn genesis() -> GenesisBlock {
     .unwrap()
 }
 
+#[test]
+fn source_replays_the_first_ten_real_mainnet_blocks_with_spend_and_subsidy_checks() {
+    let mut source = SourceCandidate::from_genesis(&genesis(), Digest([1; 32]), 0).unwrap();
+    for height in 1..=10 {
+        let block = ParsedBlock::parse(zebra_test::vectors::MAINNET_BLOCKS[&height], &MAIN_NETWORK)
+            .unwrap();
+        source.append(&block).unwrap();
+        assert_eq!(source.height().unwrap(), height);
+        assert_eq!(source.index_snapshot().unwrap().height, height);
+    }
+    assert!(source.monetary().issued() > 0);
+    assert_eq!(source.spends().balances(), [0; 4]);
+}
+
 fn first_bytes() -> Vec<u8> {
     hex::decode(include_str!("../../../tests/fixtures/block-1.txt").trim()).unwrap()
 }

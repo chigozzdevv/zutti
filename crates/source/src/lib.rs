@@ -1,6 +1,8 @@
 #[cfg(feature = "blocks")]
 pub mod auth;
 #[cfg(feature = "blocks")]
+pub mod authorization;
+#[cfg(feature = "blocks")]
 pub mod block;
 #[cfg(feature = "blocks")]
 pub mod bootstrap;
@@ -11,9 +13,17 @@ pub mod consensus;
 pub mod difficulty;
 pub mod history;
 pub mod index;
+#[cfg(feature = "blocks")]
+mod phgr;
 pub mod query;
 #[cfg(feature = "blocks")]
+pub mod spends;
+#[cfg(feature = "blocks")]
 pub mod state;
+#[cfg(feature = "blocks")]
+pub mod subsidy;
+#[cfg(feature = "blocks")]
+pub mod transaction;
 #[cfg(feature = "blocks")]
 pub mod trees;
 #[cfg(feature = "blocks")]

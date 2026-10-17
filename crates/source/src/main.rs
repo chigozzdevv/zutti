@@ -48,7 +48,7 @@ fn network_type(network: Network) -> NetworkType {
 fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
         Command::Status => println!(
-            "candidate_index=implemented block_parser=implemented equihash=implemented genesis_identity=implemented chain_history=implemented commitment_trees=implemented candidate_replay=implemented consensus_verifier=unavailable genesis_bootstrap=unavailable"
+            "candidate_index=implemented block_parser=implemented equihash=implemented genesis_identity=implemented chain_history=implemented commitment_trees=implemented transaction_authorization=implemented transparent_state=implemented shielded_spends=implemented monetary_rules=implemented candidate_replay=implemented consensus_verifier=unavailable genesis_bootstrap=unavailable"
         ),
         Command::Inspect {
             network,
@@ -91,6 +91,11 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                     "sapling_root_internal_hex":roots.sapling.to_string(),
                     "orchard_root_internal_hex":roots.orchard.to_string(),
                     "ironwood_root_internal_hex":roots.ironwood.to_string(),
+                    "transparent_unspent_outputs":source.ledger().len(),
+                    "shielded_nullifier_counts":source.spends().nullifier_counts(),
+                    "shielded_pool_balances_zat":source.spends().balances(),
+                    "deferred_pool_balance_zat":source.monetary().deferred(),
+                    "issued_value_zat":source.monetary().issued(),
                     "chain_history_root_internal_hex":source.history_root()?.map(|r|r.to_string()),
                     "index_ready":index.is_some(), "index_height":index.map(|s|s.height),
                     "index_root":index.map(|s|s.root.to_string()), "processed_blocks":blocks.len()+1,

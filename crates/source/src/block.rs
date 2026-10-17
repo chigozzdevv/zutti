@@ -22,6 +22,7 @@ pub struct ParsedBlock {
     branch: BranchId,
     pool_counts: PoolTransactionCounts,
     commitments: CommitmentUpdates,
+    transactions: Vec<Transaction>,
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -58,11 +59,15 @@ impl ParsedBlock {
         }
         let mut remaining = bytes;
         let header = BlockHeader::read(&mut remaining).map_err(|_| Error::Block)?;
+        if header.version < 4 {
+            return Err(Error::Block);
+        }
         let parsed_count: usize = CompactSize::read_t(&mut remaining).map_err(|_| Error::Block)?;
         if count != parsed_count {
             return Err(Error::Block);
         }
-        let coinbase =
+        let coinbase_start = remaining;
+        let mut coinbase =
             Transaction::read(&mut remaining, BranchId::Sprout).map_err(|_| Error::Block)?;
         let transparent = coinbase
             .transparent_bundle()
@@ -87,7 +92,23 @@ impl ParsedBlock {
                 _ => return Err(Error::Block),
             }
         };
+        if u32::from(claimed_height) != 0 {
+            let prefix = zcash_script::script::Code::serialize(&[Opcode::PushValue(
+                zcash_script::pattern::push_num(i64::from(u32::from(claimed_height))),
+            )]);
+            if !script.0.0.starts_with(&prefix) {
+                return Err(Error::Block);
+            }
+        }
         let branch = BranchId::for_height(parameters, claimed_height);
+        if coinbase.version().header() & 0x7fff_ffff < 5 && coinbase.consensus_branch_id() != branch
+        {
+            let mut input = coinbase_start;
+            coinbase = Transaction::read(&mut input, branch).map_err(|_| Error::Block)?;
+            if input.len() != remaining.len() {
+                return Err(Error::Block);
+            }
+        }
         if coinbase.version().header() & 0x7fff_ffff >= 5
             && coinbase.consensus_branch_id() != branch
         {
@@ -100,6 +121,7 @@ impl ParsedBlock {
         pool_counts.include(&coinbase);
         let mut commitments = CommitmentUpdates::default();
         commitments.include(&coinbase);
+        let mut transactions = vec![coinbase];
         // Stream transactions: an untrusted count cannot preallocate a huge Vec<Transaction>.
         for _ in 1..count {
             let tx = Transaction::read(&mut remaining, branch).map_err(|_| Error::Block)?;
@@ -117,6 +139,7 @@ impl ParsedBlock {
             auth_digests.push(crate::auth::transaction_auth_digest(&tx));
             pool_counts.include(&tx);
             commitments.include(&tx);
+            transactions.push(tx);
         }
         if !remaining.is_empty() {
             return Err(Error::Block);
@@ -139,6 +162,7 @@ impl ParsedBlock {
             branch,
             pool_counts,
             commitments,
+            transactions,
         })
     }
     pub const fn hash(&self) -> Digest {
@@ -170,6 +194,9 @@ impl ParsedBlock {
     }
     pub fn commitment_updates(&self) -> &CommitmentUpdates {
         &self.commitments
+    }
+    pub fn transactions(&self) -> &[Transaction] {
+        &self.transactions
     }
 }
 fn merkle_root(txids: &[Digest]) -> Result<[u8; 32]> {

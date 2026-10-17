@@ -32,6 +32,22 @@
       "file": "block-test-0.txt",
       "source": "zebra-test 4.0.0/src/vectors/block-test-0-000-000.txt",
       "sha256": "2c5ebc01df3b17854fbb857c436d6d0b43b91819814df55f40d629e145b4c043"
+    },
+    {
+      "file": "block-395.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-main-0-000-395.txt",
+      "sha256": "8e8335bb92f34adf792a7daf2b46e6d26b2e453cadc0a3b042fd810f0421c1f2"
+    },
+    {
+      "file": "block-396.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-main-0-000-396.txt",
+      "sha256": "d263e462b5e99f531e69d2917d1f4ce3228888d38366b7f163566fa6735c73f0"
+    },
+    {
+      "file": "legacy-sighash.json",
+      "source": "https://raw.githubusercontent.com/zcash/zcash/558f686599586f55def3db86955d74d3be44605e/src/test/data/sighash.json",
+      "selection": "First 24 pre-Overwinter vectors",
+      "sha256": "e032f0079e532fd5e49d7e8413408fb0d802ceb0f713b51d24e730808963811c"
     }
   ],
   "repository": "https://github.com/ZcashFoundation/zebra",
