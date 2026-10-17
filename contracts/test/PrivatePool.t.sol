@@ -78,7 +78,7 @@ contract PrivatePoolTest {
     function setUp() public {
         verifier = new JournalVerifierMock();
         token = new TokenMock();
-        source = new SourceRegistry(IRiscZeroVerifier(address(verifier)), SOURCE_IMAGE, id(1), id(2));
+        source = new SourceRegistry(IRiscZeroVerifier(address(verifier)), SOURCE_IMAGE, id(1), id(2), 1);
         pool = new PrivatePool(
             PrivatePool.Configuration({
                 token: token,
