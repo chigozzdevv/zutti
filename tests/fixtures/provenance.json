@@ -1,0 +1,39 @@
+{
+  "crate": "zebra-test",
+  "version": "4.0.0",
+  "license": "MIT OR Apache-2.0",
+  "fixtures": [
+    {
+      "file": "block-1.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-main-0-000-001.txt",
+      "sha256": "59ec01fb7744cc6d53ba3237c818ec6c8b316718c5eb932f427f33adb0200342"
+    },
+    {
+      "file": "block-1687106.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-main-1-687-106.txt",
+      "sha256": "0e0c7456caacfc7b48839bd603e3426c456d02f972a2f33dfc07d4d7bddc4776"
+    },
+    {
+      "file": "block-1687107.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-main-1-687-107.txt",
+      "sha256": "3ff08a6da8f55671aae5311bcb823ce4ea70e97e3cf9e8e1e5b4f469d72a533a"
+    },
+    {
+      "file": "block-1687108.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-main-1-687-108.txt",
+      "sha256": "51959456a053442ec57b73c4cf3799b6784ea400fe3deec35e2d9c1592d60e48"
+    },
+    {
+      "file": "block-0.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-main-0-000-000.txt",
+      "sha256": "1c7b4e1010e91e12342159691e73aafcb05665a9822febc1a15e3e80589b8a87"
+    },
+    {
+      "file": "block-test-0.txt",
+      "source": "zebra-test 4.0.0/src/vectors/block-test-0-000-000.txt",
+      "sha256": "2c5ebc01df3b17854fbb857c436d6d0b43b91819814df55f40d629e145b4c043"
+    }
+  ],
+  "repository": "https://github.com/ZcashFoundation/zebra",
+  "revision": "15d578362448fb8c4a5d29a00dcfe8adb5184082"
+}
