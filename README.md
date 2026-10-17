@@ -8,7 +8,7 @@ This repository implements Rust protocol components, local and Boundless prepara
 | --- | --- | --- |
 | `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings and operation-bound spending authorization | Production cryptographic profile, membership/conservation proofs and circuit parameters |
 | `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted recovery archives and private-note encryption/recovery | Chain scanning, production profile admission, verified Ethereum finality and source authorization/broadcast integration |
-| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain-history accumulation and private history-query predicates | Full transaction/state validation, validated shielded-tree roots, complete genesis-prefix bootstrap, fork/stability policy and durable source storage |
+| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, atomic candidate replay and private history-query predicates | Full transaction/spend validation, proof-authenticated consensus state, complete genesis-prefix bootstrap, fork/stability policy and durable source storage |
 | `prover` | RISC Zero history-query and preparation guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and encrypted witness CLI | Production profile admission; full source, private-pool and settlement proofs |
 | `boundless` | Capped Base proof requests, public demo transport, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
 | `contracts` | Preparation adapter verified against the actual upstream RISC Zero Groth16 verifier | Private pool, source registry, reservation/settlement composition and deployment |
@@ -173,7 +173,25 @@ The preceding MMR root must come from validated authenticated source state. A ca
 
 `CandidateHistory` now implements the native chain-history frontier using pinned `zcash_history` 0.5.0: Heartwood/Canopy V1, NU5-era V2 and NU6.3 V3 with separate Ironwood metadata. It starts from the exact network genesis, enforces consecutive parent/height/branch context, checks the preceding history commitment before an upgrade reset, and combines the authorizing-data root from NU5 onward. Snapshots retain at most 32 peaks, reject noncanonical node encodings and validate peak shape, ranges and arithmetic before mutation. Differential tests compare every root across 65 appends per representative epoch with upstream, and compare real-block leaf metadata/counts with Zebra.
 
-The shielded commitment-tree roots supplied to this accumulator still require independent state validation. A decoded candidate snapshot is not an authenticated bootstrap. The consensus MMR resets at network upgrades; it does not replace Zutti's required history/index commitments for older anchors. Full source proofs and `VerifiedHistory` remain unavailable.
+The standalone accumulator accepts commitment-tree roots from its caller. `SourceCandidate` instead supplies roots computed by its owned trees as described below. Neither a caller-supplied root nor a decoded candidate snapshot establishes an authenticated bootstrap. The consensus MMR resets at network upgrades; it does not replace Zutti's required history/index commitments for older anchors. Full source proofs and `VerifiedHistory` remain unavailable.
+
+## Source commitment trees and candidate replay
+
+The block parser retains ordered Sprout, Sapling, Orchard and Ironwood note commitments. `CandidateTrees` derives each pool's root using bounded incremental frontiers; Orchard and Ironwood stay separate. Sprout compression and tree roots are checked against Zebra, and differential tests compare commitment extraction and the resulting roots for the same public-block inputs. These comparisons start from matching empty frontiers; they do not establish the omitted historical prefix before those fixture blocks.
+
+`SourceCandidate` starts from an exact network genesis and atomically advances expected-difficulty/work checks, shielded trees, native chain history and the transaction index. It checks the computed Sapling header root during Sapling/Blossom and the applicable chain-history/authorizing commitment afterward. A failed transition cannot partially advance the index or other state. An index whose configured start is ahead of the processed prefix stays unavailable.
+
+Replay the real mainnet genesis and first block:
+
+```sh
+cargo run --locked -p zutti-source -- replay \
+  --network mainnet --format hex \
+  --genesis tests/fixtures/block-0.txt \
+  --block tests/fixtures/block-1.txt \
+  --rules 0101010101010101010101010101010101010101010101010101010101010101
+```
+
+The rules value is an example index-context identifier, not an admitted consensus profile. Repeat `--block` in consecutive chain order for a longer supplied prefix. The command reports computed public roots and work, rejects skipped ancestry and keeps `consensus_verified` and `settlement_authority` false. Transaction signatures/proofs, UTXO/nullifier rules, monetary rules, fork policy and cryptographic bootstrap still require implementation before candidate replay can become accepted source verification.
 
 Zebra's standard router retains mandatory historical checkpoint validation even with `checkpoint_sync = false`; this configuration cannot satisfy Zutti's full-prefix requirement. The relevant behavior was checked in `zebra-consensus` 16.0.0, `config.rs` and `router::init_checkpoint_list`. Zutti uses no checkpoint shortcut as verified history. Full historical transaction validation, MMR/state transitions and recursive prefix proving remain necessary.
 

@@ -1,3 +1,4 @@
+use crate::trees::CommitmentUpdates;
 use crate::{Error, Result};
 use sha2::{Digest as _, Sha256};
 use std::collections::BTreeSet;
@@ -20,6 +21,7 @@ pub struct ParsedBlock {
     auth_root: Digest,
     branch: BranchId,
     pool_counts: PoolTransactionCounts,
+    commitments: CommitmentUpdates,
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
@@ -96,6 +98,8 @@ impl ParsedBlock {
         let mut auth_digests = vec![crate::auth::transaction_auth_digest(&coinbase)];
         let mut pool_counts = PoolTransactionCounts::default();
         pool_counts.include(&coinbase);
+        let mut commitments = CommitmentUpdates::default();
+        commitments.include(&coinbase);
         // Stream transactions: an untrusted count cannot preallocate a huge Vec<Transaction>.
         for _ in 1..count {
             let tx = Transaction::read(&mut remaining, branch).map_err(|_| Error::Block)?;
@@ -112,6 +116,7 @@ impl ParsedBlock {
             versions.push(tx.version().header() & 0x7fff_ffff);
             auth_digests.push(crate::auth::transaction_auth_digest(&tx));
             pool_counts.include(&tx);
+            commitments.include(&tx);
         }
         if !remaining.is_empty() {
             return Err(Error::Block);
@@ -133,6 +138,7 @@ impl ParsedBlock {
             auth_root: crate::auth::auth_data_root(&auth_digests)?,
             branch,
             pool_counts,
+            commitments,
         })
     }
     pub const fn hash(&self) -> Digest {
@@ -161,6 +167,9 @@ impl ParsedBlock {
     }
     pub const fn pool_transaction_counts(&self) -> PoolTransactionCounts {
         self.pool_counts
+    }
+    pub fn commitment_updates(&self) -> &CommitmentUpdates {
+        &self.commitments
     }
 }
 fn merkle_root(txids: &[Digest]) -> Result<[u8; 32]> {

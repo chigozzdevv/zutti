@@ -31,4 +31,18 @@ pub enum Command {
         #[arg(long, value_enum, default_value = "raw")]
         format: BlockFormat,
     },
+    Replay {
+        #[arg(long, value_enum)]
+        network: Network,
+        #[arg(long)]
+        genesis: PathBuf,
+        #[arg(long = "block", required = true)]
+        blocks: Vec<PathBuf>,
+        #[arg(long)]
+        rules: String,
+        #[arg(long, default_value_t = 0)]
+        index_start: u32,
+        #[arg(long, value_enum, default_value = "raw")]
+        format: BlockFormat,
+    },
 }

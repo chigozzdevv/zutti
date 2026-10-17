@@ -15,6 +15,8 @@ pub mod query;
 #[cfg(feature = "blocks")]
 pub mod state;
 #[cfg(feature = "blocks")]
+pub mod trees;
+#[cfg(feature = "blocks")]
 pub mod work;
 
 pub use index::{CandidateIndex, IndexContext, IndexProof, IndexSnapshot, Observation};
