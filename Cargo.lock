@@ -5052,6 +5052,8 @@ dependencies = [
  "zcash_note_encryption",
  "zcash_primitives",
  "zcash_protocol",
+ "zebra-test",
  "zeroize",
  "zutti-protocol",
+ "zutti-source",
 ]

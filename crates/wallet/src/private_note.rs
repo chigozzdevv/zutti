@@ -90,6 +90,7 @@ impl NoteEncryption {
             nonce,
         }
     }
+    #[cfg(feature = "native")]
     pub fn random() -> Result<Self> {
         let mut nonce = [0; 24];
         getrandom::fill(&mut nonce).map_err(|_| Error::Entropy)?;
@@ -115,10 +116,15 @@ impl core::fmt::Debug for EncryptedNote {
 }
 
 impl EncryptedNote {
+    #[cfg(feature = "native")]
     pub fn encrypt(note: &PrivateNote) -> Result<Self> {
         Self::encrypt_with(note, NoteEncryption::random()?)
     }
-    pub fn encrypt_with(note: &PrivateNote, randomness: NoteEncryption) -> Result<Self> {
+    pub fn encrypt_with(
+        note: &PrivateNote,
+        randomness: impl std::borrow::Borrow<NoteEncryption>,
+    ) -> Result<Self> {
+        let randomness = randomness.borrow();
         let recipient = PublicKey::from(*note.recipient().viewing());
         let mut envelope = Self {
             domain: note.domain(),
@@ -262,4 +268,24 @@ fn key(
         .expand(&info.0, key.as_mut())
         .map_err(|_| Error::Invalid("note key derivation"))?;
     Ok(key)
+}
+
+impl Canonical for NoteEncryption {
+    fn encode(&self, writer: &mut Writer) -> Result<()> {
+        writer.fixed(&self.ephemeral.to_bytes());
+        writer.fixed(&self.nonce);
+        Ok(())
+    }
+    fn decode(reader: &mut Reader<'_>) -> Result<Self> {
+        Ok(Self::from_entropy(
+            Secret32::from_bytes(reader.fixed()?)?,
+            reader.fixed()?,
+        ))
+    }
+}
+impl NoteKeys {
+    #[cfg(feature = "pool")]
+    pub(crate) fn nullifier_secret(&self) -> Result<Secret32> {
+        Secret32::from_bytes(*self.nullifier.expose())
+    }
 }

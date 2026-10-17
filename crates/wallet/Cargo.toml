@@ -7,10 +7,13 @@ publish.workspace = true
 
 [features]
 default = ["native"]
-native = ["zutti-protocol/entropy", "zutti-protocol/notes", "dep:getrandom", "dep:chacha20poly1305", "dep:tempfile", "dep:libc", "dep:k256", "dep:x25519-dalek", "dep:hkdf", "dep:sha2"]
+native = ["zutti-protocol/entropy", "note-crypto", "pool", "dep:getrandom", "dep:tempfile", "dep:libc"]
+note-crypto = ["zutti-protocol/notes", "dep:chacha20poly1305", "dep:k256", "dep:x25519-dalek", "dep:hkdf", "dep:sha2"]
+pool = ["note-crypto", "zutti-protocol/pool", "dep:zutti-source", "zutti-source/authenticated"]
 
 [dependencies]
 zutti-protocol.workspace = true
+zutti-source = { workspace = true, default-features = false, optional = true }
 thiserror.workspace = true
 zeroize.workspace = true
 getrandom = { workspace = true, optional = true }
@@ -27,6 +30,8 @@ hkdf = { version = "=0.12.4", optional = true }
 sha2 = { workspace = true, optional = true }
 
 [dev-dependencies]
+zutti-source = { workspace = true, features = ["blocks"] }
+zebra-test = "=4.0.0"
 pczt = { workspace = true, features = ["signer", "io-finalizer"] }
 zcash_protocol = { workspace = true, features = ["local-consensus"] }
 rand_core = { version = "=0.6.4", features = ["getrandom"] }

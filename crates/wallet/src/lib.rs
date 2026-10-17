@@ -1,8 +1,10 @@
 #[cfg(feature = "native")]
 pub mod backup;
+#[cfg(feature = "pool")]
+pub mod pool;
 pub mod preparation;
 pub mod prepare;
-#[cfg(feature = "native")]
+#[cfg(feature = "note-crypto")]
 pub mod private_note;
 
 #[derive(Debug, thiserror::Error)]
