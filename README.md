@@ -59,6 +59,12 @@ cargo run --locked -p zutti-recovery -- inspect \
 
 The key file contains exactly 32 raw bytes, independently generated for recovery encryption. Archive and key files must be regular, owner-only files within trusted parent directories. Secret key bytes are never command-line arguments. Inspection prints authentication status and payload size, not plaintext or transaction IDs. It does not validate an economic claim. `claim`, `refund` and `source-prover` return a nonzero unavailable result. The private prover implements the history-query and payment-effects preparation components described below; neither authorizes settlement.
 
+## Authenticated source storage
+
+Source UTXOs, shielded state, permanent header records and the transaction index use a persistent compressed sparse tree. A nonempty map with `n` keys retains `2n - 1` tree nodes, sharing unchanged branches across candidate clones. Unary paths and empty siblings are reconstructed when needed. The original 256-level roots and proof encodings remain unchanged; this is a storage change, not a weaker verification rule.
+
+Differential tests compare every sibling and root against an uncompressed reference through inserts, overwrites, deletions, absent keys, adjacent keys and forks. Native replay of the first four mainnet blocks must also reproduce the state, archive and index committed by the retained genuine prefix receipt. Durable disk storage and a current-chain bootstrap remain separate requirements.
+
 ## Private history-query proofs
 
 `QueryWitness` privately carries the immutable order, reservation openings, transaction ID, complete 256-sibling history path and candidate snapshot. The guest checks the domain/genesis/policy binding, recomputes both commitments and evaluates the inclusive payment window. A qualifying inclusion selects the fixed payout; absence is eligible only after expiry and selects the fixed refund. Waiting and out-of-window inclusion cannot produce a claim.

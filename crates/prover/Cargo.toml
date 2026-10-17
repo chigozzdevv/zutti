@@ -22,6 +22,7 @@ tempfile.workspace = true
 hex.workspace = true
 
 [dev-dependencies]
+zebra-test = "=4.0.0"
 zutti-source = { workspace = true, features = ["blocks"] }
 pczt = { workspace = true, features = ["signer"] }
 zcash_protocol = { workspace = true, features = ["local-consensus"] }

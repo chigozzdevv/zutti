@@ -136,6 +136,21 @@ fn genuine_recursive_prefix_receipt_proves_the_first_four_blocks() {
     let claim = zutti_source::proof::SourceReceiptClaim::from_bytes(&payload).unwrap();
     assert_eq!(claim.height, 4);
     assert_eq!(claim.index.height, 4);
+    let genesis =
+        GenesisBlock::parse(zebra_test::vectors::MAINNET_BLOCKS[&0], NetworkType::Main).unwrap();
+    let mut native =
+        SourceCandidate::from_genesis(&genesis, claim.policy, claim.index.context.start()).unwrap();
+    native
+        .record_transition(
+            (1..=4)
+                .map(|height| zebra_test::vectors::MAINNET_BLOCKS[&height].to_vec())
+                .collect(),
+        )
+        .unwrap();
+    let snapshot = native.state_snapshot().unwrap();
+    assert_eq!(snapshot.commitment().unwrap(), claim.state);
+    assert_eq!(snapshot.archive(), claim.archive);
+    assert_eq!(snapshot.index(), claim.index);
     let statement = zutti_protocol::statement::Statement::new(
         ProofKind::SourceTransition,
         claim.policy,

@@ -4980,6 +4980,7 @@ dependencies = [
  "thiserror 2.0.21",
  "zcash_primitives",
  "zcash_protocol",
+ "zebra-test",
  "zeroize",
  "zutti-methods",
  "zutti-protocol",

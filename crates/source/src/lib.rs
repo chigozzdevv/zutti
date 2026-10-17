@@ -24,6 +24,7 @@ mod phgr;
 #[cfg(feature = "blocks")]
 pub mod proof;
 pub mod query;
+mod sparse;
 #[cfg(feature = "blocks")]
 pub mod spends;
 #[cfg(feature = "blocks")]

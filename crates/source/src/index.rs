@@ -210,7 +210,7 @@ pub struct CandidateIndex {
     context: IndexContext,
     height: u32,
     entries: BTreeMap<Digest, u32>,
-    nodes: BTreeMap<(usize, Digest), Digest>,
+    nodes: crate::sparse::SparseTree,
     empty: [Digest; DEPTH + 1],
 }
 impl CandidateIndex {
@@ -225,7 +225,7 @@ impl CandidateIndex {
             context,
             height: context.start,
             entries: BTreeMap::new(),
-            nodes: BTreeMap::new(),
+            nodes: crate::sparse::SparseTree::default(),
             empty,
         }
     }
@@ -233,7 +233,7 @@ impl CandidateIndex {
         IndexSnapshot {
             context: self.context,
             height: self.height,
-            root: self.node(0, Digest::default()),
+            root: self.nodes.root(&self.empty),
         }
     }
     pub fn append_block(&mut self, height: u32, transaction_ids: &[Digest]) -> Result<()> {
@@ -263,27 +263,21 @@ impl CandidateIndex {
             }
             self.entries.insert(*key, height);
             let id = self.context.id();
-            let mut current = leaf(id, *key, height);
-            self.nodes.insert((DEPTH, *key), current);
-            for depth in (0..DEPTH).rev() {
-                let sibling = self.node(depth + 1, sibling_prefix(*key, depth));
-                current = if bit(*key, depth) {
-                    branch(id, depth, sibling, current)
-                } else {
-                    branch(id, depth, current, sibling)
-                };
-                self.nodes.insert((depth, prefix(*key, depth)), current);
-            }
+            self.nodes.set(
+                *key,
+                Some(leaf(id, *key, height)),
+                &self.empty,
+                &|depth, left, right| branch(id, depth, left, right),
+            );
         }
         self.height = height;
         Ok(())
     }
     pub fn prove(&self, key: Digest) -> IndexProof {
-        let mut siblings = [Digest::default(); DEPTH];
-        for (level, sibling) in siblings.iter_mut().enumerate() {
-            let depth = DEPTH - 1 - level;
-            *sibling = self.node(depth + 1, sibling_prefix(key, depth));
-        }
+        let id = self.context.id();
+        let siblings = self.nodes.prove(key, &self.empty, &|depth, left, right| {
+            branch(id, depth, left, right)
+        });
         IndexProof {
             context: self.context.id(),
             key,
@@ -291,35 +285,10 @@ impl CandidateIndex {
             siblings,
         }
     }
-    fn node(&self, depth: usize, key: Digest) -> Digest {
-        self.nodes
-            .get(&(depth, key))
-            .copied()
-            .unwrap_or(self.empty[depth])
-    }
 }
 
 fn bit(key: Digest, depth: usize) -> bool {
     key.0[depth / 8] & (1 << (7 - depth % 8)) != 0
-}
-fn prefix(key: Digest, depth: usize) -> Digest {
-    let mut out = key.0;
-    let full = depth / 8;
-    let partial = depth % 8;
-    if full < 32 {
-        if partial == 0 {
-            out[full..].fill(0);
-        } else {
-            out[full] &= 0xff << (8 - partial);
-            out[full + 1..].fill(0);
-        }
-    }
-    Digest(out)
-}
-fn sibling_prefix(key: Digest, depth: usize) -> Digest {
-    let mut out = prefix(key, depth + 1).0;
-    out[depth / 8] ^= 1 << (7 - depth % 8);
-    Digest(out)
 }
 fn empty_leaf(context: Digest) -> Digest {
     hash(b"index-empty", &[&context.0])

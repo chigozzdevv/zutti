@@ -129,7 +129,7 @@ impl Canonical for Transcript {
 enum Backend {
     Full {
         values: im::OrdMap<Digest, Vec<u8>>,
-        nodes: im::OrdMap<(u16, Digest), Digest>,
+        nodes: crate::sparse::SparseTree,
         recording: RefCell<Option<Vec<Access>>>,
     },
     Witness {
@@ -154,7 +154,7 @@ impl AuthenticatedMap {
             empty,
             backend: Backend::Full {
                 values: im::OrdMap::new(),
-                nodes: im::OrdMap::new(),
+                nodes: crate::sparse::SparseTree::default(),
                 recording: RefCell::new(None),
             },
         }
@@ -211,6 +211,13 @@ impl AuthenticatedMap {
         self.access(key)
     }
     pub fn get(&self, key: Digest) -> Result<Option<Vec<u8>>> {
+        if let Backend::Full {
+            values, recording, ..
+        } = &self.backend
+            && recording.borrow().is_none()
+        {
+            return Ok(values.get(&key).cloned());
+        }
         Ok(self.access(key)?.value)
     }
     pub fn set(&mut self, key: Digest, value: Option<Vec<u8>>) -> Result<Option<Vec<u8>>> {
@@ -220,17 +227,19 @@ impl AuthenticatedMap {
         {
             return Err(Error::Length.into());
         }
-        let access = self.access(key)?;
-        let path = self.expand(&access)?;
-        let mut current = self.leaf(key, value.as_deref());
-        let mut changes = Vec::with_capacity(257);
-        changes.push(((DEPTH as u16, key), current));
-        for (offset, sibling) in path.iter().enumerate() {
-            let depth = DEPTH - 1 - offset;
-            current = self.join(depth, key, current, *sibling);
-            changes.push(((depth as u16, prefix(key, depth)), current));
-        }
-        if let Backend::Full { values, nodes, .. } = &mut self.backend {
+        let leaf = self.leaf(key, value.as_deref());
+        if matches!(self.backend, Backend::Full { .. }) {
+            let previous = self.get(key)?;
+            let Backend::Full { values, nodes, .. } = &mut self.backend else {
+                return Err(StateError::Transcript);
+            };
+            let context = self.context;
+            nodes.set(
+                key,
+                value.as_ref().map(|_| leaf),
+                &self.empty,
+                &|depth, left, right| branch(context, depth, left, right),
+            );
             match value {
                 Some(value) => {
                     values.insert(key, value);
@@ -239,13 +248,14 @@ impl AuthenticatedMap {
                     values.remove(&key);
                 }
             }
-            for ((depth, key), digest) in changes {
-                if digest == self.empty[depth as usize] {
-                    nodes.remove(&(depth, key));
-                } else {
-                    nodes.insert((depth, key), digest);
-                }
-            }
+            self.root = nodes.root(&self.empty);
+            return Ok(previous);
+        }
+        let access = self.access(key)?;
+        let path = self.expand(&access)?;
+        let mut current = leaf;
+        for (offset, sibling) in path.iter().enumerate() {
+            current = self.join(DEPTH - 1 - offset, key, current, *sibling);
         }
         self.root = current;
         Ok(access.value)
@@ -259,14 +269,11 @@ impl AuthenticatedMap {
             } => {
                 let mut bitmap = [0; 32];
                 let mut siblings = Vec::new();
-                for offset in 0..DEPTH {
+                let path = nodes.prove(key, &self.empty, &|depth, left, right| {
+                    branch(self.context, depth, left, right)
+                });
+                for (offset, sibling) in path.into_iter().enumerate() {
                     let depth = DEPTH - 1 - offset;
-                    let mut sibling_key = prefix(key, depth + 1);
-                    sibling_key.0[depth / 8] ^= 1 << (7 - depth % 8);
-                    let sibling = nodes
-                        .get(&((depth + 1) as u16, sibling_key))
-                        .copied()
-                        .unwrap_or(self.empty[depth + 1]);
                     if sibling != self.empty[depth + 1] {
                         bitmap[offset / 8] |= 1 << (offset % 8);
                         siblings.push(sibling);
@@ -354,21 +361,6 @@ fn empty_nodes(context: Digest) -> [Digest; DEPTH + 1] {
     }
     nodes
 }
-fn prefix(key: Digest, depth: usize) -> Digest {
-    let mut bytes = key.0;
-    let full = depth / 8;
-    let bits = depth % 8;
-    if full < 32 {
-        if bits == 0 {
-            bytes[full..].fill(0);
-        } else {
-            bytes[full] &= 0xff << (8 - bits);
-            bytes[full + 1..].fill(0);
-        }
-    }
-    Digest(bytes)
-}
-
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
