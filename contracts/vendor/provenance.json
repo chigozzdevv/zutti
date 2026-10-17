@@ -1,0 +1,52 @@
+[
+  {
+    "file": "contracts/vendor/risc0/IRiscZeroVerifier.sol",
+    "source": "risc0-ethereum-contracts@3.0.1/src/IRiscZeroVerifier.sol",
+    "sha256": "cfd7c80872313134d028c0250ddc86036448fb4df290ce4dba113ea80646e180"
+  },
+  {
+    "file": "contracts/vendor/risc0/IRiscZeroSelectable.sol",
+    "source": "risc0-ethereum-contracts@3.0.1/src/IRiscZeroSelectable.sol",
+    "sha256": "54a8a39dd427e8ec21db31815d80a3df6df992d3244a2370ba21517dde7dd11b"
+  },
+  {
+    "file": "contracts/vendor/risc0/StructHash.sol",
+    "source": "risc0-ethereum-contracts@3.0.1/src/StructHash.sol",
+    "sha256": "9fd507fc30726dcecf35a7a1d16b2ffe34561721fa37895bb75b9c3cf07f0131"
+  },
+  {
+    "file": "contracts/vendor/risc0/Util.sol",
+    "source": "risc0-ethereum-contracts@3.0.1/src/Util.sol",
+    "sha256": "4711aa3c42754c996278f62091ffd1422132512e0900a9cdea3fe54235fa5896"
+  },
+  {
+    "file": "contracts/vendor/risc0/groth16/RiscZeroGroth16Verifier.sol",
+    "source": "risc0-ethereum-contracts@3.0.1/src/groth16/RiscZeroGroth16Verifier.sol",
+    "sha256": "f24784fb625b8a82232c79f21db28f759593e29a287a4f9865cc6e78d36eb283"
+  },
+  {
+    "file": "contracts/vendor/risc0/groth16/Groth16Verifier.sol",
+    "source": "risc0-ethereum-contracts@3.0.1/src/groth16/Groth16Verifier.sol",
+    "sha256": "14bdf78c8b6168b12a5235395d42b8daabb48ee29d49913bb06d20071f156fd6"
+  },
+  {
+    "file": "contracts/vendor/risc0/groth16/ControlID.sol",
+    "source": "risc0-ethereum-contracts@3.0.1/src/groth16/ControlID.sol",
+    "sha256": "753535e844a84a28b275fe21bd4c30022266b27bcdaa9b189220dece220accfa"
+  },
+  {
+    "file": "contracts/vendor/openzeppelin/contracts/utils/math/SafeCast.sol",
+    "source": "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/v5.4.0/contracts/utils/math/SafeCast.sol",
+    "sha256": "9769274bf53f26a7c7896c526ea1980dc9bea5bf5c2a5fd04870008c4afc1de9"
+  },
+  {
+    "file": "contracts/vendor/risc0/LICENSE",
+    "source": "https://raw.githubusercontent.com/risc0/risc0-ethereum/v3.0.1/LICENSE",
+    "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+  },
+  {
+    "file": "contracts/vendor/openzeppelin/LICENSE",
+    "source": "https://raw.githubusercontent.com/OpenZeppelin/openzeppelin-contracts/v5.4.0/LICENSE",
+    "sha256": "13cd784a6c31361f0e0c6aa3b410a1cb9a079868b7314c13e3eb8a75351746b9"
+  }
+]

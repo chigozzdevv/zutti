@@ -1,0 +1,15 @@
+[profile.default]
+src = "src"
+test = "test"
+script = "script"
+out = "out"
+libs = ["lib"]
+remappings = ["openzeppelin/=vendor/openzeppelin/"]
+fs_permissions = [{ access = "read", path = "../.data" }]
+solc_version = "0.8.30"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+
+[fmt]
+line_length = 100
