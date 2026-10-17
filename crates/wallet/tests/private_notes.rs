@@ -206,3 +206,20 @@ fn note_codecs_reject_noncanonical_and_truncated_inputs() -> Result<()> {
     assert!(PrivateNote::from_bytes(&bytes).is_err());
     Ok(())
 }
+
+#[test]
+fn fixed_output_ciphertext_digest_matches_the_ethereum_journal() -> Result<()> {
+    use sha2::Digest as _;
+    let owner = keys(1)?;
+    let original = note(&owner, 3, 4)?;
+    let encrypted = EncryptedNote::encrypt_with(
+        &original,
+        NoteEncryption::from_entropy(Secret32::from_bytes([41; 32])?, [42; 24]),
+    )?;
+    let fixed = encrypted.fixed_output(&original)?;
+    assert_eq!(
+        fixed.ciphertext_digest().0,
+        <[u8; 32]>::from(sha2::Sha256::digest(encrypted.to_bytes()?))
+    );
+    Ok(())
+}

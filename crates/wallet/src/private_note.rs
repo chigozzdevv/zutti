@@ -4,6 +4,7 @@ use chacha20poly1305::{
 };
 use hkdf::Hkdf;
 use k256::ecdsa::{Signature, SigningKey, signature::hazmat::PrehashSigner};
+use sha2::Digest as _;
 use x25519_dalek::{PublicKey, StaticSecret};
 use zeroize::Zeroizing;
 use zutti_protocol::{
@@ -148,7 +149,7 @@ impl EncryptedNote {
         self.commitment
     }
     pub fn digest(&self) -> Result<Digest> {
-        Ok(hash(b"private-note-ciphertext", &[&self.to_bytes()?]))
+        Ok(Digest(sha2::Sha256::digest(self.to_bytes()?).into()))
     }
     pub fn fixed_output(&self, note: &PrivateNote) -> Result<FixedOutput> {
         if note.domain() != self.domain || note.commitment()? != self.commitment {
