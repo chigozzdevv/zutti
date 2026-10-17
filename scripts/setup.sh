@@ -8,3 +8,4 @@ pnpm install --frozen-lockfile
 cargo fetch --locked
 cargo fetch --locked --manifest-path crates/prover/methods/guest/Cargo.toml
 cargo fetch --locked --manifest-path crates/boundless/Cargo.toml
+cargo fetch --locked --manifest-path crates/wallet/ethereum/Cargo.toml

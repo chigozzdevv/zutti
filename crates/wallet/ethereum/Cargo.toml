@@ -1,0 +1,30 @@
+[package]
+name = "zutti-ethereum"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+
+[workspace]
+resolver = "3"
+
+[dependencies]
+helios-consensus-core = { git = "https://github.com/a16z/helios", rev = "2af9b41887e069144ee56cd710f3ddca195473f8" }
+alloy = { version = "=2.1.0", default-features = false, features = ["consensus", "rpc-types", "ssz", "rlp", "k256", "eips"] }
+alloy-trie = { version = "=0.9.2", features = ["ethereum"] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.150"
+clap = { version = "=4.6.1", features = ["derive"] }
+thiserror = "=2.0.21"
+
+[dev-dependencies]
+ethereum_ssz = "=0.9.0"
+snap = "=1.1.1"
+serde_yaml = "=0.9.34"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "warn"
+expect_used = "warn"
