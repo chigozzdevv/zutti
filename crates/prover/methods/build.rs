@@ -12,6 +12,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "guest/Cargo.toml",
         "guest/Cargo.lock",
         "guest/src",
+        "source/Cargo.toml",
+        "source/Cargo.lock",
+        "source/src",
+        "source/vendor",
     ] {
         println!("cargo:rerun-if-changed={path}");
     }
@@ -40,13 +44,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !status.success() {
         return Err("proof guest compilation failed".into());
     }
+    let source_target = risc0_build::get_target_dir(manifest.join("../../../Cargo.toml"))
+        .join("riscv-guest/zutti-source");
+    let status = risc0_build::cargo_command("build", &[])
+        .env_remove("RUSTC_WORKSPACE_WRAPPER")
+        .env_remove("RUSTC_WRAPPER")
+        .arg("--locked")
+        .arg("--manifest-path")
+        .arg(manifest.join("source/Cargo.toml"))
+        .arg("--target-dir")
+        .arg(&source_target)
+        .arg("--release")
+        .status()?;
+    if !status.success() {
+        return Err("source proof guest compilation failed".into());
+    }
     let kernel = risc0_build::GuestOptions::default().kernel();
     let mut methods = String::new();
     for (name, constant) in [
         ("history_query", "HISTORY_QUERY"),
         ("preparation", "PREPARATION"),
+        ("source", "SOURCE"),
+        ("source_update", "SOURCE_UPDATE"),
     ] {
-        let user = fs::read(target.join("riscv32im-risc0-zkvm-elf/release").join(name))?;
+        let directory = if name.starts_with("source") {
+            &source_target
+        } else {
+            &target
+        };
+        let user = fs::read(
+            directory
+                .join("riscv32im-risc0-zkvm-elf/release")
+                .join(name),
+        )?;
         let binary = risc0_binfmt::ProgramBinary::new(&user, &kernel).encode();
         let image = risc0_binfmt::compute_image_id(&binary)?;
         let path = out.join(format!("{name}.bin"));

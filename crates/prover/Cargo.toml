@@ -7,7 +7,7 @@ publish.workspace = true
 
 [dependencies]
 zutti-protocol.workspace = true
-zutti-source = { workspace = true, default-features = false }
+zutti-source = { workspace = true, default-features = false, features = ["blocks"] }
 zutti-methods = { path = "methods" }
 zutti-wallet.workspace = true
 thiserror.workspace = true
@@ -16,6 +16,8 @@ bincode.workspace = true
 zeroize.workspace = true
 clap.workspace = true
 serde_json.workspace = true
+serde = { version = "=1.0.229", features = ["derive"] }
+zcash_protocol.workspace = true
 tempfile.workspace = true
 hex.workspace = true
 

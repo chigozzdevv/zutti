@@ -1,0 +1,8 @@
+{
+  "dirs": {
+    "version": "6.0.0",
+    "source": "https://crates.io/api/v1/crates/dirs/6.0.0/download",
+    "sha256": "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e",
+    "change": "Use the upstream no-filesystem WebAssembly implementation on target_os=zkvm. All platform directory functions return None. Consensus verification code is unchanged."
+  }
+}

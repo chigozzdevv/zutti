@@ -2,12 +2,13 @@ use crate::preparation::preparation_image_id;
 use crate::query::query_image_id;
 use bincode::Options;
 use risc0_zkvm::{InnerReceipt, Receipt, VerifierContext};
+use zutti_protocol::pool::SourceUpdateClaim;
 use zutti_protocol::{
     Digest,
     encoding::{Canonical, Reader, Writer},
     statement::{ProofKind, Statement},
 };
-use zutti_source::query::QueryClaim;
+use zutti_source::{proof::SourceReceiptClaim, query::QueryClaim};
 use zutti_wallet::preparation::PreparationClaim;
 
 pub const MAX_PROOF: usize = 16 * 1024 * 1024;
@@ -139,6 +140,22 @@ impl ProofVerifier {
                 PreparationClaim::from_bytes(expected.payload())?.domain(),
                 risc0_zkvm::sha::Digest::from(expected.program().0),
             ),
+            ProofKind::SourceTransition
+                if admitted_program(expected.kind(), expected.program()) =>
+            {
+                let claim = SourceReceiptClaim::from_bytes(expected.payload())?;
+                if claim.program != expected.program() {
+                    return Err(Error::Binding);
+                }
+                (
+                    claim.policy,
+                    risc0_zkvm::sha::Digest::from(expected.program().0),
+                )
+            }
+            ProofKind::Source if admitted_program(expected.kind(), expected.program()) => (
+                SourceUpdateClaim::from_bytes(expected.payload())?.policy,
+                risc0_zkvm::sha::Digest::from(expected.program().0),
+            ),
             _ => return Err(Error::BackendUnavailable),
         };
         if domain != expected.domain() {
@@ -178,6 +195,10 @@ fn admitted_program(kind: ProofKind, image: Digest) -> bool {
     match kind {
         ProofKind::Preparation => image == preparation_image_id() || image == PREPARATION_V1,
         ProofKind::HistoryQuery => image == query_image_id() || image == HISTORY_QUERY_V1,
+        ProofKind::SourceTransition => {
+            image == crate::source::source_image_id() || image == SOURCE_V1
+        }
+        ProofKind::Source => image == crate::source::update_image_id(),
         _ => false,
     }
 }
@@ -188,3 +209,8 @@ pub(crate) fn receipt_codec() -> impl Options {
         .with_limit(MAX_PROOF as u64)
         .reject_trailing_bytes()
 }
+
+const SOURCE_V1: Digest = Digest([
+    0xc5, 0xa1, 0xd8, 0x68, 0xe1, 0x76, 0x64, 0x79, 0x66, 0xce, 0x6e, 0x72, 0x88, 0x60, 0xc9, 0x22,
+    0x5c, 0x99, 0xe0, 0x5a, 0x0d, 0x88, 0x80, 0xa4, 0x74, 0xe1, 0xae, 0xeb, 0x65, 0x2e, 0xc6, 0x69,
+]);

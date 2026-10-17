@@ -4974,6 +4974,7 @@ dependencies = [
  "pczt",
  "rand_core 0.6.4",
  "risc0-zkvm",
+ "serde",
  "serde_json",
  "tempfile",
  "thiserror 2.0.21",

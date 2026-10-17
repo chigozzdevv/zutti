@@ -4,6 +4,7 @@ cd "$(dirname "$0")/.."
 export RISC0_BUILD_LOCKED=1
 cargo fmt --all --check
 cargo fmt --manifest-path crates/prover/methods/guest/Cargo.toml --check
+cargo fmt --manifest-path crates/prover/methods/source/Cargo.toml --check
 cargo fmt --manifest-path crates/boundless/Cargo.toml --check
 cargo clippy --locked --workspace --all-targets -- -D warnings
 cargo clippy --locked --manifest-path crates/boundless/Cargo.toml --all-targets -- -D warnings

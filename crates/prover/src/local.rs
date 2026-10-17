@@ -7,7 +7,7 @@ use zutti_protocol::statement::Statement;
 
 #[derive(Debug)]
 pub struct LocalProver {
-    executable: PathBuf,
+    pub(crate) executable: PathBuf,
 }
 impl LocalProver {
     pub fn new(executable: impl AsRef<Path>) -> Self {
@@ -26,9 +26,21 @@ impl LocalProver {
         let length = u32::try_from(bytes.len())
             .map_err(|_| Error::Witness)?
             .to_le_bytes();
+        let mut stdin = Zeroizing::new(Vec::with_capacity(bytes.len() + 4));
+        stdin.extend_from_slice(&length);
+        stdin.extend_from_slice(&bytes);
+        self.prove_stdin(stdin, statement, program, session_cycles, segment_po2)
+    }
+    pub(crate) fn prove_stdin(
+        &self,
+        stdin: Zeroizing<Vec<u8>>,
+        statement: Statement,
+        program: &[u8],
+        session_cycles: u64,
+        segment_po2: u32,
+    ) -> Result<(Statement, ProofEnvelope), Error> {
         let env = ExecutorEnv::builder()
-            .write_slice(&length)
-            .write_slice(bytes.as_slice())
+            .write_slice(stdin.as_slice())
             .session_limit(Some(session_cycles))
             .segment_limit_po2(segment_po2)
             .build()

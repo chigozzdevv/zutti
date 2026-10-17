@@ -88,6 +88,8 @@ fn report(artifact: &ProofArtifact, kind: ProofKind) -> Result<(), Box<dyn std::
     let name = match kind {
         ProofKind::HistoryQuery => "history_query",
         ProofKind::Preparation => "preparation",
+        ProofKind::SourceTransition => "source_transition",
+        ProofKind::Source => "source_update",
         _ => return Err("unsupported proof kind".into()),
     };
     println!(

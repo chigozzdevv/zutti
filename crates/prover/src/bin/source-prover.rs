@@ -1,6 +1,294 @@
+use clap::{Parser, Subcommand, ValueEnum};
+use std::path::{Path, PathBuf};
+use zcash_protocol::consensus::{MAIN_NETWORK, NetworkType, TEST_NETWORK};
+use zutti_protocol::{encoding::Canonical, pool::SourceUpdateClaim, statement::ProofKind};
+use zutti_prover::{
+    artifact::ProofArtifact,
+    local::LocalProver,
+    source::{SourceJob, policy, source_image_id, update_image_id},
+};
+use zutti_source::{
+    block::ParsedBlock,
+    bootstrap::GenesisBlock,
+    checkpoint::SourceCheckpoint,
+    proof::{SourceInput, SourceReceiptClaim, SourceWitness},
+    state::SourceCandidate,
+    update::{PreviousUpdate, SourceUpdateWitness},
+};
+
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum Network {
+    Mainnet,
+    Testnet,
+}
+impl Network {
+    fn kind(self) -> NetworkType {
+        match self {
+            Self::Mainnet => NetworkType::Main,
+            Self::Testnet => NetworkType::Test,
+        }
+    }
+}
+#[derive(Debug, clap::Args)]
+struct Chain {
+    #[arg(long, value_enum)]
+    network: Network,
+    #[arg(long)]
+    genesis: PathBuf,
+    #[arg(long, default_value_t = 0)]
+    index_start: u32,
+    #[arg(long, default_value_t = 100)]
+    confirmations: u32,
+}
+impl Chain {
+    fn policy(&self) -> zutti_source::proof::SourcePolicy {
+        policy(self.network.kind(), self.index_start, self.confirmations)
+    }
+    fn source(&self, prefix: &[PathBuf]) -> Result<SourceCandidate, Box<dyn std::error::Error>> {
+        let genesis = GenesisBlock::parse(&block_bytes(&self.genesis)?, self.network.kind())?;
+        let mut source =
+            SourceCandidate::from_genesis(&genesis, self.policy().id()?, self.index_start)?;
+        for path in prefix {
+            let bytes = block_bytes(path)?;
+            let block = match self.network {
+                Network::Mainnet => ParsedBlock::parse(&bytes, &MAIN_NETWORK)?,
+                Network::Testnet => ParsedBlock::parse(&bytes, &TEST_NETWORK)?,
+            };
+            source.append(&block)?;
+        }
+        Ok(source)
+    }
+}
+#[derive(Debug, Parser)]
+#[command(name = "source-prover")]
+struct Args {
+    #[command(subcommand)]
+    command: Command,
+}
+#[derive(Debug, Subcommand)]
+enum Command {
+    Status,
+    Genesis {
+        #[command(flatten)]
+        chain: Chain,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Continue {
+        #[command(flatten)]
+        chain: Chain,
+        #[arg(long)]
+        previous: PathBuf,
+        #[arg(long)]
+        prefix: Vec<PathBuf>,
+        #[arg(long, required = true)]
+        block: Vec<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Update {
+        #[command(flatten)]
+        chain: Chain,
+        #[arg(long, required = true)]
+        block: Vec<PathBuf>,
+        #[arg(long)]
+        proof: PathBuf,
+        #[arg(long, requires = "previous_checkpoint")]
+        previous: Option<PathBuf>,
+        #[arg(long, requires = "previous")]
+        previous_checkpoint: Option<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Execute {
+        #[arg(long)]
+        job: PathBuf,
+        #[arg(long, default_value = "r0vm")]
+        prover: PathBuf,
+    },
+    Prove {
+        #[arg(long)]
+        job: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long, default_value = "r0vm")]
+        prover: PathBuf,
+    },
+    Verify {
+        #[arg(long)]
+        proof: PathBuf,
+    },
+}
+fn block_bytes(path: &Path) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+    use std::io::Read;
+    let mut bytes = Vec::new();
+    std::fs::File::open(path)?
+        .take(4_000_101)
+        .read_to_end(&mut bytes)?;
+    if bytes.len() > 4_000_100 {
+        return Err("block input exceeds its bound".into());
+    }
+    if bytes
+        .iter()
+        .all(|b| b.is_ascii_whitespace() || b.is_ascii_hexdigit())
+    {
+        Ok(hex::decode(
+            bytes
+                .iter()
+                .copied()
+                .filter(|b| !b.is_ascii_whitespace())
+                .collect::<Vec<_>>(),
+        )?)
+    } else {
+        Ok(bytes)
+    }
+}
+fn read_claim(artifact: &ProofArtifact) -> Result<SourceReceiptClaim, Box<dyn std::error::Error>> {
+    if artifact.statement().kind() != ProofKind::SourceTransition {
+        return Err("expected a source transition proof".into());
+    }
+    artifact.verify(artifact.statement())?;
+    Ok(SourceReceiptClaim::from_bytes(
+        artifact.statement().payload(),
+    )?)
+}
+fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
+    match args.command {
+        Command::Status => println!(
+            "{}",
+            serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","current_chain_bootstrap":"unavailable"})
+        ),
+        Command::Genesis { chain, out } => {
+            let witness = SourceWitness {
+                policy: chain.policy(),
+                input: SourceInput::Genesis(block_bytes(&chain.genesis)?),
+            };
+            SourceJob::transition(&witness, None)?.export_public(&out, 268_435_456)?;
+            println!(
+                "{}",
+                serde_json::json!({"job":out,"kind":"genesis","proof_generated":false})
+            );
+        }
+        Command::Continue {
+            chain,
+            previous,
+            prefix,
+            block,
+            out,
+        } => {
+            let previous = ProofArtifact::read(&previous)?;
+            let claim = read_claim(&previous)?;
+            let mut source = chain.source(&prefix)?;
+            let blocks = block
+                .iter()
+                .map(|path| block_bytes(path))
+                .collect::<Result<Vec<_>, _>>()?;
+            let transition = source.record_transition(blocks)?;
+            let witness = SourceWitness {
+                policy: chain.policy(),
+                input: SourceInput::Advance {
+                    previous: Box::new(claim),
+                    transition: Box::new(transition),
+                },
+            };
+            SourceJob::transition(&witness, Some(&previous))?.export_public(&out, 268_435_456)?;
+            println!(
+                "{}",
+                serde_json::json!({"job":out,"height":source.height()?,"proof_generated":false})
+            );
+        }
+        Command::Update {
+            chain,
+            block,
+            proof,
+            previous,
+            previous_checkpoint,
+            out,
+        } => {
+            let proof = ProofArtifact::read(&proof)?;
+            let claim = read_claim(&proof)?;
+            let source = chain.source(&block)?;
+            if source.state_snapshot()?.commitment()? != claim.state {
+                return Err("source prefix differs from its proof".into());
+            }
+            let checkpoint = source.checkpoint(chain.confirmations)?;
+            let previous = previous
+                .as_ref()
+                .map(|path| ProofArtifact::read(path))
+                .transpose()?;
+            let predecessor = match (&previous, previous_checkpoint) {
+                (Some(artifact), Some(path)) => {
+                    artifact.verify(artifact.statement())?;
+                    if artifact.statement().kind() != ProofKind::Source {
+                        return Err("expected a source registry update proof".into());
+                    }
+                    let old = SourceCheckpoint::from_bytes(&zutti_wallet::backup::read_private(
+                        &path, 65_536,
+                    )?)?;
+                    Some(Box::new(PreviousUpdate {
+                        claim: SourceUpdateClaim::from_bytes(artifact.statement().payload())?,
+                        ancestry: source.prove_header(old.stable.height)?,
+                        checkpoint: old,
+                    }))
+                }
+                (None, None) => None,
+                _ => return Err("previous proof and checkpoint must be supplied together".into()),
+            };
+            let witness = SourceUpdateWitness {
+                policy: chain.policy(),
+                chain: claim,
+                stable: source.prove_header(checkpoint.stable.height)?,
+                previous: predecessor,
+            };
+            SourceJob::update(&witness, &proof, previous.as_ref())?
+                .export_public(&out, 268_435_456)?;
+            zutti_wallet::backup::persist_new(
+                &out.join("checkpoint.bin"),
+                &checkpoint.to_bytes()?,
+            )?;
+            println!(
+                "{}",
+                serde_json::json!({"job":out,"checkpoint":checkpoint.id()?.to_string(),"stable_height":checkpoint.stable.height,"proof_generated":false})
+            );
+        }
+        Command::Execute { job, prover } => println!(
+            "{}",
+            serde_json::to_string(
+                &LocalProver::new(prover).execute_source(&SourceJob::read_public(&job)?)?
+            )?
+        ),
+        Command::Prove { job, out, prover } => {
+            let job = SourceJob::read_public(&job)?;
+            let (statement, proof) = LocalProver::new(prover).prove_source(&job)?;
+            ProofArtifact::new(statement, proof)?.persist_new(&out)?;
+            println!(
+                "{}",
+                serde_json::json!({"proof":out,"proof_verified":true,"swap_executed":false})
+            );
+        }
+        Command::Verify { proof } => {
+            let artifact = ProofArtifact::read(&proof)?;
+            if !matches!(
+                artifact.statement().kind(),
+                ProofKind::Source | ProofKind::SourceTransition
+            ) {
+                return Err("expected source evidence".into());
+            }
+            artifact.verify(artifact.statement())?;
+            println!(
+                "{}",
+                serde_json::json!({"proof_verified":true,"program":artifact.statement().program().to_string(),"policy":artifact.statement().domain().to_string(),"swap_executed":false})
+            );
+        }
+    }
+    Ok(())
+}
 fn main() -> std::process::ExitCode {
-    eprintln!(
-        "source proving unavailable: full consensus transitions and genesis-prefix proof are not implemented"
-    );
-    std::process::ExitCode::from(2)
+    match run(Args::parse()) {
+        Ok(()) => std::process::ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("{error}");
+            std::process::ExitCode::FAILURE
+        }
+    }
 }

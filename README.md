@@ -8,13 +8,13 @@ This repository implements Rust protocol components, native Zcash transaction va
 | --- | --- | --- |
 | `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings, operation-bound spending authorization, pool membership trees and settlement journals | Production cryptographic profile, membership/conservation proofs and circuit parameters |
 | `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted recovery archives and private-note encryption/recovery | Chain scanning, production profile admission, verified Ethereum finality and source authorization/broadcast integration |
-| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, cryptographic recursive genesis-prefix bootstrap, deployed fork/stability admission and durable source storage |
-| `prover` | RISC Zero history-query and preparation guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and encrypted witness CLI | Production profile admission; full source, private-pool and settlement proofs |
+| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, current-chain bootstrap evidence, deployed fork/stability admission and durable source storage |
+| `prover` | RISC Zero history-query, preparation, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, private-pool and settlement proofs |
 | `boundless` | Capped Base proof requests, public demo transport, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
-| `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Full source and pool proof programs, cryptographic settlement composition and deployment |
+| `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Current-chain bootstrap, pool proof programs, cryptographic settlement composition and deployment |
 | `recovery` | Local archive authentication/inspection with private key-file input | Validated swap-record restoration and independent on-chain claim/refund execution |
 
-The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source/pool proof programs that are not yet implemented or admitted.
+The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source and pool evidence under its pinned programs. Current-chain source bootstrap and the pool proof guest remain unfinished.
 
 ## Development
 
@@ -127,7 +127,7 @@ The archive contains canonical `PreparationWitness` bytes. The existing archive 
 
 The expensive test suite includes native/guest agreement, wrong-memo rejection and genuine preparation receipt generation. Execution alone is not proof verification. Local execution measured about 62.6 million cycles for a two-action synthetic PCZT after removal of unused input metadata. A genuine local preparation proof and its tampering checks completed in 15,753.99 seconds on this Mac. This is one synthetic workload; production proving latency is not established. History queries use a segment limit of 2^18 cycles; the heavier preparation prover uses 2^20 to reduce segment overhead without changing the statement.
 
-Guest image IDs can change when dependencies or crate layouts are rebuilt. The verifier retains the explicitly pinned first preparation and history-query images under their existing journal semantics, alongside the current component builds. A committed generated Groth16 fixture checks that the first preparation receipt still verifies; unknown programs, proof-kind substitutions and altered seals are rejected. Source and settlement proof kinds remain unavailable.
+Guest image IDs can change when dependencies or crate layouts are rebuilt. The verifier retains the explicitly pinned first preparation and history-query images under their existing journal semantics, alongside the current component builds. A committed generated Groth16 fixture checks that the first preparation receipt still verifies; unknown programs, proof-kind substitutions and altered seals are rejected. Source-prefix and registry-update programs are implemented. Current-chain bootstrap and private-pool proof programs remain separate work.
 
 ## Boundless public demonstration
 
@@ -175,7 +175,7 @@ The preceding MMR root must come from validated authenticated source state. A ca
 
 `CandidateHistory` now implements the native chain-history frontier using pinned `zcash_history` 0.5.0: Heartwood/Canopy V1, NU5-era V2 and NU6.3 V3 with separate Ironwood metadata. It starts from the exact network genesis, enforces consecutive parent/height/branch context, checks the preceding history commitment before an upgrade reset, and combines the authorizing-data root from NU5 onward. Snapshots retain at most 32 peaks, reject noncanonical node encodings and validate peak shape, ranges and arithmetic before mutation. Differential tests compare every root across 65 appends per representative epoch with upstream, and compare real-block leaf metadata/counts with Zebra.
 
-The standalone accumulator accepts commitment-tree roots from its caller. `SourceCandidate` instead supplies roots computed by its owned trees as described below. Neither a caller-supplied root nor a decoded candidate snapshot establishes an authenticated bootstrap. The consensus MMR resets at network upgrades; it does not replace Zutti's required history/index commitments for older anchors. Full source proofs and `VerifiedHistory` remain unavailable.
+The standalone accumulator accepts commitment-tree roots from its caller. `SourceCandidate` instead supplies roots computed by its owned trees as described below. Neither a caller-supplied root nor a decoded candidate snapshot establishes an authenticated bootstrap. The consensus MMR resets at network upgrades; it does not replace Zutti's required history/index commitments for older anchors. Current-chain bootstrap and `VerifiedHistory` remain unavailable; the source prover separately verifies cryptographic chain-prefix evidence.
 
 ## Source commitment trees and candidate replay
 
@@ -260,3 +260,21 @@ Source commitment references: [ZIP 244 block-header commitments](https://zips.z.
 The permanent archive retains each height's header hash, cumulative work and complete transaction-index root across Zcash history-tree resets. `SourceCheckpoint` selects an index snapshot behind the candidate head and authenticates earlier order anchors. `SourceUpdateWitness` requires increasing proved work and preserves the previous accepted stable header. Its native evaluator checks these predicates; the guest must additionally verify the required chain and predecessor receipts before the result can enter `SourceRegistry`.
 
 Tests replay real mainnet blocks 0 through 10 with different batch partitions and index start heights, compare native and stateless results, and reject forged state and ancestry. This evidence does not demonstrate a genesis-to-current-chain proof or an end-to-end swap.
+
+## Recursive source proving
+
+The separate source guest validates the exact configured genesis and continues from committed source-state snapshots. A continuation carries a raw Groth16 predecessor seal, verifies it inside the VM under the policy's source program, and runs the authenticated transition. This composition works with Boundless's stdin transport. Source policies bind both source and registry program images, network, index start and confirmation depth.
+
+`ProofKind::SourceTransition` proves a chain prefix. The registry guest additionally verifies that proof, selects the stable header/index through the permanent archive, and preserves the previous accepted stable header while requiring increasing work. Its journal matches `SourceRegistry`. The `verify_history` convenience API still rejects candidate snapshots. Source receipts are verified through `ProofVerifier`, and destination admission is handled by `SourceRegistry`. A component receipt does not establish that a chain head is current.
+
+```sh
+cargo run --locked -p zutti-prover --bin source-prover -- status
+cargo run --locked -p zutti-prover --bin source-prover -- genesis   --network mainnet --genesis tests/fixtures/block-0.txt   --confirmations 3 --out .data/source-genesis
+cargo run --locked -p zutti-prover --bin source-prover -- execute   --job .data/source-genesis
+```
+
+These commands export public chain data and measure execution. Submission and collection use the existing capped Boundless client; `private-prover import-boundless` verifies the returned seal against the retained statement. `source-prover continue` takes the predecessor proof, exact native prefix and consecutive new blocks. `source-prover update` produces the registry proof job and checkpoint package. The command help lists the complete arguments. Execution output always distinguishes execution from proof generation.
+
+The first mainnet-genesis job executed in 24,111,161 cycles after replacing repeated empty-tree construction with 66 consensus constants independently checked against the pinned upstream implementations. The preceding implementation used 1,056,212,137 cycles. Boundless fulfilled the genuine genesis proof in 76 seconds after submission; it cost 35,790,816,373,743 wei from the proving deposit. Local cryptographic verification passed. The retained public fixture tests verification and altered-seal rejection.
+
+A continuation through mainnet blocks 1 to 4, including in-guest verification of the genuine genesis proof, executed in 253,879,014 cycles. These measurements cover this early public prefix. They do not establish current-chain proving cost, a current bootstrap or a completed swap.
