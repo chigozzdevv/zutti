@@ -2,19 +2,19 @@
 
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 
-This repository implements Rust protocol components, local and Boundless preparation proving, and an Ethereum preparation-verifier adapter. It does not yet execute cross-chain swaps or accept deposits. The intended protocol and SDK APIs are specified in [zutti.md](zutti.md).
+This repository implements Rust protocol components, native Zcash transaction validation, local and Boundless preparation proving, and Ethereum settlement state machines. No Zutti contract is deployed, and end-to-end swaps are not available. The intended protocol and SDK APIs are specified in [zutti.md](zutti.md).
 
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
-| `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings and operation-bound spending authorization | Production cryptographic profile, membership/conservation proofs and circuit parameters |
+| `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings, operation-bound spending authorization, pool membership trees and settlement journals | Production cryptographic profile, membership/conservation proofs and circuit parameters |
 | `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted recovery archives and private-note encryption/recovery | Chain scanning, production profile admission, verified Ethereum finality and source authorization/broadcast integration |
-| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, atomic candidate replay and private history-query predicates | Full transaction/spend validation, proof-authenticated consensus state, complete genesis-prefix bootstrap, fork/stability policy and durable source storage |
+| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, proof-authenticated state witnesses, recursive genesis-prefix bootstrap, fork/stability policy and durable source storage |
 | `prover` | RISC Zero history-query and preparation guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and encrypted witness CLI | Production profile admission; full source, private-pool and settlement proofs |
 | `boundless` | Capped Base proof requests, public demo transport, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
-| `contracts` | Preparation adapter verified against the actual upstream RISC Zero Groth16 verifier | Private pool, source registry, reservation/settlement composition and deployment |
+| `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Full source and pool proof programs, cryptographic settlement composition and deployment |
 | `recovery` | Local archive authentication/inspection with private key-file input | Validated swap-record restoration and independent on-chain claim/refund execution |
 
-The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption do not issue backed USDC or implement a private asset pool.
+The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source/pool proof programs that are not yet implemented or admitted.
 
 ## Development
 
@@ -125,7 +125,9 @@ cargo run --locked -p zutti-prover --bin private-prover -- verify-preparation \
 
 The archive contains canonical `PreparationWitness` bytes. The existing archive transport accepts up to 4 MiB of plaintext; the native witness codec separately bounds PCZT input at 8 MiB. Larger preparation payloads require another explicitly supported private transport. The CLI separates prover logs from its JSON result and rejects a history-query artifact supplied as preparation evidence, or vice versa.
 
-The expensive test suite includes native/guest agreement, wrong-memo rejection and genuine preparation receipt generation. Execution alone is not proof verification. Local execution measured about 62.6 million cycles for a two-action synthetic PCZT after removal of unused input metadata. This is still a substantial proving workload; production proving latency is not established. History queries use a segment limit of 2^18 cycles; the heavier preparation prover uses 2^20 to reduce segment overhead without changing the statement.
+The expensive test suite includes native/guest agreement, wrong-memo rejection and genuine preparation receipt generation. Execution alone is not proof verification. Local execution measured about 62.6 million cycles for a two-action synthetic PCZT after removal of unused input metadata. A genuine local preparation proof and its tampering checks completed in 15,753.99 seconds on this Mac. This is one synthetic workload; production proving latency is not established. History queries use a segment limit of 2^18 cycles; the heavier preparation prover uses 2^20 to reduce segment overhead without changing the statement.
+
+Guest image IDs can change when dependencies or crate layouts are rebuilt. The verifier retains the explicitly pinned first preparation and history-query images under their existing journal semantics, alongside the current component builds. A committed generated Groth16 fixture checks that the first preparation receipt still verifies; unknown programs, proof-kind substitutions and altered seals are rejected. Source and settlement proof kinds remain unavailable.
 
 ## Boundless public demonstration
 
@@ -163,7 +165,7 @@ The `notes` protocol feature defines strict USDC note openings, owner keys, a co
 
 The native wallet encrypts note recovery data using X25519, HKDF-SHA256 and XChaCha20-Poly1305. It authenticates the domain, commitment, ephemeral key, nonce and recipient viewing key. Decryption checks the recovered note against its committed identity. Viewing recovery and spending authorization use separate keys; low-order encryption keys, changed ciphertext/metadata, wrong viewing keys, wrong operations and noncanonical signatures are rejected.
 
-These are native primitives with deterministic encryption available for future proof witnesses. Note-tree membership, conservation, correct-output-encryption proofs, pool-backed issuance, scanning and contract-enforced nullifier consumption remain unimplemented. `FixedOutput` binds a ciphertext digest; constructing it alone does not prove that a decoded ciphertext was encrypted correctly.
+These are native primitives with deterministic encryption available for future proof witnesses. Pool membership paths and contract nullifier consumption are implemented. Their zero-knowledge membership/conservation proofs, correct-output-encryption proofs, production-backed issuance and scanning remain unimplemented. `FixedOutput` binds a ciphertext digest; constructing it alone does not prove that a decoded ciphertext was encrypted correctly.
 
 ## Source authorizing-data commitments
 
@@ -179,7 +181,7 @@ The standalone accumulator accepts commitment-tree roots from its caller. `Sourc
 
 The block parser retains ordered Sprout, Sapling, Orchard and Ironwood note commitments. `CandidateTrees` derives each pool's root using bounded incremental frontiers; Orchard and Ironwood stay separate. Sprout compression and tree roots are checked against Zebra, and differential tests compare commitment extraction and the resulting roots for the same public-block inputs. These comparisons start from matching empty frontiers; they do not establish the omitted historical prefix before those fixture blocks.
 
-`SourceCandidate` starts from an exact network genesis and atomically advances expected-difficulty/work checks, shielded trees, native chain history and the transaction index. It checks the computed Sapling header root during Sapling/Blossom and the applicable chain-history/authorizing commitment afterward. A failed transition cannot partially advance the index or other state. An index whose configured start is ahead of the processed prefix stays unavailable.
+`SourceCandidate` starts from an exact network genesis and atomically advances expected-difficulty/work checks, transaction validation, UTXOs, shielded anchors/nullifiers/value pools, subsidy/funding streams, shielded trees, native chain history and the transaction index. It checks the computed Sapling header root during Sapling/Blossom and the applicable chain-history/authorizing commitment afterward. A failed transition cannot partially advance the index or other state. An index whose configured start is ahead of the processed prefix stays unavailable.
 
 Replay the real mainnet genesis and first block:
 
@@ -191,9 +193,27 @@ cargo run --locked -p zutti-source -- replay \
   --rules 0101010101010101010101010101010101010101010101010101010101010101
 ```
 
-The rules value is an example index-context identifier, not an admitted consensus profile. Repeat `--block` in consecutive chain order for a longer supplied prefix. The command reports computed public roots and work, rejects skipped ancestry and keeps `consensus_verified` and `settlement_authority` false. Transaction signatures/proofs, UTXO/nullifier rules, monetary rules, fork policy and cryptographic bootstrap still require implementation before candidate replay can become accepted source verification.
+The rules value is an example index-context identifier, not an admitted consensus profile. Repeat `--block` in consecutive chain order for a longer supplied prefix. The command reports computed public roots and work, rejects skipped ancestry and keeps `consensus_verified` and `settlement_authority` false. Native transaction/spend/monetary checks are connected to replay. Accepted source verification still requires a complete consensus-rule audit, authenticated state witnesses, recursive genesis proofs and the admitted fork/stability policy.
 
-Zebra's standard router retains mandatory historical checkpoint validation even with `checkpoint_sync = false`; this configuration cannot satisfy Zutti's full-prefix requirement. The relevant behavior was checked in `zebra-consensus` 16.0.0, `config.rs` and `router::init_checkpoint_list`. Zutti uses no checkpoint shortcut as verified history. Full historical transaction validation, MMR/state transitions and recursive prefix proving remain necessary.
+Zebra's standard router retains mandatory historical checkpoint validation even with `checkpoint_sync = false`; this configuration cannot satisfy Zutti's full-prefix requirement. The relevant behavior was checked in `zebra-consensus` 16.0.0, `config.rs` and `router::init_checkpoint_list`. Zutti uses no checkpoint shortcut as verified history. The native verifier includes historical PHGR and Sprout Groth16 verification rather than delegating those transactions to a checkpoint. Recursive prefix proving and authenticated state admission remain necessary.
+
+## Native transaction validation
+
+The verifier implements pre-Overwinter signature hashing, Overwinter, Sapling and v5/v6 signature hashing through pinned upstream primitives, transparent scripts, value conservation, duplicate-input checks, coinbase maturity/shielding, inclusive expiry, lock time and block signature-operation limits. Coinbase heights use the canonical script prefix; pre-v5 coinbases are reparsed with the actual block branch before authorization checks.
+
+Shielded checks verify Sprout PHGR and Groth16 proofs, JoinSplit signatures, individual Sapling spend/output proofs and authorization/binding signatures, and Orchard/Ironwood proofs with the applicable historical or current circuit key. Coinbase shielded outputs must recover with the consensus zero outgoing viewing key and the required note version. Public verifying-key provenance and reproduction are documented in [the parameter directory](crates/source/parameters/README.md).
+
+Spend state separates all four nullifier sets, checks earlier final anchors and Sprout transaction-local intermediate anchors, and accounts for each shielded pool. Pinned Zebra parameters supply subsidy, founders reward, funding streams and lockbox disbursement schedules. Required outputs are counted distinctly; deferred value and NU6's exact coinbase accounting are checked. Persistent ordered maps make candidate clones share state instead of copying the entire ledger each block.
+
+Tests cover published signature vectors, historical PHGR/Groth16 transactions, modern shielded transactions and altered signatures, public coinbases across upgrade boundaries, the first ten consecutive mainnet blocks, and rejection of wrong founders rewards and excessive coinbase value. These are component and prefix tests, not proof that the entire Zcash history has been replayed or proved.
+
+## Settlement contracts
+
+`SourceRegistry` verifies a journal binding the network genesis, policy, previous head, previous stable checkpoint, new state, new checkpoint and increased cumulative work. It retains accepted checkpoints for later recovery. It has no committee signer or administrative root-insertion function. Its full source program must enforce validity, ancestry, bootstrap and fork/stability rules; the registry's work comparison alone does not establish those facts or identify an unseen heavier fork.
+
+`PrivatePool` binds its domain to the destination chain, pool address, token, source policy and proof profiles. Its five operation modes are deposit, transfer, withdrawal, reservation and settlement. Deposits require exact token receipt. Internal operations consume unique nullifiers and append commitments without transferring ERC-20 principal. Reservations also verify the prepared payment and consume an order-use tag. Terminal settlement consumes one reservation nullifier and appends one output; it has no claim timer. Outputs retain public ciphertexts, and old membership roots remain usable with unspent nullifiers.
+
+Rust and Solidity agree on the 295-byte pool journal, source-update journal and deployment-domain vectors. Contract tests cover claim binding, replay, duplicate commitments, token failures, reentrancy and atomic rollback. **Source and pool state-machine tests use `JournalVerifierMock`; their proof programs are not implemented or admitted. Only preparation is tested here with a genuine Groth16 proof.** The contracts are not deployed or ready for funding.
 
 ## Ownership
 
@@ -225,7 +245,7 @@ Root scripts coordinate tools. Package-owned generation stays in `packages/bindi
 
 ## Next verification milestone
 
-Connect complete Zcash consensus and authenticated state transitions to the proving backend, including a reproducible genesis prefix. Define and test the registry fork/stability state machine. Only then can the candidate index support actual paid/refund evidence. Production preparation-profile admission, private pool/reservation/settlement proofs, verified Ethereum finality and independent recovery remain necessary. Boundless supplies proving capacity for implemented programs; it does not fill these missing statements.
+Connect complete Zcash consensus and authenticated state transitions to the proving backend, including a reproducible genesis prefix. Implement the source proof program that enforces the registry fork/stability policy. Only then can the candidate index support actual paid/refund evidence. Production preparation-profile admission, private pool/reservation/settlement proofs, verified Ethereum finality and independent recovery remain necessary. Boundless supplies proving capacity for implemented programs; it does not fill these missing statements.
 
 References: [PCZT 0.9.3](https://docs.rs/pczt/0.9.3/pczt/struct.Pczt.html), [ZIP 229](https://zips.z.cash/zip-0229), [ZIP 244](https://zips.z.cash/zip-0244), [ZIP 203](https://zips.z.cash/zip-0203).
 
