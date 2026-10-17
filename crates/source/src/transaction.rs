@@ -1,5 +1,5 @@
+use crate::authenticated::{AuthenticatedMap, StateError, Transcript};
 use crate::block::ParsedBlock;
-use im::OrdMap;
 use sha2::{Digest as _, Sha256};
 use std::collections::BTreeSet;
 use transparent::{
@@ -18,6 +18,11 @@ use zcash_script::{
     interpreter::{CallbackTransactionSignatureChecker, Flags},
     script::{self, Evaluable as _},
 };
+use zutti_protocol::{
+    Digest,
+    commitment::hash,
+    encoding::{Canonical, Reader, Writer},
+};
 
 pub const MAX_MONEY: u64 = 21_000_000 * 100_000_000;
 pub const COINBASE_MATURITY: u32 = 100;
@@ -25,6 +30,8 @@ pub const MAX_BLOCK_SIGOPS: u32 = 20_000;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
+    #[error(transparent)]
+    State(#[from] StateError),
     #[error(transparent)]
     Authorization(#[from] crate::authorization::Error),
     #[error("transaction version is not permitted in this consensus branch")]
@@ -76,9 +83,48 @@ impl UnspentOutput {
 
 type OutputKey = ([u8; 32], u32);
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Clone)]
 pub struct CandidateLedger {
-    outputs: OrdMap<OutputKey, UnspentOutput>,
+    outputs: AuthenticatedMap,
+    count: u64,
+}
+impl Default for CandidateLedger {
+    fn default() -> Self {
+        Self {
+            outputs: AuthenticatedMap::new(ledger_context()),
+            count: 0,
+        }
+    }
+}
+fn ledger_context() -> Digest {
+    hash(b"source-utxos", &[])
+}
+fn output_key(key: OutputKey) -> Digest {
+    hash(b"source-outpoint", &[&key.0, &key.1.to_le_bytes()])
+}
+impl Canonical for UnspentOutput {
+    fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
+        writer.u32(self.height);
+        writer.u8(u8::from(self.coinbase));
+        writer.u64(self.output.value().into_u64());
+        writer.bytes(&self.output.script_pubkey().0.0)
+    }
+    fn decode(reader: &mut Reader<'_>) -> zutti_protocol::Result<Self> {
+        let height = reader.u32()?;
+        let coinbase = match reader.u8()? {
+            0 => false,
+            1 => true,
+            _ => return Err(zutti_protocol::Error::Invalid("coinbase flag")),
+        };
+        let value = Zatoshis::from_u64(reader.u64()?)
+            .map_err(|_| zutti_protocol::Error::Invalid("utxo value"))?;
+        let script = Script(script::Code(reader.bytes(10_000)?.to_vec()));
+        Ok(Self {
+            output: TxOut::new(value, script),
+            height,
+            coinbase,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -89,14 +135,46 @@ pub struct BlockValue {
 }
 
 impl CandidateLedger {
-    pub fn output(&self, outpoint: &OutPoint) -> Option<&UnspentOutput> {
-        self.outputs.get(&key(outpoint))
+    pub fn output(&self, outpoint: &OutPoint) -> Result<Option<UnspentOutput>> {
+        self.outputs
+            .get(output_key(key(outpoint)))?
+            .map(|bytes| UnspentOutput::from_bytes(&bytes).map_err(|_| Error::Encoding))
+            .transpose()
     }
     pub fn len(&self) -> usize {
-        self.outputs.len()
+        self.count as usize
     }
-    pub fn is_empty(&self) -> bool {
-        self.outputs.is_empty()
+    pub const fn count(&self) -> u64 {
+        self.count
+    }
+    pub const fn is_empty(&self) -> bool {
+        self.count == 0
+    }
+    pub fn root(&self) -> Digest {
+        self.outputs.root()
+    }
+    pub fn start_recording(&mut self) -> Result<()> {
+        Ok(self.outputs.start_recording()?)
+    }
+    pub fn take_transcript(&mut self) -> Result<Transcript> {
+        Ok(self.outputs.take_transcript()?)
+    }
+    pub fn from_witness(root: Digest, count: u64, transcript: Transcript) -> Self {
+        Self {
+            outputs: AuthenticatedMap::from_witness(ledger_context(), root, transcript),
+            count,
+        }
+    }
+    pub fn finish_witness(&self) -> Result<()> {
+        Ok(self.outputs.finish()?)
+    }
+    fn insert_output(&mut self, key: OutputKey, output: UnspentOutput) -> Result<()> {
+        let bytes = output.to_bytes().map_err(|_| Error::Encoding)?;
+        if self.outputs.set(output_key(key), Some(bytes))?.is_some() {
+            return Err(Error::Overwrite);
+        }
+        self.count = self.count.checked_add(1).ok_or(Error::Value)?;
+        Ok(())
     }
     pub fn append(&mut self, block: &ParsedBlock) -> Result<BlockValue> {
         let mut next = self.clone();
@@ -143,7 +221,7 @@ impl CandidateLedger {
                     if !spent.insert(key(input.prevout())) {
                         return Err(Error::Input);
                     }
-                    let previous = self.output(input.prevout()).ok_or(Error::Input)?;
+                    let previous = self.output(input.prevout())?.ok_or(Error::Input)?;
                     if previous.coinbase
                         && (height
                             .checked_sub(previous.height)
@@ -246,7 +324,10 @@ impl CandidateLedger {
         };
         crate::authorization::verify(tx, &prevouts)?;
         for outpoint in spent {
-            self.outputs.remove(&outpoint);
+            if self.outputs.set(output_key(outpoint), None)?.is_none() {
+                return Err(Error::Input);
+            }
+            self.count = self.count.checked_sub(1).ok_or(Error::Input)?;
         }
         if let Some(bundle) = tx.transparent_bundle() {
             for (index, output) in bundle.vout.iter().enumerate() {
@@ -254,18 +335,18 @@ impl CandidateLedger {
                     *tx.txid().as_ref(),
                     u32::try_from(index).map_err(|_| Error::Encoding)?,
                 );
-                if self.outputs.contains_key(&outpoint) {
+                if self.outputs.get(output_key(outpoint))?.is_some() {
                     return Err(Error::Overwrite);
                 }
                 if !output.script_pubkey().0.is_unspendable() {
-                    self.outputs.insert(
+                    self.insert_output(
                         outpoint,
                         UnspentOutput {
                             output: output.clone(),
                             height,
                             coinbase,
                         },
-                    );
+                    )?;
                 }
             }
         }
@@ -665,14 +746,16 @@ mod tests {
     fn seeded(coinbase: bool) -> (CandidateLedger, OutPoint) {
         let outpoint = OutPoint::new([7; 32], 0);
         let mut ledger = CandidateLedger::default();
-        ledger.outputs.insert(
-            key(&outpoint),
-            UnspentOutput {
-                output: output(100, vec![0x51]),
-                height: 10,
-                coinbase,
-            },
-        );
+        ledger
+            .insert_output(
+                key(&outpoint),
+                UnspentOutput {
+                    output: output(100, vec![0x51]),
+                    height: 10,
+                    coinbase,
+                },
+            )
+            .unwrap();
         (ledger, outpoint)
     }
     #[test]
@@ -719,7 +802,7 @@ mod tests {
             0,
         );
         assert_eq!(ledger.apply(&tx, 11, false).unwrap(), (10, 0));
-        assert!(ledger.output(&previous).is_none());
+        assert!(ledger.output(&previous).unwrap().is_none());
         assert_eq!(ledger.apply(&tx, 11, false), Err(Error::Input));
         assert_eq!(ledger.len(), 1);
     }
@@ -743,7 +826,7 @@ mod tests {
             0,
         );
         assert_eq!(ledger.apply(&inflation, 11, false), Err(Error::Value));
-        assert!(ledger.output(&previous).is_some());
+        assert!(ledger.output(&previous).unwrap().is_some());
     }
     #[test]
     fn coinbase_spends_require_maturity_and_shielded_outputs() {
@@ -797,14 +880,16 @@ mod tests {
         unlocking.extend_from_slice(&signature);
         unlocking.push(1);
         let mut ledger = CandidateLedger::default();
-        ledger.outputs.insert(
-            key(&outpoint),
-            UnspentOutput {
-                output: previous,
-                height: 1,
-                coinbase: false,
-            },
-        );
+        ledger
+            .insert_output(
+                key(&outpoint),
+                UnspentOutput {
+                    output: previous,
+                    height: 1,
+                    coinbase: false,
+                },
+            )
+            .unwrap();
         assert_eq!(
             ledger
                 .clone()

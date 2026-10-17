@@ -9,7 +9,10 @@ use std::collections::VecDeque;
 use zcash_protocol::consensus::{
     BlockHeight, MAIN_NETWORK, NetworkType, NetworkUpgrade, Parameters, TEST_NETWORK,
 };
-use zutti_protocol::Digest;
+use zutti_protocol::{
+    Digest, Error as CodecError,
+    encoding::{Canonical, Reader, Writer},
+};
 
 const AVERAGING_WINDOW: usize = 17;
 const MEDIAN_WINDOW: usize = 11;
@@ -106,6 +109,74 @@ impl HeaderCandidate {
     }
     pub fn tip(&self) -> Result<Digest> {
         Ok(self.headers.back().ok_or(Error::Genesis)?.hash)
+    }
+}
+
+impl HeaderCandidate {
+    pub const fn network(&self) -> NetworkType {
+        self.network
+    }
+}
+impl Canonical for HeaderCandidate {
+    fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
+        writer.u8(match self.network {
+            NetworkType::Main => 1,
+            NetworkType::Test => 2,
+            _ => return Err(CodecError::Invalid("network")),
+        });
+        writer.u8(self.headers.len() as u8);
+        for header in &self.headers {
+            writer.u32(header.height);
+            writer.fixed(&header.hash.0);
+            writer.u32(header.time);
+            writer.u32(header.bits);
+        }
+        writer.fixed(
+            &self
+                .cumulative_work()
+                .map_err(|_| CodecError::Invalid("chain work"))?,
+        );
+        Ok(())
+    }
+    fn decode(reader: &mut Reader<'_>) -> zutti_protocol::Result<Self> {
+        let network = match reader.u8()? {
+            1 => NetworkType::Main,
+            2 => NetworkType::Test,
+            _ => return Err(CodecError::Invalid("network")),
+        };
+        let count = reader.u8()? as usize;
+        if count == 0 || count > CONTEXT_WINDOW {
+            return Err(CodecError::Length);
+        }
+        let mut headers: VecDeque<Header> = VecDeque::new();
+        for _ in 0..count {
+            let header = Header {
+                height: reader.u32()?,
+                hash: Digest::nonzero(reader.fixed()?)?,
+                time: reader.u32()?,
+                bits: reader.u32()?,
+            };
+            if let Some(previous) = headers.back()
+                && previous.height.checked_add(1) != Some(header.height)
+            {
+                return Err(CodecError::Invalid("header context"));
+            }
+            Target::from_compact(header.bits).map_err(|_| CodecError::Invalid("header target"))?;
+            headers.push_back(header);
+        }
+        let tip = headers.back().ok_or(CodecError::Length)?;
+        if count as u64 != (u64::from(tip.height) + 1).min(CONTEXT_WINDOW as u64) {
+            return Err(CodecError::Length);
+        }
+        let cumulative_work = BigUint::from_bytes_be(&reader.fixed::<32>()?);
+        if cumulative_work == BigUint::from(0_u8) {
+            return Err(CodecError::Invalid("chain work"));
+        }
+        Ok(Self {
+            network,
+            headers,
+            cumulative_work,
+        })
     }
 }
 

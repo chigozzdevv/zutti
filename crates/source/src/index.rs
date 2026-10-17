@@ -1,4 +1,7 @@
 use crate::{Error, Result};
+#[cfg(feature = "blocks")]
+use im::OrdMap as BTreeMap;
+#[cfg(not(feature = "blocks"))]
 use std::collections::BTreeMap;
 use zutti_protocol::{
     Digest,
@@ -139,6 +142,27 @@ impl IndexProof {
             .map_or(Observation::Absent, Observation::Present))
     }
 }
+impl IndexProof {
+    pub fn insert(&self, snapshot: IndexSnapshot, key: Digest, height: u32) -> Result<Digest> {
+        if height != snapshot.height || height <= snapshot.context.start() {
+            return Err(Error::Height);
+        }
+        if matches!(self.verify(snapshot, key)?, Observation::Present(_)) {
+            return Ok(snapshot.root);
+        }
+        let mut node = leaf(snapshot.context.id(), key, height);
+        for (level, sibling) in self.siblings.iter().enumerate() {
+            let depth = DEPTH - 1 - level;
+            node = if bit(key, depth) {
+                branch(self.context, depth, *sibling, node)
+            } else {
+                branch(self.context, depth, node, *sibling)
+            };
+        }
+        Ok(node)
+    }
+}
+
 impl Canonical for IndexProof {
     fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
         writer.fixed(b"ZUTTIPTH");
@@ -181,7 +205,7 @@ impl Canonical for IndexProof {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CandidateIndex {
     context: IndexContext,
     height: u32,
@@ -213,6 +237,14 @@ impl CandidateIndex {
         }
     }
     pub fn append_block(&mut self, height: u32, transaction_ids: &[Digest]) -> Result<()> {
+        self.append_recorded(height, transaction_ids, None)
+    }
+    pub fn append_recorded(
+        &mut self,
+        height: u32,
+        transaction_ids: &[Digest],
+        mut proofs: Option<&mut Vec<IndexProof>>,
+    ) -> Result<()> {
         if self.height.checked_add(1) != Some(height) {
             return Err(Error::Height);
         }
@@ -222,8 +254,10 @@ impl CandidateIndex {
         {
             return Err(Error::Transactions);
         }
-        // Validate the entire batch before mutating. Preserve first inclusion deterministically.
         for key in transaction_ids {
+            if let Some(proofs) = &mut proofs {
+                proofs.push(self.prove(*key));
+            }
             if self.entries.contains_key(key) {
                 continue;
             }

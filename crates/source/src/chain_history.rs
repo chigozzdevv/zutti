@@ -252,6 +252,9 @@ impl CandidateHistory {
     pub const fn height(&self) -> u32 {
         self.height
     }
+    pub const fn network(&self) -> NetworkType {
+        self.network
+    }
     pub const fn tip(&self) -> Digest {
         self.tip
     }

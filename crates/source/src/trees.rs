@@ -102,6 +102,15 @@ impl SproutFrontier {
     }
 }
 
+impl Canonical for SproutFrontier {
+    fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
+        encode_tree(&self.0, writer)
+    }
+    fn decode(reader: &mut Reader<'_>) -> zutti_protocol::Result<Self> {
+        Ok(Self(decode_tree(reader)?))
+    }
+}
+
 impl Hashable for SproutNode {
     fn empty_leaf() -> Self {
         Self([0; 32])

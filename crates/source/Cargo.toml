@@ -7,7 +7,8 @@ publish.workspace = true
 
 [features]
 default = ["blocks", "cli"]
-blocks = ["dep:zcash_primitives", "dep:zcash_protocol", "dep:sha2", "dep:blake2b_simd", "dep:zcash_encoding", "dep:zcash_script", "zcash_script/signature-validation", "dep:transparent", "dep:num-bigint", "dep:zcash_history", "dep:primitive-types", "dep:incrementalmerkletree", "dep:sapling", "dep:orchard", "orchard/circuit", "dep:bellman", "dep:bls12_381", "dep:group", "dep:jubjub", "dep:ed25519-zebra", "dep:zebra-chain", "dep:ark-bn254", "dep:ark-ec", "dep:ark-ff", "dep:im"]
+authenticated = ["dep:im"]
+blocks = ["authenticated", "zutti-protocol/pool", "dep:zcash_primitives", "dep:zcash_protocol", "dep:sha2", "dep:blake2b_simd", "dep:zcash_encoding", "dep:zcash_script", "zcash_script/signature-validation", "dep:transparent", "dep:num-bigint", "dep:zcash_history", "dep:primitive-types", "dep:incrementalmerkletree", "dep:sapling", "dep:orchard", "orchard/circuit", "dep:bellman", "dep:bls12_381", "dep:group", "dep:jubjub", "dep:ed25519-zebra", "dep:zebra-chain", "dep:ark-bn254", "dep:ark-ec", "dep:ark-ff"]
 cli = ["blocks", "dep:clap", "dep:serde_json", "dep:hex"]
 
 [[bin]]

@@ -8,6 +8,10 @@ use zebra_chain::{
         subsidy::{self, FundingStreamReceiver, ParameterSubsidy},
     },
 };
+use zutti_protocol::{
+    Error as CodecError,
+    encoding::{Canonical, Reader, Writer},
+};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
@@ -144,5 +148,34 @@ impl MonetaryState {
             .filter(|value| *value <= crate::transaction::MAX_MONEY)
             .ok_or(Error::Value)?;
         Ok(next)
+    }
+}
+
+impl Canonical for MonetaryState {
+    fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
+        writer.u8(if matches!(self.network, Network::Mainnet) {
+            1
+        } else {
+            2
+        });
+        writer.u64(self.deferred);
+        writer.u64(self.issued);
+        Ok(())
+    }
+    fn decode(reader: &mut Reader<'_>) -> zutti_protocol::Result<Self> {
+        let network = match reader.u8()? {
+            1 => NetworkType::Main,
+            2 => NetworkType::Test,
+            _ => return Err(CodecError::Invalid("network")),
+        };
+        let mut state = Self::new(network).map_err(|_| CodecError::Invalid("monetary network"))?;
+        state.deferred = reader.u64()?;
+        state.issued = reader.u64()?;
+        if state.deferred > crate::transaction::MAX_MONEY
+            || state.issued > crate::transaction::MAX_MONEY
+        {
+            return Err(CodecError::Invalid("monetary state"));
+        }
+        Ok(state)
     }
 }

@@ -1,5 +1,9 @@
 #[cfg(feature = "blocks")]
+mod access_index;
+#[cfg(feature = "blocks")]
 pub mod auth;
+#[cfg(feature = "authenticated")]
+pub mod authenticated;
 #[cfg(feature = "blocks")]
 pub mod authorization;
 #[cfg(feature = "blocks")]
@@ -8,6 +12,8 @@ pub mod block;
 pub mod bootstrap;
 #[cfg(feature = "blocks")]
 pub mod chain_history;
+#[cfg(feature = "authenticated")]
+pub mod checkpoint;
 pub mod consensus;
 #[cfg(feature = "blocks")]
 pub mod difficulty;
@@ -15,6 +21,8 @@ pub mod history;
 pub mod index;
 #[cfg(feature = "blocks")]
 mod phgr;
+#[cfg(feature = "blocks")]
+pub mod proof;
 pub mod query;
 #[cfg(feature = "blocks")]
 pub mod spends;
@@ -25,7 +33,11 @@ pub mod subsidy;
 #[cfg(feature = "blocks")]
 pub mod transaction;
 #[cfg(feature = "blocks")]
+pub mod transition;
+#[cfg(feature = "blocks")]
 pub mod trees;
+#[cfg(feature = "blocks")]
+pub mod update;
 #[cfg(feature = "blocks")]
 pub mod work;
 
