@@ -87,6 +87,10 @@ enum Job {
         #[arg(long)]
         batch: u64,
     },
+    Continue {
+        #[arg(long)]
+        batch: u64,
+    },
     Aggregate {
         #[arg(long, required = true)]
         batch: Vec<u64>,
@@ -196,6 +200,7 @@ pub(super) fn run(options: Options) -> Result<()> {
             let job = match job {
                 Job::Genesis => bootstrap.genesis_job()?,
                 Job::Range { batch } => bootstrap.range_job(batch)?,
+                Job::Continue { batch } => bootstrap.continue_job(batch)?,
                 Job::Aggregate { batch } => bootstrap.aggregate_job(&batch)?,
                 Job::Fold { batch } => bootstrap.fold_job(batch)?,
             };

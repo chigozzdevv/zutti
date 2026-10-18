@@ -77,6 +77,15 @@ fn genuine_receipts_complete_and_restart_the_durable_bootstrap_queue() {
     bootstrap.accept_prefix(&genesis).unwrap();
     let first = bootstrap.advance(blocks(1, 2)).unwrap();
     let second = bootstrap.advance(blocks(3, 4)).unwrap();
+    let direct = bootstrap.continue_job(first).unwrap();
+    assert_eq!(direct.statement().kind(), ProofKind::SourceTransition);
+    assert_eq!(
+        SourceReceiptClaim::from_bytes(direct.statement().payload()).unwrap(),
+        SourceRangeClaim::from_bytes(a.statement().payload())
+            .unwrap()
+            .end
+    );
+    assert!(bootstrap.continue_job(second).is_err());
     assert_eq!(
         bootstrap.range_job(first).unwrap().statement(),
         a.statement()
@@ -94,6 +103,7 @@ fn genuine_receipts_complete_and_restart_the_durable_bootstrap_queue() {
     assert!(bootstrap.store().batch(first).unwrap().witness.is_some());
     bootstrap.accept_range(first, &a).unwrap();
     bootstrap.accept_range(first, &a).unwrap();
+    assert!(bootstrap.continue_job(first).is_err());
     assert_eq!(
         bootstrap
             .aggregate_job(&[first, second])

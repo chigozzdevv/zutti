@@ -86,6 +86,25 @@ impl SourceBootstrap {
             .ok_or("source range already has retained evidence")?;
         Ok(SourceJob::range(witness, &[], &self.programs)?)
     }
+    pub fn continue_job(&self, id: u64) -> Result<SourceJob> {
+        let batch = self.store.batch(id)?;
+        if batch.claim.start != *self.store.base() {
+            return Err("source continuation must extend the retained prefix".into());
+        }
+        let Some(SourceRangeWitness::Transition(witness)) = &batch.witness else {
+            return Err("source range already has retained evidence".into());
+        };
+        let prefix = ProofArtifact::from_bytes(
+            self.store
+                .evidence()
+                .ok_or("source continuation requires a genesis-anchored prefix proof")?,
+        )?;
+        Ok(SourceJob::transition_with(
+            witness,
+            Some(&prefix),
+            &self.programs,
+        )?)
+    }
     pub fn accept_range(&mut self, id: u64, artifact: &ProofArtifact) -> Result<()> {
         let batch = self.store.batch(id)?;
         if let Some(bytes) = &batch.evidence {
