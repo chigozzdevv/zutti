@@ -323,7 +323,25 @@ Historical transaction paths can be reconstructed from stored first-inclusion he
 
 `fold-range` combines a genuine full-prefix receipt with a genuine range receipt whose starting claim exactly equals that prefix. The source guest verifies both receipts before emitting the existing full-prefix claim. This preserves the genesis anchor and the source-registry interface. Range receipts use a separate claim encoding and proof kind; they cannot advance the full-prefix store or substitute for source admission.
 
-Native and guest execution tests cover the range path. Full-history parallel scheduling, bounded witness retention and current-chain throughput remain separate implementation and measurement work. Retain the matching program pair, and run execution preflight before submitting a job to Boundless.
+Genuine Boundless Groth16 fixtures cover Testnet genesis, independent ranges 0→2 and 2→4, their 0→4 aggregate, and the final genesis-anchored prefix. Regression tests verify every receipt, reproduce both native transitions and check that range evidence cannot substitute for a full-prefix proof. The leaf jobs took 63 and 91 seconds from submission to receipt; aggregation took 146 seconds and prefix folding took 152 seconds. These are observations for four early blocks, not current-chain throughput or swap latency.
+
+`source-prover bootstrap` persists a separate range queue. It validates blocks sequentially while allowing independent proof jobs to finish in either order. State changes and queued witnesses commit atomically. The default window retains at most 16 ranges and 128 MiB of pending witnesses; configurable hard bounds are 64 ranges and 512 MiB. Completed range proofs replace their witnesses. Two to four consecutive proved ranges can be compacted into one aggregate; only a verified full-prefix receipt advances the proved base and prunes covered queue entries. Reopening authenticates all state roots and re-verifies retained Groth16 receipts.
+
+```sh
+source-prover bootstrap --network testnet --confirmations 100 \
+  --database .data/bootstrap.sqlite init --genesis .data/genesis.bin
+source-prover bootstrap --network testnet --confirmations 100 \
+  --database .data/bootstrap.sqlite fill --rpc http://127.0.0.1:18232 \
+  --rpc-cookie .data/zebra-rpc/.cookie --batch-size 4 --batches 2
+source-prover bootstrap --network testnet --confirmations 100 \
+  --database .data/bootstrap.sqlite export --out .data/genesis-job genesis
+source-prover bootstrap --network testnet --confirmations 100 \
+  --database .data/bootstrap.sqlite export --out .data/range-1-job range --batch 1
+```
+
+`export` executes the exact guest before writing a job with its measured cycle budget. Submit each exported `job.json` using the existing capped Boundless client, preserve its request, and import its returned result with `private-prover import-boundless`. Use `accept --proof <artifact> range --batch 1` for leaf receipts and `accept --proof <artifact> prefix` for the genuine genesis receipt. Once consecutive ranges are proved, `export --out <job> aggregate --batch 1 --batch 2` prepares their aggregation; `accept --proof <artifact> aggregate --batch 1 --batch 2` retains it. `export --out <job> fold --batch 1` joins that range to the retained full prefix, whose receipt is collected with `accept ... prefix`. Exact repeated acceptance is idempotent. `status` distinguishes native height, full-prefix proved height and individual range completion.
+
+Queue operations do not automatically submit market requests or establish canonical-chain admission. Keep exact job/request/result files and matching program ELFs for recovery; the queue does not authorize replacement of uncertain requests. End-to-end automatic worker scheduling, full-history catch-up, modern block cost and sustained proving throughput still require validation.
 
 ## Source upgrade support
 

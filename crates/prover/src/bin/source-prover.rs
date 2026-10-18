@@ -1,3 +1,5 @@
+#[path = "source-prover/bootstrap.rs"]
+mod bootstrap;
 #[path = "source-prover/sync.rs"]
 mod sync;
 use clap::{Parser, Subcommand, ValueEnum};
@@ -104,6 +106,7 @@ struct Args {
 enum Command {
     Status,
     Sync(sync::Options),
+    Bootstrap(bootstrap::Options),
     Genesis {
         #[command(flatten)]
         chain: Chain,
@@ -292,6 +295,7 @@ fn print_store(pipeline: &SourcePipeline) -> Result<(), Box<dyn std::error::Erro
 fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
         Command::Sync(options) => sync::run(options)?,
+        Command::Bootstrap(options) => bootstrap::run(options)?,
         Command::Status => println!(
             "{}",
             serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","durable_source":"implemented","supported_through":"NU7","testnet_nu7":"implemented","current_chain_bootstrap":"unavailable"})
