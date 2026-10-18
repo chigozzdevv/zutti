@@ -42,6 +42,8 @@ pub mod trees;
 #[cfg(feature = "blocks")]
 pub mod update;
 #[cfg(feature = "blocks")]
+pub mod upgrade;
+#[cfg(feature = "blocks")]
 pub mod work;
 
 pub use index::{CandidateIndex, IndexContext, IndexProof, IndexSnapshot, Observation};
@@ -68,6 +70,8 @@ pub enum Error {
     Network,
     #[error("block does not match the network genesis identity")]
     Genesis,
+    #[error("the source profile does not support the active network upgrade")]
+    Upgrade,
     #[error("invalid proof-of-work target or insufficient work")]
     Work,
     #[error("invalid Equihash solution")]

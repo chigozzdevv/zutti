@@ -100,6 +100,7 @@ impl ParsedBlock {
                 return Err(Error::Block);
             }
         }
+        crate::upgrade::ensure_supported(parameters.network_type(), claimed_height.into())?;
         let branch = BranchId::for_height(parameters, claimed_height);
         if coinbase.version().header() & 0x7fff_ffff < 5 && coinbase.consensus_branch_id() != branch
         {

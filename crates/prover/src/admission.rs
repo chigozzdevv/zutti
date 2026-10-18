@@ -40,6 +40,11 @@ impl SourceAdmission {
         now: u64,
     ) -> Result<VerifiedSource, Error> {
         self.validate()?;
+        zutti_source::upgrade::ensure_supported(
+            self.policy.network,
+            state.height().map_err(|_| Error::Binding)?,
+        )
+        .map_err(|_| Error::Binding)?;
         let statement = artifact.statement();
         let claim = SourceUpdateClaim::from_bytes(statement.payload())?;
         if statement.kind() != ProofKind::Source
