@@ -52,6 +52,10 @@ fn source_jobs_resume_from_archived_coherent_programs_and_detect_elf_substitutio
         restored.statement().to_bytes().unwrap(),
         job.statement().to_bytes().unwrap()
     );
+    let mut changed = std::fs::read(path.join("stdin.bin")).unwrap();
+    changed[5] ^= 1;
+    std::fs::write(path.join("stdin.bin"), changed).unwrap();
+    assert!(!restored.matches(&SourceJob::read_public(&path).unwrap()));
     std::fs::write(
         path.join("program.elf"),
         Program::current(ProgramKind::Pool).bytes(),

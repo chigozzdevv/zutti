@@ -1,3 +1,5 @@
+#[path = "source-prover/sync.rs"]
+mod sync;
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::{Path, PathBuf};
 use zcash_protocol::consensus::{MAIN_NETWORK, NetworkType, TEST_NETWORK};
@@ -6,6 +8,7 @@ use zutti_prover::{
     admission::SourceAdmission,
     artifact::ProofArtifact,
     local::LocalProver,
+    pipeline::SourcePipeline,
     source::{SourceJob, SourcePrograms, source_image_id, update_image_id},
 };
 use zutti_source::{
@@ -32,11 +35,9 @@ impl Network {
     }
 }
 #[derive(Debug, clap::Args)]
-struct Chain {
+struct Profile {
     #[arg(long, value_enum)]
     network: Network,
-    #[arg(long)]
-    genesis: PathBuf,
     #[arg(long, default_value_t = 0)]
     index_start: u32,
     #[arg(long, default_value_t = 100)]
@@ -44,7 +45,7 @@ struct Chain {
     #[arg(long)]
     programs: Option<PathBuf>,
 }
-impl Chain {
+impl Profile {
     fn programs(&self) -> Result<SourcePrograms, Box<dyn std::error::Error>> {
         match &self.programs {
             Some(path) => SourcePrograms::read(path),
@@ -54,17 +55,36 @@ impl Chain {
     fn policy(&self, programs: &SourcePrograms) -> zutti_source::proof::SourcePolicy {
         programs.policy(self.network.kind(), self.index_start, self.confirmations)
     }
+}
+#[derive(Debug, clap::Args)]
+struct Chain {
+    #[command(flatten)]
+    profile: Profile,
+    #[arg(long)]
+    genesis: PathBuf,
+}
+impl Chain {
+    fn programs(&self) -> Result<SourcePrograms, Box<dyn std::error::Error>> {
+        self.profile.programs()
+    }
+    fn policy(&self, programs: &SourcePrograms) -> zutti_source::proof::SourcePolicy {
+        self.profile.policy(programs)
+    }
     fn source(
         &self,
         prefix: &[PathBuf],
         programs: &SourcePrograms,
     ) -> Result<SourceCandidate, Box<dyn std::error::Error>> {
-        let genesis = GenesisBlock::parse(&block_bytes(&self.genesis)?, self.network.kind())?;
-        let mut source =
-            SourceCandidate::from_genesis(&genesis, self.policy(programs).id()?, self.index_start)?;
+        let genesis =
+            GenesisBlock::parse(&block_bytes(&self.genesis)?, self.profile.network.kind())?;
+        let mut source = SourceCandidate::from_genesis(
+            &genesis,
+            self.policy(programs).id()?,
+            self.profile.index_start,
+        )?;
         for path in prefix {
             let bytes = block_bytes(path)?;
-            let block = match self.network {
+            let block = match self.profile.network {
                 Network::Mainnet => ParsedBlock::parse(&bytes, &MAIN_NETWORK)?,
                 Network::Testnet => ParsedBlock::parse(&bytes, &TEST_NETWORK)?,
             };
@@ -82,6 +102,7 @@ struct Args {
 #[derive(Debug, Subcommand)]
 enum Command {
     Status,
+    Sync(sync::Options),
     Genesis {
         #[command(flatten)]
         chain: Chain,
@@ -111,6 +132,52 @@ enum Command {
         previous: Option<PathBuf>,
         #[arg(long, requires = "previous")]
         previous_checkpoint: Option<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    InitStore {
+        #[command(flatten)]
+        chain: Chain,
+        #[arg(long)]
+        database: PathBuf,
+    },
+    AdvanceStore {
+        #[command(flatten)]
+        chain: Profile,
+        #[arg(long)]
+        database: PathBuf,
+        #[arg(long, required = true)]
+        block: Vec<PathBuf>,
+    },
+    StoreStatus {
+        #[command(flatten)]
+        chain: Profile,
+        #[arg(long)]
+        database: PathBuf,
+    },
+    ExportStore {
+        #[command(flatten)]
+        chain: Profile,
+        #[arg(long)]
+        database: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    AcceptStore {
+        #[command(flatten)]
+        chain: Profile,
+        #[arg(long)]
+        database: PathBuf,
+        #[arg(long)]
+        proof: PathBuf,
+    },
+    ImportStore {
+        #[command(flatten)]
+        chain: Profile,
+        #[arg(long)]
+        database: PathBuf,
+        #[arg(long)]
+        result: PathBuf,
         #[arg(long)]
         out: PathBuf,
     },
@@ -176,11 +243,29 @@ fn read_claim(artifact: &ProofArtifact) -> Result<SourceReceiptClaim, Box<dyn st
         artifact.statement().payload(),
     )?)
 }
+fn print_store(pipeline: &SourcePipeline) -> Result<(), Box<dyn std::error::Error>> {
+    let store = pipeline.store();
+    let state = store.candidate().state_snapshot()?;
+    let proved_height = store
+        .evidence()
+        .map(ProofArtifact::from_bytes)
+        .transpose()?
+        .map(|artifact| {
+            SourceReceiptClaim::from_bytes(artifact.statement().payload()).map(|claim| claim.height)
+        })
+        .transpose()?;
+    println!(
+        "{}",
+        serde_json::json!({"height": state.height()?, "proved_height":proved_height, "tip": state.tip()?.to_string(), "state": state.commitment()?.to_string(), "pending": store.pending().is_some(), "current_prefix_proved": store.pending().is_none() && store.evidence().is_some(), "current_chain_admitted": false})
+    );
+    Ok(())
+}
 fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
+        Command::Sync(options) => sync::run(options)?,
         Command::Status => println!(
             "{}",
-            serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","current_chain_bootstrap":"unavailable"})
+            serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","durable_source":"implemented","supported_through":"NU6.3","testnet_nu7":"unsupported","current_chain_bootstrap":"unavailable"})
         ),
         Command::Genesis { chain, out } => {
             let programs = chain.programs()?;
@@ -240,7 +325,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             if source.state_snapshot()?.commitment()? != claim.state {
                 return Err("source prefix differs from its proof".into());
             }
-            let checkpoint = source.checkpoint(chain.confirmations)?;
+            let checkpoint = source.checkpoint(chain.profile.confirmations)?;
             let previous = previous
                 .as_ref()
                 .map(|path| ProofArtifact::read(path))
@@ -283,6 +368,81 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 "{}",
                 serde_json::json!({"job":out,"checkpoint":checkpoint.id()?.to_string(),"stable_height":checkpoint.stable.height,"proof_generated":false})
             );
+        }
+        Command::InitStore { chain, database } => {
+            let programs = chain.programs()?;
+            let pipeline = SourcePipeline::create(
+                &database,
+                block_bytes(&chain.genesis)?,
+                chain.policy(&programs),
+                programs,
+            )?;
+            print_store(&pipeline)?;
+        }
+        Command::AdvanceStore {
+            chain,
+            database,
+            block,
+        } => {
+            let programs = chain.programs()?;
+            let mut pipeline = SourcePipeline::open(&database, chain.policy(&programs), programs)?;
+            pipeline.advance(
+                block
+                    .iter()
+                    .map(|path| block_bytes(path))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )?;
+            print_store(&pipeline)?;
+        }
+        Command::StoreStatus { chain, database } => {
+            let programs = chain.programs()?;
+            let pipeline = SourcePipeline::open(&database, chain.policy(&programs), programs)?;
+            print_store(&pipeline)?;
+        }
+        Command::ExportStore {
+            chain,
+            database,
+            out,
+        } => {
+            let programs = chain.programs()?;
+            let pipeline = SourcePipeline::open(&database, chain.policy(&programs), programs)?;
+            let job = pipeline.job()?;
+            if out.exists() {
+                let existing = SourceJob::read_public(&out)?;
+                if !existing.matches(&job) {
+                    return Err("existing job does not match pending source batch".into());
+                }
+            } else {
+                job.export_public(&out, 268_435_456)?;
+            }
+            println!(
+                "{}",
+                serde_json::json!({"job": out, "proof_generated":false})
+            );
+        }
+        Command::AcceptStore {
+            chain,
+            database,
+            proof,
+        } => {
+            let programs = chain.programs()?;
+            let mut pipeline = SourcePipeline::open(&database, chain.policy(&programs), programs)?;
+            pipeline.accept(&ProofArtifact::read(&proof)?)?;
+            print_store(&pipeline)?;
+        }
+        Command::ImportStore {
+            chain,
+            database,
+            result,
+            out,
+        } => {
+            let programs = chain.programs()?;
+            let mut pipeline = SourcePipeline::open(&database, chain.policy(&programs), programs)?;
+            let job = pipeline.job()?;
+            let artifact = zutti_prover::remote::import_groth16(&result, job.statement())?;
+            artifact.persist_new(&out)?;
+            pipeline.accept(&artifact)?;
+            print_store(&pipeline)?;
         }
         Command::Execute { job, prover } => println!(
             "{}",

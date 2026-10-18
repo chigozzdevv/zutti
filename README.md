@@ -9,7 +9,7 @@ This repository implements Rust protocol components, native Zcash transaction va
 | `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings, operation-bound spending authorization, pool membership trees and settlement journals | Production profile review and circuit parameters |
 | `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted recovery archives and private-note encryption/recovery | Chain scanning, production profile admission, live finality/reservation evidence and source authorization/broadcast integration |
 | `wallet/ethereum` | Pinned Helios beacon light-client verification, committee transitions, finalized execution-header binding and EIP-1186 account/storage proofs for reserved escrows | Trusted Ethereum bootstrap profile, live reservation evidence and wallet signing integration |
-| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, current-chain bootstrap evidence, deployed fork/stability admission and durable source storage |
+| `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, current-chain bootstrap evidence, deployed fork/stability admission and current-chain storage/throughput measurements |
 | `prover` | RISC Zero history-query, preparation, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, cross-chain reservation/settlement integration and independent recovery |
 | `boundless` | Capped Base proof requests, public demo transport, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
 | `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Current-chain bootstrap, cross-chain composition, finality and network deployment |
@@ -291,9 +291,37 @@ Reopening rebuilds the in-memory authenticated trees from stored leaves and chec
 
 Tests cover both networks, index starts before and after the processed prefix, interrupted transactions, invalid batches, altered leaves, policy changes and concurrent stale writers.
 
+## Resumable source proving
+
+`source-prover` stores validated state separately from proof completion. A pending batch blocks another state advance until an exact genuine Groth16 receipt is cryptographically verified and retained. Opening a store re-verifies its retained predecessor; fake receipts, wrong program pairs, changed policies and altered state fail. Retain both program ELFs and pass `--programs` when continuing with a later binary.
+
+```sh
+cargo run --locked -p zutti-prover --bin source-prover -- sync \
+  --network testnet --database .data/testnet.sqlite \
+  --rpc http://127.0.0.1:18232 --rpc-cookie .data/zebra-rpc/.cookie \
+  --jobs .data/testnet-jobs --batch-size 4 --batches 1 \
+  --boundless crates/boundless/target/debug/zutti-boundless
+```
+
+The RPC returns complete serialized blocks. Requests are bounded, checked against the requested height/hash and passed through native validation; RPC failure never establishes nonpayment. Remote endpoints require HTTPS. Cookie credentials stay out of proof inputs. The runner stops on a competing branch rather than accepting an unverified reorganization.
+
+Execution preflight checks the expected guest journal and measures cycles without generating a local proof. The runner reduces oversized batches before committing them and refuses a single block beyond its configured cycle ceiling. This ceiling is a compute constraint, not a relaxation of validity rules. Successful jobs submit through the existing capped Boundless client. Restarting reuses the pending witness, exact job, saved request and returned result. A request retained before an uncertain broadcast is never replaced automatically; failed/expired requests need explicit reconciliation.
+
+Each invocation processes a bounded number of batches and stops when its limit or the RPC tip is reached. This is not an installed background service. No current-chain bootstrap throughput or proving budget has been demonstrated.
+
+`init-store`, `advance-store`, `export-store`, `import-store`, `accept-store` and `store-status` expose the individual recovery steps. Status distinguishes the validated height, proved height, pending work and current-chain admission. Only verified evidence advances the proved height.
+
+Historical transaction paths can be reconstructed from stored first-inclusion heights for an archived stable root. `SourceCandidate::prove_at` checks the reconstructed root against the authenticated header archive; later transactions stay absent from that earlier root. Rebuilding these paths currently scans retained index entries and is not an optimized historical-query service.
+
+## Source upgrade support
+
+The pinned source transaction libraries support through NU6.3. Public Testnet activated NU7 at height `4_465_026`; the parser and source admission reject heights at or above that activation until the complete NU7 transaction, header and monetary rules are implemented. Historical prefix receipts do not establish current Testnet validity. The upstream NU7-capable node release is Zebra `7.0.0-rc.0`; using that node for block retrieval does not extend the rules proved by Zutti.
+
+Reference: [Zebra NU7 release](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0-rc.0).
+
 ## Next verification milestone
 
-Connect complete Zcash consensus and authenticated state transitions to the proving backend, including a reproducible genesis prefix. Implement the source proof program that enforces the registry fork/stability policy. Only then can the candidate index support actual paid/refund evidence. Production preparation-profile admission, private pool/reservation/settlement proofs, verified Ethereum finality and independent recovery remain necessary. Boundless supplies proving capacity for implemented programs; it does not fill these missing statements.
+Extend the source profile through NU7, reconcile the historical Testnet monetary rules, and establish current-chain bootstrap evidence with explicit fork/stability admission. The persistent runner and genuine historical prefix receipts do not complete those rules or establish that a submitted branch is the heaviest available chain. Cross-chain reservation/settlement composition, live Ethereum finality and independent recovery remain required. Boundless supplies proving capacity for implemented programs.
 
 References: [PCZT 0.9.3](https://docs.rs/pczt/0.9.3/pczt/struct.Pczt.html), [ZIP 229](https://zips.z.cash/zip-0229), [ZIP 244](https://zips.z.cash/zip-0244), [ZIP 203](https://zips.z.cash/zip-0203).
 

@@ -210,9 +210,13 @@ pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
         ProofKind::Preparation => image == preparation_image_id() || image == PREPARATION_V1,
         ProofKind::HistoryQuery => image == query_image_id() || image == HISTORY_QUERY_V1,
         ProofKind::SourceTransition => {
-            image == crate::source::source_image_id() || image == SOURCE_V1
+            image == crate::source::source_image_id() || image == SOURCE_V1 || image == SOURCE_V2
         }
-        ProofKind::Source => image == crate::source::update_image_id() || image == SOURCE_UPDATE_V1,
+        ProofKind::Source => {
+            image == crate::source::update_image_id()
+                || image == SOURCE_UPDATE_V1
+                || image == SOURCE_UPDATE_V2
+        }
         ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement => {
             image == crate::pool::pool_image_id() || image == POOL_V1
         }
@@ -241,7 +245,17 @@ const SOURCE_UPDATE_V1: Digest = Digest([
     0xec, 0x8d, 0xf4, 0x6b, 0x8d, 0xa5, 0xdf, 0xf8, 0x44, 0x5a, 0x69, 0xe5, 0x22, 0x85, 0x03, 0x8a,
 ]);
 
+const SOURCE_V2: Digest = Digest([
+    0xeb, 0x46, 0xba, 0x69, 0xfa, 0x4f, 0x33, 0x33, 0x6c, 0x5e, 0x6a, 0x4c, 0xa3, 0x55, 0x96, 0x14,
+    0xc8, 0x4c, 0xe8, 0x4d, 0xcb, 0xfe, 0x32, 0x57, 0x70, 0x0d, 0x54, 0xf6, 0xfa, 0x47, 0x42, 0x15,
+]);
+const SOURCE_UPDATE_V2: Digest = Digest([
+    0x26, 0x79, 0x7b, 0xf4, 0x0b, 0xd9, 0x93, 0x49, 0xe3, 0x30, 0x61, 0xbd, 0x58, 0x26, 0xbd, 0xf8,
+    0xdc, 0x05, 0xa5, 0x20, 0x0b, 0x08, 0x5f, 0x1e, 0x85, 0x9c, 0x33, 0x28, 0x1c, 0xc4, 0x07, 0x10,
+]);
+
 pub(crate) fn admitted_source_pair(source: Digest, update: Digest) -> bool {
     (source == crate::source::source_image_id() && update == crate::source::update_image_id())
         || (source == SOURCE_V1 && update == SOURCE_UPDATE_V1)
+        || (source == SOURCE_V2 && update == SOURCE_UPDATE_V2)
 }

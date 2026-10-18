@@ -261,6 +261,12 @@ impl SourceJob {
             code: programs.update.clone(),
         })
     }
+    pub fn matches(&self, other: &Self) -> bool {
+        self.statement == other.statement
+            && self.stdin == other.stdin
+            && self.update == other.update
+            && self.program() == other.program()
+    }
     pub const fn statement(&self) -> &Statement {
         &self.statement
     }
