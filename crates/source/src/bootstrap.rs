@@ -3,14 +3,11 @@ use zcash_protocol::consensus::{MAIN_NETWORK, NetworkType, TEST_NETWORK};
 use zutti_protocol::Digest;
 
 pub fn genesis_hash(network: NetworkType) -> Result<Digest> {
-    let text = match network {
-        NetworkType::Main => "00040fe8ec8471911baa1db1266ea15dd06b4a8a5c453883c000b031973dce08",
-        NetworkType::Test => "05a60a92d99d85997cce3b87616c089f6124d7342af37106edc76126334a2c38",
-        NetworkType::Regtest => return Err(Error::Network),
-    };
-    let mut hash = Digest::from_hex(text)?;
-    hash.0.reverse();
-    Ok(hash)
+    match network {
+        NetworkType::Main => Ok(zutti_protocol::network::ZCASH_MAINNET_GENESIS),
+        NetworkType::Test => Ok(zutti_protocol::network::ZCASH_TESTNET_GENESIS),
+        NetworkType::Regtest => Err(Error::Network),
+    }
 }
 
 #[derive(Debug)]

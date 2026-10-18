@@ -71,6 +71,9 @@ impl StateSnapshot {
         {
             return Err(Error::Invalid("source state context"));
         }
+        self.monetary
+            .validate_height(self.headers.network(), height)
+            .map_err(|_| Error::Invalid("monetary activation"))?;
         for balance in self.pool_balances {
             if balance > crate::transaction::MAX_MONEY {
                 return Err(Error::Invalid("shielded balance"));
@@ -83,7 +86,7 @@ impl Canonical for StateSnapshot {
     fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
         self.validate()?;
         writer.fixed(b"ZUTTISTA");
-        writer.u16(1);
+        writer.u16(if self.monetary.nsm().is_some() { 2 } else { 1 });
         self.headers.encode(writer)?;
         self.trees.encode(writer)?;
         self.history.encode(writer)?;
@@ -97,12 +100,17 @@ impl Canonical for StateSnapshot {
         for balance in self.pool_balances {
             writer.u64(balance);
         }
-        self.monetary.encode(writer)?;
+        self.monetary
+            .encode_state(writer, self.monetary.nsm().is_some())?;
         writer.fixed(&self.archive_root.0);
         Ok(())
     }
     fn decode(reader: &mut Reader<'_>) -> zutti_protocol::Result<Self> {
-        if reader.fixed::<8>()? != *b"ZUTTISTA" || reader.u16()? != 1 {
+        if reader.fixed::<8>()? != *b"ZUTTISTA" {
+            return Err(Error::Version);
+        }
+        let version = reader.u16()?;
+        if !matches!(version, 1 | 2) {
             return Err(Error::Version);
         }
         let state = Self {
@@ -115,7 +123,7 @@ impl Canonical for StateSnapshot {
             spends_root: Digest::nonzero(reader.fixed()?)?,
             nullifier_counts: [reader.u64()?, reader.u64()?, reader.u64()?, reader.u64()?],
             pool_balances: [reader.u64()?, reader.u64()?, reader.u64()?, reader.u64()?],
-            monetary: MonetaryState::decode(reader)?,
+            monetary: MonetaryState::decode_state(reader, version == 2)?,
             archive_root: Digest::nonzero(reader.fixed()?)?,
         };
         state.validate()?;

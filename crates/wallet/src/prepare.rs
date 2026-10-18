@@ -8,10 +8,40 @@ use pczt::Pczt;
 use pczt::roles::verifier::{OrchardError, Verifier};
 use zcash_note_encryption::Domain as _;
 use zcash_primitives::transaction::txid::{TxIdDigester, to_txid};
-use zcash_protocol::{PoolType, consensus::BranchId};
+use zcash_protocol::{
+    PoolType,
+    consensus::{BlockHeight, BranchId, MAIN_NETWORK, TEST_NETWORK},
+};
 use zutti_protocol::{Digest, Secret32, order::OrderTerms};
 
 pub const MAX_PCZT: usize = 8 * 1024 * 1024;
+
+fn payment_branch(terms: &OrderTerms) -> Result<BranchId> {
+    use zutti_protocol::network::{ZCASH_MAINNET_GENESIS, ZCASH_TESTNET_GENESIS};
+    let first = BlockHeight::from_u32(
+        terms
+            .window()
+            .anchor_height()
+            .checked_add(1)
+            .ok_or(Error::Payment)?,
+    );
+    let last = BlockHeight::from_u32(terms.window().expiry());
+    let (first, last) = match terms.domain().source_genesis() {
+        ZCASH_MAINNET_GENESIS => (
+            BranchId::for_height(&MAIN_NETWORK, first),
+            BranchId::for_height(&MAIN_NETWORK, last),
+        ),
+        ZCASH_TESTNET_GENESIS => (
+            BranchId::for_height(&TEST_NETWORK, first),
+            BranchId::for_height(&TEST_NETWORK, last),
+        ),
+        _ => return Err(Error::Payment),
+    };
+    if first != last || !matches!(first, BranchId::Nu6_3 | BranchId::Nu7) {
+        return Err(Error::Payment);
+    }
+    Ok(first)
+}
 
 pub struct InspectedPayment {
     txid: Digest,
@@ -41,7 +71,7 @@ fn parse_ironwood(bytes: &[u8], terms: &OrderTerms) -> Result<Pczt> {
     }
     let pczt = Pczt::parse(bytes).map_err(|_| Error::Pczt)?;
     if *pczt.global().tx_version() != 6
-        || *pczt.global().consensus_branch_id() != u32::from(BranchId::Nu6_3)
+        || *pczt.global().consensus_branch_id() != u32::from(payment_branch(terms)?)
         || *pczt.global().expiry_height() != terms.window().expiry()
         || pczt.has_data_in_pool(PoolType::TRANSPARENT)
         || pczt.has_data_in_pool(PoolType::SAPLING)
@@ -170,7 +200,7 @@ fn inspect_bound_output(
                     let encryptor = OrchardNoteEncryption::new(None, note, memo);
                     let ciphertext = output.encrypted_note();
                     if OrchardDomain::epk_bytes(encryptor.epk()).0 != ciphertext.epk_bytes
-                        || encryptor.encrypt_note_plaintext() != ciphertext.enc_ciphertext
+                        || encryptor.encrypt_note_plaintext().0 != ciphertext.enc_ciphertext.0
                     {
                         return Err(OrchardError::Custom(()));
                     }

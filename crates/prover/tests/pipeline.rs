@@ -68,23 +68,32 @@ fn pending_genesis_survives_restart_and_rejects_fake_or_unverified_evidence() {
 
 #[test]
 fn retained_testnet_genesis_receipt_matches_the_exact_native_policy_and_state() {
+    for (fixture, registry) in [
+        (
+            include_str!("../../../tests/fixtures/source-testnet-genesis-proof.json"),
+            "26797bf40bd99349e33061bd5826bdf8dc05a5200b085f1e859c33281cc40710",
+        ),
+        (
+            include_str!("../../../tests/fixtures/source-nu7-genesis-proof.json"),
+            "7742c955d72428f0c643a7d92cd4aa81567779a46c48d2e6e24c2c7c2a73667b",
+        ),
+    ] {
+        check_retained_genesis(fixture, registry);
+    }
+}
+
+fn check_retained_genesis(fixture: &str, registry: &str) {
     use zutti_protocol::{
         Digest,
         statement::{ProofKind, Statement},
     };
     use zutti_source::proof::{SourceInput, SourcePolicy, SourceReceiptClaim, SourceWitness};
-    let value: serde_json::Value = serde_json::from_str(include_str!(
-        "../../../tests/fixtures/source-testnet-genesis-proof.json"
-    ))
-    .unwrap();
+    let value: serde_json::Value = serde_json::from_str(fixture).unwrap();
     let payload = hex::decode(value["journal"].as_str().unwrap()).unwrap();
     let claim = SourceReceiptClaim::from_bytes(&payload).unwrap();
     let policy = SourcePolicy {
         program: claim.program,
-        registry_program: Digest::from_hex(
-            "26797bf40bd99349e33061bd5826bdf8dc05a5200b085f1e859c33281cc40710",
-        )
-        .unwrap(),
+        registry_program: Digest::from_hex(registry).unwrap(),
         network: NetworkType::Test,
         index_start: 0,
         confirmations: 100,

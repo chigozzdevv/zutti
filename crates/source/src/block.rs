@@ -10,6 +10,52 @@ use zutti_protocol::Digest;
 
 pub const MAX_BLOCK_BYTES: usize = 2_000_000;
 
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+struct ShieldedActions {
+    orchard: usize,
+    ironwood: usize,
+    sapling: usize,
+    sprout: usize,
+}
+
+impl ShieldedActions {
+    fn include(&mut self, tx: &Transaction) {
+        self.orchard = self
+            .orchard
+            .saturating_add(tx.orchard_bundle().map_or(0, |b| b.actions().len()));
+        self.ironwood = self
+            .ironwood
+            .saturating_add(tx.ironwood_bundle().map_or(0, |b| b.actions().len()));
+        if let Some(bundle) = tx.sapling_bundle() {
+            self.sapling = self
+                .sapling
+                .saturating_add(bundle.shielded_spends().len())
+                .saturating_add(bundle.shielded_outputs().len());
+        }
+        self.sprout = self
+            .sprout
+            .saturating_add(tx.sprout_bundle().map_or(0, |b| b.joinsplits.len()));
+    }
+
+    fn validate(self, branch: BranchId) -> Result<()> {
+        let total = self
+            .orchard
+            .saturating_add(self.ironwood)
+            .saturating_add(self.sapling)
+            .saturating_add(self.sprout.saturating_mul(2));
+        if branch == BranchId::Nu7
+            && (self.orchard > 330
+                || self.ironwood > 330
+                || self.sapling > 300
+                || self.sprout > 0
+                || total > 330)
+        {
+            return Err(Error::ShieldedActions);
+        }
+        Ok(())
+    }
+}
+
 #[derive(Debug)]
 pub struct ParsedBlock {
     header: BlockHeader,
@@ -100,8 +146,11 @@ impl ParsedBlock {
                 return Err(Error::Block);
             }
         }
-        crate::upgrade::ensure_supported(parameters.network_type(), claimed_height.into())?;
-        let branch = BranchId::for_height(parameters, claimed_height);
+        let branch =
+            crate::upgrade::consensus_branch(parameters.network_type(), claimed_height.into())?;
+        if branch != BranchId::for_height(parameters, claimed_height) {
+            return Err(Error::Upgrade);
+        }
         if coinbase.version().header() & 0x7fff_ffff < 5 && coinbase.consensus_branch_id() != branch
         {
             let mut input = coinbase_start;
@@ -120,6 +169,9 @@ impl ParsedBlock {
         let mut auth_digests = vec![crate::auth::transaction_auth_digest(&coinbase)];
         let mut pool_counts = PoolTransactionCounts::default();
         pool_counts.include(&coinbase);
+        let mut actions = ShieldedActions::default();
+        actions.include(&coinbase);
+        actions.validate(branch)?;
         let mut commitments = CommitmentUpdates::default();
         commitments.include(&coinbase);
         let mut transactions = vec![coinbase];
@@ -139,6 +191,8 @@ impl ParsedBlock {
             versions.push(tx.version().header() & 0x7fff_ffff);
             auth_digests.push(crate::auth::transaction_auth_digest(&tx));
             pool_counts.include(&tx);
+            actions.include(&tx);
+            actions.validate(branch)?;
             commitments.include(&tx);
             transactions.push(tx);
         }
@@ -165,6 +219,15 @@ impl ParsedBlock {
             commitments,
             transactions,
         })
+    }
+    pub(crate) fn encoded(&self) -> Result<Vec<u8>> {
+        let mut bytes = Vec::new();
+        self.header.write(&mut bytes).map_err(|_| Error::Block)?;
+        CompactSize::write(&mut bytes, self.transactions.len()).map_err(|_| Error::Block)?;
+        for transaction in &self.transactions {
+            transaction.write(&mut bytes).map_err(|_| Error::Block)?;
+        }
+        Ok(bytes)
     }
     pub const fn hash(&self) -> Digest {
         self.hash
@@ -200,6 +263,7 @@ impl ParsedBlock {
         &self.transactions
     }
 }
+
 fn merkle_root(txids: &[Digest]) -> Result<[u8; 32]> {
     if txids.is_empty() {
         return Err(Error::Block);
@@ -217,4 +281,67 @@ fn merkle_root(txids: &[Digest]) -> Result<[u8; 32]> {
         layer = next;
     }
     Ok(layer[0])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn nu7_limits_include_each_pool_and_the_combined_budget() {
+        for counts in [
+            ShieldedActions {
+                orchard: 330,
+                ..Default::default()
+            },
+            ShieldedActions {
+                ironwood: 330,
+                ..Default::default()
+            },
+            ShieldedActions {
+                sapling: 300,
+                ..Default::default()
+            },
+            ShieldedActions {
+                orchard: 10,
+                ironwood: 20,
+                sapling: 300,
+                sprout: 0,
+            },
+        ] {
+            assert!(counts.validate(BranchId::Nu7).is_ok());
+        }
+        for counts in [
+            ShieldedActions {
+                orchard: 331,
+                ..Default::default()
+            },
+            ShieldedActions {
+                ironwood: 331,
+                ..Default::default()
+            },
+            ShieldedActions {
+                sapling: 301,
+                ..Default::default()
+            },
+            ShieldedActions {
+                sprout: 1,
+                ..Default::default()
+            },
+            ShieldedActions {
+                orchard: 11,
+                ironwood: 20,
+                sapling: 300,
+                sprout: 0,
+            },
+            ShieldedActions {
+                orchard: usize::MAX,
+                ironwood: 1,
+                ..Default::default()
+            },
+        ] {
+            assert_eq!(counts.validate(BranchId::Nu7), Err(Error::ShieldedActions));
+            assert!(counts.validate(BranchId::Nu6_3).is_ok());
+        }
+    }
 }

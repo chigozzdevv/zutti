@@ -11,29 +11,20 @@ use pczt::{
     Pczt,
     roles::{creator::Creator, io_finalizer::IoFinalizer},
 };
-use rand_core::OsRng;
+use rand::{SeedableRng, rngs::StdRng};
 use zcash_primitives::transaction::{
     builder::{BuildConfig, Builder, BundlePadding},
     fees::zip317,
 };
 use zcash_protocol::{
-    consensus::BlockHeight, local_consensus::LocalNetwork, memo::MemoBytes, value::Zatoshis,
+    consensus::{BlockHeight, TEST_NETWORK},
+    memo::MemoBytes,
+    value::Zatoshis,
 };
-use zutti_protocol::{Secret32, order::OrderTerms, policy::PaymentWindow};
-fn network() -> LocalNetwork {
-    LocalNetwork {
-        overwinter: Some(1.into()),
-        sapling: Some(2.into()),
-        blossom: Some(3.into()),
-        heartwood: Some(4.into()),
-        canopy: Some(5.into()),
-        nu5: Some(6.into()),
-        nu6: Some(7.into()),
-        nu6_1: Some(8.into()),
-        nu6_2: Some(9.into()),
-        nu6_3: Some(10.into()),
-    }
-}
+use zutti_protocol::{
+    Secret32, domain::Domain, network::ZCASH_TESTNET_GENESIS, order::OrderTerms,
+    policy::PaymentWindow,
+};
 #[allow(dead_code)]
 pub struct Fixture {
     pub terms: OrderTerms,
@@ -46,14 +37,27 @@ pub fn fixture(wrong_memo: bool) -> Fixture {
     fixture_with_cap(wrong_memo, "0.001")
 }
 pub fn fixture_with_cap(wrong_memo: bool, fee_cap: &str) -> Fixture {
+    fixture_at(wrong_memo, fee_cap, 4_465_101)
+}
+pub fn fixture_at(wrong_memo: bool, fee_cap: &str, height: u32) -> Fixture {
     let key = SpendingKey::from_bytes([7; 32]).unwrap();
     let fvk = FullViewingKey::from(&key);
     let payer_receiver = fvk.address_at(0_u32, Scope::External);
     let recipient_key = SpendingKey::from_bytes([8; 32]).unwrap();
     let recipient = FullViewingKey::from(&recipient_key).address_at(0_u32, Scope::External);
     let mut input = support::input();
+    input.domain = Domain::new(
+        ZCASH_TESTNET_GENESIS,
+        11155111,
+        [2; 20],
+        [3; 20],
+        support::digest(4),
+        support::digest(5),
+        support::digest(6),
+    )
+    .unwrap();
     input.receiver = recipient.to_raw_address_bytes();
-    input.window = PaymentWindow::new(10, 11, support::digest(13), 120).unwrap();
+    input.window = PaymentWindow::new(0, height - 1, support::digest(13), height + 20).unwrap();
     input.fee_caps[0] =
         zutti_protocol::amount::Amount::parse(zutti_protocol::amount::Asset::Zec, fee_cap).unwrap();
     let terms = OrderTerms::new(input).unwrap();
@@ -86,8 +90,8 @@ pub fn fixture_with_cap(wrong_memo: bool, fee_cap: &str) -> Fixture {
     );
     let anchor = path.root(cmx);
     let mut builder = Builder::new(
-        network(),
-        BlockHeight::from_u32(100),
+        TEST_NETWORK,
+        BlockHeight::from_u32(height),
         BuildConfig::Standard {
             sapling_anchor: None,
             orchard_anchor: None,
@@ -96,7 +100,7 @@ pub fn fixture_with_cap(wrong_memo: bool, fee_cap: &str) -> Fixture {
             ironwood_padding: BundlePadding::DEFAULT,
         },
     )
-    .with_expiry_height(120.into());
+    .with_expiry_height((height + 20).into());
     builder
         .add_ironwood_spend::<zip317::FeeRule>(fvk.clone(), note, path)
         .unwrap();
@@ -109,11 +113,11 @@ pub fn fixture_with_cap(wrong_memo: bool, fee_cap: &str) -> Fixture {
         )
         .unwrap();
     let result = builder
-        .build_for_pczt(OsRng, &zip317::FeeRule::standard())
+        .build_for_pczt(StdRng::from_seed([42; 32]), &zip317::FeeRule::standard())
         .unwrap();
     let spend = result.ironwood_meta.spend_action_index(0).unwrap();
     let pczt = IoFinalizer::new(Creator::build_from_parts(result.pczt_parts).unwrap())
-        .finalize_io()
+        .finalize_io(StdRng::from_seed([43; 32]))
         .unwrap();
     Fixture {
         terms,

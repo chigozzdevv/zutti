@@ -15,8 +15,9 @@ use zutti_protocol::{
 };
 
 const AVERAGING_WINDOW: usize = 17;
+const NU7_AVERAGING_WINDOW: usize = 102;
 const MEDIAN_WINDOW: usize = 11;
-const CONTEXT_WINDOW: usize = AVERAGING_WINDOW + MEDIAN_WINDOW;
+const CONTEXT_WINDOW: usize = NU7_AVERAGING_WINDOW + MEDIAN_WINDOW;
 
 #[derive(Debug, Clone)]
 struct Header {
@@ -251,22 +252,30 @@ fn expected_bits(network: NetworkType, height: u32, time: u32, context: &[Header
         NetworkType::Regtest => return Err(Error::Network),
     }
     .ok_or(Error::Network)?;
-    let spacing = if BlockHeight::from_u32(height) >= blossom {
-        75_i64
-    } else {
-        150_i64
+    let nu7 = match network {
+        NetworkType::Main => MAIN_NETWORK.activation_height(NetworkUpgrade::Nu7),
+        NetworkType::Test => TEST_NETWORK.activation_height(NetworkUpgrade::Nu7),
+        NetworkType::Regtest => return Err(Error::Network),
     };
+    let (spacing, window) =
+        if nu7.is_some_and(|activation| BlockHeight::from_u32(height) >= activation) {
+            (25_i64, NU7_AVERAGING_WINDOW)
+        } else if BlockHeight::from_u32(height) >= blossom {
+            (75_i64, AVERAGING_WINDOW)
+        } else {
+            (150_i64, AVERAGING_WINDOW)
+        };
     if network == NetworkType::Test
         && previous.height >= 299_187
         && u64::from(time) > u64::from(previous.time) + 6 * spacing as u64
     {
         return compact(&limit);
     }
-    if context.len() <= AVERAGING_WINDOW {
+    if context.len() <= window {
         return compact(&limit);
     }
     let mut sum = BigUint::from(0_u8);
-    for header in context.iter().take(AVERAGING_WINDOW) {
+    for header in context.iter().take(window) {
         let target = expand(header.bits)?;
         if target > limit {
             return Err(Error::Work);
@@ -277,12 +286,12 @@ fn expected_bits(network: NetworkType, height: u32, time: u32, context: &[Header
     let earlier = i64::from(median(
         context
             .iter()
-            .skip(AVERAGING_WINDOW)
+            .skip(window)
             .take(MEDIAN_WINDOW)
             .map(|h| h.time),
     )?);
-    let average = sum / BigUint::from(AVERAGING_WINDOW);
-    retarget(average, recent, earlier, spacing, limit)
+    let average = sum / BigUint::from(window);
+    retarget(average, recent, earlier, spacing, window, limit)
 }
 
 fn retarget(
@@ -290,9 +299,10 @@ fn retarget(
     recent: i64,
     earlier: i64,
     spacing: i64,
+    window: usize,
     limit: BigUint,
 ) -> Result<u32> {
-    let span = AVERAGING_WINDOW as i64 * spacing;
+    let span = window as i64 * spacing;
     let adjusted = (span + (recent - earlier - span) / 4).clamp(span * 84 / 100, span * 132 / 100);
     let target = average / BigUint::from(span as u64) * BigUint::from(adjusted as u64);
     compact(&target.min(limit))
@@ -330,6 +340,7 @@ mod tests {
                     recent,
                     earlier,
                     spacing,
+                    AVERAGING_WINDOW,
                     pow_limit(NetworkType::Main).unwrap()
                 )
                 .unwrap(),
@@ -419,6 +430,98 @@ mod tests {
                 &activation
             ),
             Err(Error::Network)
+        );
+    }
+
+    #[test]
+    fn nu7_retarget_uses_102_blocks_and_the_new_testnet_exception() {
+        use zebra_chain::{
+            block::Height,
+            parameters::{Network, NetworkUpgrade as Upgrade},
+        };
+        let network = Network::new_default_testnet();
+        let activation = Upgrade::Nu7.activation_height(&network).unwrap().0;
+        for (height, spacing, window) in [
+            (activation - 1, 75, AVERAGING_WINDOW),
+            (activation, 25, NU7_AVERAGING_WINDOW),
+            (activation + 1, 25, NU7_AVERAGING_WINDOW),
+        ] {
+            assert_eq!(
+                Upgrade::target_spacing_for_height(&network, Height(height)).num_seconds(),
+                spacing
+            );
+            assert_eq!(
+                Upgrade::averaging_window_for_height(&network, Height(height)),
+                window
+            );
+            let headers = context(height, spacing as u32, 0x1d00ffff);
+            let reference = retarget(
+                expand(0x1d00ffff).unwrap(),
+                i64::from(median(headers.iter().take(11).map(|h| h.time)).unwrap()),
+                i64::from(median(headers.iter().skip(window).take(11).map(|h| h.time)).unwrap()),
+                spacing,
+                window,
+                pow_limit(NetworkType::Test).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(
+                expected_bits(
+                    NetworkType::Test,
+                    height,
+                    headers[0].time + spacing as u32,
+                    &headers
+                )
+                .unwrap(),
+                reference
+            );
+            assert_ne!(
+                expected_bits(
+                    NetworkType::Test,
+                    height,
+                    headers[0].time + 6 * spacing as u32,
+                    &headers
+                )
+                .unwrap(),
+                0x2007ffff
+            );
+            assert_eq!(
+                expected_bits(
+                    NetworkType::Test,
+                    height,
+                    headers[0].time + 6 * spacing as u32 + 1,
+                    &headers
+                )
+                .unwrap(),
+                0x2007ffff
+            );
+        }
+        let mut headers = context(activation, 75, 0x1d00ffff);
+        let expected = expected_bits(
+            NetworkType::Test,
+            activation,
+            headers[0].time + 25,
+            &headers,
+        )
+        .unwrap();
+        headers[100].bits = 0x1d007fff;
+        assert_ne!(
+            expected_bits(
+                NetworkType::Test,
+                activation,
+                headers[0].time + 25,
+                &headers
+            )
+            .unwrap(),
+            expected
+        );
+        assert!(
+            expected_bits(
+                NetworkType::Test,
+                activation,
+                headers[0].time + 25,
+                &headers[..28]
+            )
+            .is_err()
         );
     }
 }

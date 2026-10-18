@@ -54,7 +54,12 @@ pub fn check_authorizing_commitment(
 ) -> Result<()> {
     if !matches!(
         block.branch(),
-        BranchId::Nu5 | BranchId::Nu6 | BranchId::Nu6_1 | BranchId::Nu6_2 | BranchId::Nu6_3
+        BranchId::Nu5
+            | BranchId::Nu6
+            | BranchId::Nu6_1
+            | BranchId::Nu6_2
+            | BranchId::Nu6_3
+            | BranchId::Nu7
     ) || block_commitment(previous_history_root, block.auth_data_root()).0
         != block.header().final_sapling_root
     {

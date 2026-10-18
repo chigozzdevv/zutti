@@ -101,12 +101,18 @@ fn compare_upstream<V: Version>(nodes: impl IntoIterator<Item = V::NodeData>, ex
 #[test]
 #[allow(clippy::unwrap_used)]
 fn all_history_versions_match_upstream_after_every_append() {
-    for start in [903_000, 1_046_400, 1_687_104, 3_428_143] {
-        let profile = profile(NetworkType::Main, start).unwrap();
-        let first = data(NetworkType::Main, start, Digest([9; 32]), Digest::default());
+    for (network, start) in [
+        (NetworkType::Main, 903_000),
+        (NetworkType::Main, 1_046_400),
+        (NetworkType::Main, 1_687_104),
+        (NetworkType::Main, 3_428_143),
+        (NetworkType::Test, crate::upgrade::TESTNET_NU7_HEIGHT),
+    ] {
+        let profile = profile(network, start).unwrap();
+        let first = data(network, start, Digest([9; 32]), Digest::default());
         let node = leaf(&first, roots(), profile.version).unwrap();
         let mut state = CandidateHistory {
-            network: NetworkType::Main,
+            network,
             height: start,
             tip: first.hash,
             peaks: vec![node.clone()],
@@ -120,7 +126,7 @@ fn all_history_versions_match_upstream_after_every_append() {
             } else {
                 previous
             };
-            let block = data(NetworkType::Main, height, state.tip, commitment);
+            let block = data(network, height, state.tip, commitment);
             nodes.push(leaf(&block, roots(), profile.version).unwrap());
             state.append_data(&block, roots()).unwrap();
             hashes.push(state.root().unwrap().unwrap());
@@ -214,6 +220,7 @@ fn upgrade_blocks_check_previous_epoch_before_resetting() {
         (NetworkType::Test, 1_028_500),
         (NetworkType::Test, 1_842_420),
         (NetworkType::Test, 4_134_000),
+        (NetworkType::Test, crate::upgrade::TESTNET_NU7_HEIGHT),
     ] {
         let mut state = unverified_frontier(network, start - 1);
         let next = profile(network, start).unwrap();

@@ -102,7 +102,7 @@ impl SourceRpc {
         Ok(hash)
     }
     pub fn block(&self, height: u32) -> Result<Vec<u8>> {
-        zutti_source::upgrade::ensure_supported(self.network, height)?;
+        zutti_source::upgrade::consensus_branch(self.network, height)?;
         let hash = self.hash(height)?;
         let mut display = hash.0;
         display.reverse();

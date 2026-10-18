@@ -140,6 +140,7 @@ fn profile_for<P: Parameters>(parameters: &P, height: u32) -> Result<Profile> {
         BranchId::Nu6_1 => (Some(NetworkUpgrade::Nu6_1), 2),
         BranchId::Nu6_2 => (Some(NetworkUpgrade::Nu6_2), 2),
         BranchId::Nu6_3 => (Some(NetworkUpgrade::Nu6_3), 3),
+        BranchId::Nu7 => (Some(NetworkUpgrade::Nu7), 3),
     };
     Ok(Profile {
         branch,

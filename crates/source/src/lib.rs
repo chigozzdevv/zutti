@@ -56,6 +56,8 @@ pub enum Error {
     Height,
     #[error("invalid or oversized block transaction list")]
     Transactions,
+    #[error("block exceeds a shielded action limit")]
+    ShieldedActions,
     #[error("history path does not match its context and root")]
     Path,
     #[error("history root lacks admitted consensus evidence")]

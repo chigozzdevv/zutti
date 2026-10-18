@@ -1,4 +1,4 @@
-use bellman::{gadgets::multipack, groth16};
+use bellman::gadgets::multipack;
 use bls12_381::{Bls12, Scalar};
 use group::{Curve, GroupEncoding, ff::PrimeField};
 use orchard::circuit::{OrchardCircuitVersion, VerifyingKey};

@@ -265,7 +265,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
         Command::Sync(options) => sync::run(options)?,
         Command::Status => println!(
             "{}",
-            serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","durable_source":"implemented","supported_through":"NU6.3","testnet_nu7":"unsupported","current_chain_bootstrap":"unavailable"})
+            serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","durable_source":"implemented","supported_through":"NU7","testnet_nu7":"implemented","current_chain_bootstrap":"unavailable"})
         ),
         Command::Genesis { chain, out } => {
             let programs = chain.programs()?;

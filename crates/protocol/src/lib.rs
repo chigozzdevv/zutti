@@ -15,3 +15,4 @@ pub mod statement;
 
 pub use commitment::{Digest, Secret32};
 pub use error::{Error, Result};
+pub mod network;

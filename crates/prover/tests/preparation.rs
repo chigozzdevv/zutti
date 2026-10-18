@@ -120,7 +120,7 @@ fn altered_note_ciphertext_and_authentication_tag_are_rejected() {
                     .as_ref()
                     == Some(fixture.terms.receiver())
                 {
-                    ciphertext = Some(action.output().encrypted_note().enc_ciphertext);
+                    ciphertext = Some(action.output().encrypted_note().enc_ciphertext.0);
                 }
             }
             Ok(())

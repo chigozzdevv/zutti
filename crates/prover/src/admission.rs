@@ -40,11 +40,18 @@ impl SourceAdmission {
         now: u64,
     ) -> Result<VerifiedSource, Error> {
         self.validate()?;
-        zutti_source::upgrade::ensure_supported(
+        zutti_source::upgrade::consensus_branch(
             self.policy.network,
             state.height().map_err(|_| Error::Binding)?,
         )
         .map_err(|_| Error::Binding)?;
+        if !crate::backend::source_height_supported(
+            self.policy.program,
+            genesis_hash(self.policy.network).map_err(|_| Error::Binding)?,
+            state.height().map_err(|_| Error::Binding)?,
+        ) {
+            return Err(Error::Binding);
+        }
         let statement = artifact.statement();
         let claim = SourceUpdateClaim::from_bytes(statement.payload())?;
         if statement.kind() != ProofKind::Source

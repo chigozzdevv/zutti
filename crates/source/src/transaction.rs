@@ -412,7 +412,12 @@ pub fn check_context(
         }
         if matches!(
             branch,
-            BranchId::Nu5 | BranchId::Nu6 | BranchId::Nu6_1 | BranchId::Nu6_2 | BranchId::Nu6_3
+            BranchId::Nu5
+                | BranchId::Nu6
+                | BranchId::Nu6_1
+                | BranchId::Nu6_2
+                | BranchId::Nu6_3
+                | BranchId::Nu7
         ) && expiry != height
         {
             return Err(Error::Expiry);
@@ -496,20 +501,22 @@ pub fn check_context(
             | BranchId::Nu6_1
             | BranchId::Nu6_2
             | BranchId::Nu6_3
+            | BranchId::Nu7
     ) && tx
         .sprout_bundle()
         .is_some_and(|b| b.joinsplits.iter().any(|js| i64::from(js.vpub_old()) != 0))
     {
         return Err(Error::Value);
     }
-    if branch == BranchId::Nu6_3
-        && tx
-            .orchard_bundle()
-            .is_some_and(|b| b.flags().cross_address_enabled())
+    if matches!(branch, BranchId::Nu6_3 | BranchId::Nu7)
+        && tx.orchard_bundle().is_some_and(|b| {
+            b.bundle_version() == orchard::bundle::BundleVersion::orchard_v3()
+                && b.flags().cross_address_enabled()
+        })
     {
         return Err(Error::Version);
     }
-    if branch == BranchId::Nu6_3
+    if matches!(branch, BranchId::Nu6_3 | BranchId::Nu7)
         && tx
             .orchard_bundle()
             .is_some_and(|b| i64::from(*b.value_balance()) < 0 || coinbase)
@@ -705,7 +712,7 @@ fn money_add(left: u64, right: u64) -> Result<u64> {
 #[allow(clippy::unwrap_used)]
 mod tests {
     use super::*;
-    use secp256k1::{Message, Secp256k1, SecretKey};
+    use secp256k1::{Message, SecretKey};
     use transparent::bundle::{Authorized, Bundle, TxIn};
     use zcash_protocol::consensus::BlockHeight;
 
@@ -742,6 +749,50 @@ mod tests {
             Zatoshis::from_u64(value).unwrap(),
             Script(script::Code(script)),
         )
+    }
+    #[test]
+    fn nu7_rejects_v4_and_requires_the_new_branch_for_v5_and_v6() {
+        for branch in [BranchId::Nu6_3, BranchId::Nu7] {
+            for version in [TxVersion::V4, TxVersion::V5, TxVersion::V6] {
+                let tx = TransactionData::<zcash_primitives::transaction::Authorized>::from_parts(
+                    version,
+                    branch,
+                    0,
+                    BlockHeight::from_u32(4_465_100),
+                    Some(Bundle {
+                        vin: vec![TxIn::from_parts(
+                            OutPoint::new([7; 32], 0),
+                            Script::default(),
+                            u32::MAX,
+                        )],
+                        vout: vec![output(1, vec![0x51])],
+                        authorization: Authorized,
+                    }),
+                    None,
+                    None,
+                    None,
+                )
+                .freeze()
+                .unwrap();
+                let checked = check_context(&tx, branch, 4_465_026, 1_700_000_000, false);
+                if branch == BranchId::Nu7 && version == TxVersion::V4 {
+                    assert_eq!(checked, Err(Error::Version));
+                } else {
+                    assert!(checked.is_ok());
+                }
+                if matches!(version, TxVersion::V5 | TxVersion::V6) {
+                    let other = if branch == BranchId::Nu7 {
+                        BranchId::Nu6_3
+                    } else {
+                        BranchId::Nu7
+                    };
+                    assert_eq!(
+                        check_context(&tx, other, 4_465_026, 1_700_000_000, false),
+                        Err(Error::Version)
+                    );
+                }
+            }
+        }
     }
     fn seeded(coinbase: bool) -> (CandidateLedger, OutPoint) {
         let outpoint = OutPoint::new([7; 32], 0);
@@ -843,9 +894,8 @@ mod tests {
     }
     #[test]
     fn script_signatures_bind_legacy_outputs() {
-        let secret = SecretKey::from_slice(&[9; 32]).unwrap();
-        let secp = Secp256k1::new();
-        let public = secret.public_key(&secp).serialize();
+        let secret = SecretKey::from_secret_bytes([9; 32]).unwrap();
+        let public = secret.public_key().serialize();
         let mut script = vec![33];
         script.extend_from_slice(&public);
         script.push(0xac);
@@ -873,9 +923,7 @@ mod tests {
             1,
         )
         .unwrap();
-        let signature = secp
-            .sign_ecdsa(&Message::from_digest(hash), &secret)
-            .serialize_der();
+        let signature = secp256k1::ecdsa::sign(Message::from_digest(hash), &secret).serialize_der();
         let mut unlocking = vec![(signature.len() + 1) as u8];
         unlocking.extend_from_slice(&signature);
         unlocking.push(1);

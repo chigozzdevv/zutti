@@ -115,7 +115,7 @@ Program image: `115e817a997cb003c29a150e77757b7f8a38daee10d9830211a6273e10174195
 
 `PreparationWitness` carries the agreed order, commitment openings and upstream Ironwood PCZT. Its preparation payload removes spending keys, full viewing keys, input note openings, signatures and Merkle witnesses. The original wallet PCZT remains separate for signing and recovery. Encrypted archive proving stays local; the separate Boundless demonstration exports generated public test data.
 
-The guest checks the pinned v6/NU6.3 Ironwood-only profile, enabled outputs, the agreed expiry, fee bound and exact transaction-ID digest. It reconstructs the designated V3 note commitment, ephemeral key and authenticated note ciphertext, including the order/anchor memo. The public journal is exactly 106 bytes: version, deployment domain, order commitment and reservation commitment. It exposes no transaction ID, receiver, amount, expiry or commitment openings.
+The guest checks the pinned v6 Ironwood-only profile, enabled outputs, the agreed expiry, fee bound and exact transaction-ID digest. It derives the NU6.3 or NU7 branch from the source genesis and the inclusion window, rejecting unknown networks and windows crossing an upgrade. It reconstructs the designated V3 note commitment, ephemeral key and authenticated note ciphertext, including the order/anchor memo. The public journal is exactly 106 bytes: version, deployment domain, order commitment and reservation commitment. It exposes no transaction ID, receiver, amount, expiry or commitment openings.
 
 The wallet's full inspector additionally verifies the spend metadata, input/output value balance, randomized authorization keys and withheld real-spend signatures. These local signing checks are separate from the payment-effects statement. The preparation proof does not prove input existence, unspentness, source consensus, future inclusion, private USDC funding or destination finality. Authorization remains unavailable.
 
@@ -315,13 +315,17 @@ Historical transaction paths can be reconstructed from stored first-inclusion he
 
 ## Source upgrade support
 
-The pinned source transaction libraries support through NU6.3. Public Testnet activated NU7 at height `4_465_026`; the parser and source admission reject heights at or above that activation until the complete NU7 transaction, header and monetary rules are implemented. Historical prefix receipts do not establish current Testnet validity. The upstream NU7-capable node release is Zebra `7.0.0-rc.0`; using that node for block retrieval does not extend the rules proved by Zutti.
+The source program implements NU7 using `zebra-chain` 14.0.0 and the matching Zcash transaction libraries. Public Testnet activates NU7 at height `4_465_026`, branch `0x77190ad9`. Difficulty validation retains 113 ancestor headers, applies the 102-block averaging window and 25-second spacing at activation, and uses the new Testnet minimum-difficulty threshold. Parsing enforces per-pool and combined shielded action limits. Transaction checks reject v4 at NU7, retain valid v5/v6 formats, enforce Orchard freezing, and bind authorization signatures to the active branch.
+
+Monetary transitions check the complete coinbase against the reference subsidy and recipient rules. Snapshots authenticate the NSM reserve from activation, apply the 60% fee contribution with consensus rounding, and use the parent reserve for reissuance from its deployment height. The NSM seed is a protocol constant, not a committee checkpoint. Pre-NU7 monetary encodings remain unchanged; post-activation snapshots include the reserve explicitly. History commitments reset at NU7 and continue using V3 Ironwood metadata.
+
+Retained V1/V2 source programs cannot admit Testnet heights at or above NU7. Their earlier genuine receipts remain verifiable. Keep the matching binary and both ELFs when recovering older jobs: new native validation rules are not interchangeable with an older program image. Neither NU7 code support nor a synchronized Zebra node establishes a current-chain Zutti proof.
 
 Reference: [Zebra NU7 release](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0-rc.0).
 
 ## Next verification milestone
 
-Extend the source profile through NU7, reconcile the historical Testnet monetary rules, and establish current-chain bootstrap evidence with explicit fork/stability admission. The persistent runner and genuine historical prefix receipts do not complete those rules or establish that a submitted branch is the heaviest available chain. Cross-chain reservation/settlement composition, live Ethereum finality and independent recovery remain required. Boundless supplies proving capacity for implemented programs.
+Establish current-chain bootstrap evidence, measure realistic block proving cost and throughput, and complete fork/stability admission. Genuine historical prefix receipts do not establish that a submitted branch is the heaviest available chain. Cross-chain reservation/settlement composition, live Ethereum finality and independent recovery remain required. Boundless supplies proving capacity for implemented programs.
 
 References: [PCZT 0.9.3](https://docs.rs/pczt/0.9.3/pczt/struct.Pczt.html), [ZIP 229](https://zips.z.cash/zip-0229), [ZIP 244](https://zips.z.cash/zip-0244), [ZIP 203](https://zips.z.cash/zip-0203).
 

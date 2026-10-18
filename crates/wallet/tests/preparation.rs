@@ -6,6 +6,7 @@ mod support;
 use orchard::keys::SpendAuthorizingKey;
 use payment::{fixture, fixture_with_cap};
 use pczt::{Pczt, roles::signer::Signer};
+use rand::{SeedableRng, rngs::StdRng};
 use zcash_primitives::transaction::txid::{TxIdDigester, to_txid};
 use zutti_protocol::{Digest, order::OrderTerms};
 use zutti_wallet::{
@@ -19,6 +20,43 @@ fn prepared_source_fee_cannot_exceed_the_agreed_cap() {
     let bytes = fixture.pczt.serialize().unwrap();
     assert!(matches!(
         inspect_ironwood(&bytes, &fixture.terms, &fixture.randomness),
+        Err(Error::Payment)
+    ));
+}
+
+#[test]
+fn payment_branch_matches_the_network_and_entire_inclusion_window() {
+    for height in [4_460_000, 4_465_026, 4_465_101] {
+        let fixture = payment::fixture_at(false, "0.001", height);
+        assert!(
+            inspect_ironwood(
+                &fixture.pczt.serialize().unwrap(),
+                &fixture.terms,
+                &fixture.randomness
+            )
+            .is_ok()
+        );
+    }
+    let crossing = payment::fixture_at(false, "0.001", 4_465_025);
+    assert!(matches!(
+        inspect_ironwood(
+            &crossing.pczt.serialize().unwrap(),
+            &crossing.terms,
+            &crossing.randomness
+        ),
+        Err(Error::Payment)
+    ));
+    let fixture = fixture(false);
+    let mut input = support::input();
+    input.receiver = *fixture.terms.receiver();
+    input.window = fixture.terms.window();
+    let unknown_network = OrderTerms::new(input).unwrap();
+    assert!(matches!(
+        inspect_ironwood(
+            &fixture.pczt.serialize().unwrap(),
+            &unknown_network,
+            &fixture.randomness
+        ),
         Err(Error::Payment)
     ));
 }
@@ -41,7 +79,11 @@ fn ironwood_preparation_preserves_transaction_id_after_authorization() {
     assert_eq!(inspected.txid(), effect_id(fixture.pczt.clone()));
     let mut signer = Signer::new(fixture.pczt).unwrap();
     signer
-        .sign_ironwood(fixture.spend, &SpendAuthorizingKey::from(&fixture.key))
+        .sign_ironwood(
+            StdRng::from_seed([44; 32]),
+            fixture.spend,
+            &SpendAuthorizingKey::from(&fixture.key),
+        )
         .unwrap();
     let signed = signer.finish();
     assert_eq!(inspected.txid(), effect_id(signed.clone()));
