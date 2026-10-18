@@ -309,6 +309,8 @@ Execution preflight checks the expected guest journal and measures cycles withou
 
 Each invocation processes a bounded number of batches and stops when its limit or the RPC tip is reached. This is not an installed background service. No current-chain bootstrap throughput or proving budget has been demonstrated.
 
+The default cycle ceiling is `268435456`. Use `--cycle-limit` to benchmark larger batches, up to `2147483648` cycles, while retaining the 64-block and 64 MiB witness bounds. Preflight must succeed before the batch is committed or submitted. A retained job above a later invocation's limit stays pending. This option does not raise the configured ETH price ceiling or enable automatic funding.
+
 `init-store`, `advance-store`, `export-store`, `import-store`, `accept-store` and `store-status` expose the individual recovery steps. Status distinguishes the validated height, proved height, pending work and current-chain admission. Only verified evidence advances the proved height.
 
 Historical transaction paths can be reconstructed from stored first-inclusion heights for an archived stable root. `SourceCandidate::prove_at` checks the reconstructed root against the authenticated header archive; later transactions stay absent from that earlier root. Rebuilding these paths currently scans retained index entries and is not an optimized historical-query service.
@@ -321,7 +323,7 @@ Monetary transitions check the complete coinbase against the reference subsidy a
 
 Retained V1/V2 source programs cannot admit Testnet heights at or above NU7. Their earlier genuine receipts remain verifiable. Keep the matching binary and both ELFs when recovering older jobs: new native validation rules are not interchangeable with an older program image. Neither NU7 code support nor a synchronized Zebra node establishes a current-chain Zutti proof.
 
-Guest builds remap workspace and Cargo registry paths and preserve the selected `CARGO_HOME` when invoking the RISC Zero compiler. Keep the compiler version, SDK, lockfiles and retained ELFs with each proof profile; path remapping does not make different toolchain versions interchangeable.
+Guest builds remap workspace and Cargo registry paths and preserve the selected `CARGO_HOME` when invoking the RISC Zero compiler. Native builds still produce different images across checkouts. Pin the exact ELFs from the canonical build, and keep its compiler version, SDK, lockfiles and binary with the proof profile. Neither path remapping nor matching source code makes another build's image interchangeable.
 
 Reference: [Zebra NU7 release](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0-rc.0).
 

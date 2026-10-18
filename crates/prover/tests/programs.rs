@@ -3,7 +3,7 @@ use zcash_protocol::consensus::NetworkType;
 use zutti_protocol::encoding::Canonical;
 use zutti_prover::{
     program::{Program, ProgramKind},
-    source::{SourceJob, SourcePrograms},
+    source::{MAX_SOURCE_CYCLES, SourceJob, SourcePrograms},
 };
 use zutti_source::proof::{SourceInput, SourceWitness};
 
@@ -45,6 +45,16 @@ fn source_jobs_resume_from_archived_coherent_programs_and_detect_elf_substitutio
         input: SourceInput::Genesis(genesis),
     };
     let job = SourceJob::transition_with(&witness, None, &programs).unwrap();
+    for cycles in [0, MAX_SOURCE_CYCLES + 1] {
+        let path = directory.path().join(format!("rejected-{cycles}"));
+        assert!(job.export_public(&path, cycles).is_err());
+        assert!(!path.exists());
+    }
+    let maximum = directory.path().join("maximum");
+    job.export_public(&maximum, MAX_SOURCE_CYCLES).unwrap();
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(maximum.join("job.json")).unwrap()).unwrap();
+    assert_eq!(manifest["cycles"], MAX_SOURCE_CYCLES);
     let path = directory.path().join("job");
     job.export_public(&path, 268_435_456).unwrap();
     let restored = SourceJob::read_public(&path).unwrap();

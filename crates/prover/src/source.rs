@@ -21,6 +21,8 @@ use zutti_source::{
     update::SourceUpdateWitness,
 };
 
+pub const MAX_SOURCE_CYCLES: u64 = 2_147_483_648;
+
 pub fn source_image_id() -> Digest {
     Digest(risc0_zkvm::sha::Digest::from(zutti_methods::SOURCE_ID).into())
 }
@@ -278,7 +280,7 @@ impl SourceJob {
         directory: &Path,
         cycles: u64,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if cycles == 0 || cycles > 268_435_456 {
+        if cycles == 0 || cycles > MAX_SOURCE_CYCLES {
             return Err("public source job exceeds the configured cycle bound".into());
         }
         std::fs::create_dir(directory)?;
@@ -325,7 +327,7 @@ impl LocalProver {
     ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
         let env = ExecutorEnv::builder()
             .write_slice(job.stdin.as_slice())
-            .session_limit(Some(2_147_483_648))
+            .session_limit(Some(MAX_SOURCE_CYCLES))
             .segment_limit_po2(20)
             .build()?;
         let started = std::time::Instant::now();
@@ -347,7 +349,7 @@ impl LocalProver {
             Zeroizing::new(job.stdin.to_vec()),
             job.statement.clone(),
             job.program(),
-            2_147_483_648,
+            MAX_SOURCE_CYCLES,
             20,
         )
     }

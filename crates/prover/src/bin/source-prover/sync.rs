@@ -6,12 +6,16 @@ use std::{
     process::Command,
 };
 use zutti_prover::{
-    artifact::ProofArtifact, local::LocalProver, pipeline::SourcePipeline, remote::import_groth16,
-    rpc::SourceRpc, source::SourceJob,
+    artifact::ProofArtifact,
+    local::LocalProver,
+    pipeline::SourcePipeline,
+    remote::import_groth16,
+    rpc::SourceRpc,
+    source::{MAX_SOURCE_CYCLES, SourceJob},
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-const CYCLE_LIMIT: u64 = 268_435_456;
+const DEFAULT_CYCLE_LIMIT: u64 = 268_435_456;
 
 #[derive(Debug, Args)]
 pub(super) struct Options {
@@ -27,6 +31,8 @@ pub(super) struct Options {
     jobs: PathBuf,
     #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=64))]
     batch_size: u8,
+    #[arg(long, default_value_t = DEFAULT_CYCLE_LIMIT, value_parser = clap::value_parser!(u64).range(1..=MAX_SOURCE_CYCLES))]
+    cycle_limit: u64,
     #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u32).range(1..))]
     batches: u32,
     #[arg(long)]
@@ -81,7 +87,7 @@ pub(super) fn run(options: Options) -> Result<()> {
                     "{}",
                     serde_json::json!({"stage":"preflight","blocks":blocks.len(),"cycles":metrics.cycles,"seconds":metrics.seconds})
                 );
-                if metrics.cycles <= CYCLE_LIMIT {
+                if metrics.cycles <= options.cycle_limit {
                     pipeline.advance(blocks)?;
                     break;
                 }
@@ -101,7 +107,7 @@ pub(super) fn run(options: Options) -> Result<()> {
                 .tempdir_in(&options.jobs)?;
             let export = temporary.path().join("job");
             let metrics = executor.execute_source(&job)?;
-            if metrics.cycles > CYCLE_LIMIT {
+            if metrics.cycles > options.cycle_limit {
                 return Err(
                     "pending source job exceeds the configured proving cycle ceiling".into(),
                 );
@@ -112,14 +118,14 @@ pub(super) fn run(options: Options) -> Result<()> {
                 &serde_json::to_vec(&metrics)?,
             )?;
             fs::rename(&export, &directory)?;
-            repair_paths(&directory, &job)?;
+            repair_paths(&directory, &job, options.cycle_limit)?;
             fs::File::open(&options.jobs)?.sync_all()?;
         } else {
             let restored = SourceJob::read_public(&directory)?;
             if !restored.matches(&job) {
                 return Err("pending job directory contains a different statement".into());
             }
-            repair_paths(&directory, &job)?;
+            repair_paths(&directory, &job, options.cycle_limit)?;
         }
         if artifact_path.exists() {
             pipeline.accept(&ProofArtifact::read(&artifact_path)?)?;
@@ -173,7 +179,7 @@ fn invoke(options: &Options, operation: &str, args: &[&str]) -> Result<()> {
     }
     Ok(())
 }
-fn repair_paths(directory: &Path, job: &SourceJob) -> Result<()> {
+fn repair_paths(directory: &Path, job: &SourceJob, cycle_limit: u64) -> Result<()> {
     let path = directory.join("job.json");
     let mut value: serde_json::Value =
         serde_json::from_slice(&zutti_wallet::backup::read_private(&path, 16_384)?)?;
@@ -182,7 +188,7 @@ fn repair_paths(directory: &Path, job: &SourceJob) -> Result<()> {
         || value["image_id"].as_str() != Some(&job.statement().program().to_string())
         || !value["cycles"]
             .as_u64()
-            .is_some_and(|c| c > 0 && c <= CYCLE_LIMIT)
+            .is_some_and(|c| c > 0 && c <= cycle_limit)
     {
         return Err("source job manifest differs from its expected program or limits".into());
     }

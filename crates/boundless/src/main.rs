@@ -111,7 +111,7 @@ impl Job {
             "this storage transport only accepts explicitly public witnesses"
         );
         ensure!(
-            self.cycles > 0 && self.cycles <= 268_435_456,
+            self.cycles > 0 && self.cycles <= 2_147_483_648,
             "unsupported cycle bound"
         );
         Ok(())
@@ -475,7 +475,11 @@ mod tests {
         job.visibility = "private".into();
         ensure!(job.validate().is_err());
         job.visibility = "public".into();
-        for cycles in [0, 268_435_457, u64::MAX] {
+        for cycles in [268_435_456, 268_435_457, 2_147_483_648] {
+            job.cycles = cycles;
+            job.validate()?;
+        }
+        for cycles in [0, 2_147_483_649, u64::MAX] {
             job.cycles = cycles;
             ensure!(job.validate().is_err());
         }
