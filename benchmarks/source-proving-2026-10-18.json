@@ -128,5 +128,24 @@
         "version": 1
       }
     }
+  },
+  "direct_extension": {
+    "start_height": 0,
+    "end_height": 112,
+    "blocks": 112,
+    "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+    "stdin_sha256": "42a1a52b6c4a4b42d1ed2355f8e17db9246d99e2565916197961dc1d73e8b7d3",
+    "journal_sha256": "82c1ca561d699f6251ba200a9ab3041e75a413e873bc3093519065f45f5b5aa5",
+    "execution": {
+      "cycles": 1838191924,
+      "segments": 1967,
+      "seconds": 237.367912042,
+      "journal_matches": true,
+      "proof_generated": false
+    },
+    "predecessor_groth16_verified_in_guest_execution": true,
+    "requests_per_extension_excluding_initial_genesis": 1,
+    "boundless_proof_verified": false,
+    "market_time_and_cost_measured": false
   }
 }
