@@ -81,6 +81,10 @@ impl Program {
         if bytes.is_empty() || bytes.len() > MAX_PROGRAM {
             return Err(Error::Binding);
         }
+        let embedded = Self::current(kind);
+        if bytes == embedded.bytes() {
+            return Ok(embedded);
+        }
         let image = Digest(
             risc0_zkvm::compute_image_id(&bytes)
                 .map_err(|_| Error::Binding)?
