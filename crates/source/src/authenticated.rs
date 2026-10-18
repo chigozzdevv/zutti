@@ -271,12 +271,7 @@ impl AuthenticatedMap {
             return Ok(previous);
         }
         let access = self.access(key)?;
-        let path = self.expand(&access)?;
-        let mut current = leaf;
-        for (offset, sibling) in path.iter().enumerate() {
-            current = self.join(DEPTH - 1 - offset, key, current, *sibling);
-        }
-        self.root = current;
+        self.root = self.fold(&access, leaf)?;
         Ok(access.value)
     }
     fn access(&self, key: Digest) -> Result<Access> {
@@ -318,10 +313,7 @@ impl AuthenticatedMap {
                 if access.key != key {
                     return Err(StateError::Access);
                 }
-                let mut current = self.leaf(key, access.value.as_deref());
-                for (offset, sibling) in self.expand(access)?.iter().enumerate() {
-                    current = self.join(DEPTH - 1 - offset, key, current, *sibling);
-                }
+                let current = self.fold(access, self.leaf(key, access.value.as_deref()))?;
                 if current != self.root {
                     return Err(StateError::Access);
                 }
@@ -336,6 +328,10 @@ impl AuthenticatedMap {
         })
     }
     fn join(&self, depth: usize, key: Digest, value: Digest, sibling: Digest) -> Digest {
+        let empty = self.empty[depth + 1];
+        if value == empty && sibling == empty {
+            return self.empty[depth];
+        }
         let (left, right) = if key.0[depth / 8] & (1 << (7 - depth % 8)) == 0 {
             (value, sibling)
         } else {
@@ -343,12 +339,11 @@ impl AuthenticatedMap {
         };
         branch(self.context, depth, left, right)
     }
-    fn expand(&self, access: &Access) -> Result<[Digest; DEPTH]> {
-        let mut path = [Digest::default(); DEPTH];
+    fn fold(&self, access: &Access, mut node: Digest) -> Result<Digest> {
         let mut cursor = 0;
-        for (offset, sibling) in path.iter_mut().enumerate() {
+        for offset in 0..DEPTH {
             let default = self.empty[DEPTH - offset];
-            *sibling = if access.bitmap[offset / 8] & (1 << (offset % 8)) == 0 {
+            let sibling = if access.bitmap[offset / 8] & (1 << (offset % 8)) == 0 {
                 default
             } else {
                 let value = *access.siblings.get(cursor).ok_or(StateError::Access)?;
@@ -358,11 +353,12 @@ impl AuthenticatedMap {
                 cursor += 1;
                 value
             };
+            node = self.join(DEPTH - 1 - offset, access.key, node, sibling);
         }
         if cursor != access.siblings.len() {
             return Err(StateError::Access);
         }
-        Ok(path)
+        Ok(node)
     }
 }
 
@@ -475,5 +471,28 @@ mod tests {
         let mut bytes = map.take_transcript().unwrap().to_bytes().unwrap();
         bytes.push(0);
         assert!(Transcript::from_bytes(&bytes).is_err());
+    }
+    #[test]
+    fn streamed_paths_reject_explicit_empty_and_unused_siblings() {
+        let context = Digest([5; 32]);
+        let key = Digest([1; 32]);
+        let mut full = AuthenticatedMap::new(context);
+        full.set(key, Some(vec![7])).unwrap();
+        let root = full.root();
+        full.start_recording().unwrap();
+        full.get(key).unwrap();
+        let log = full.take_transcript().unwrap();
+        assert!(log.0[0].siblings.is_empty());
+        let mut explicit = log.clone();
+        explicit.0[0].bitmap[0] = 1;
+        explicit.0[0].siblings.push(full.empty[DEPTH]);
+        let mut unused = log;
+        unused.0[0].siblings.push(full.empty[DEPTH]);
+        for invalid in [explicit, unused] {
+            let replay = AuthenticatedMap::from_witness(context, root, invalid);
+            assert!(replay.get(key).is_err());
+            assert!(replay.finish().is_err());
+            assert_eq!(replay.root(), root);
+        }
     }
 }
