@@ -225,8 +225,12 @@ const HISTORY_QUERY_V1: Digest = Digest([
 
 pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
     match kind {
-        ProofKind::Preparation => image == preparation_image_id() || image == PREPARATION_V1,
-        ProofKind::HistoryQuery => image == query_image_id() || image == HISTORY_QUERY_V1,
+        ProofKind::Preparation => {
+            image == preparation_image_id() || image == PREPARATION_V1 || image == PREPARATION_V2
+        }
+        ProofKind::HistoryQuery => {
+            image == query_image_id() || image == HISTORY_QUERY_V1 || image == HISTORY_QUERY_V2
+        }
         ProofKind::SourceRange => admitted_range_program(image),
         ProofKind::SourceTransition => {
             image == crate::source::source_image_id()
@@ -244,7 +248,7 @@ pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
                 || image == SOURCE_UPDATE_V4
         }
         ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement => {
-            image == crate::pool::pool_image_id() || image == POOL_V1
+            image == crate::pool::pool_image_id() || image == POOL_V1 || image == POOL_V2
         }
     }
 }
@@ -255,6 +259,21 @@ pub(crate) fn receipt_codec() -> impl Options {
         .with_limit(MAX_PROOF as u64)
         .reject_trailing_bytes()
 }
+
+const PREPARATION_V2: Digest = Digest([
+    0xd7, 0xcf, 0x4f, 0x9e, 0xef, 0x17, 0x69, 0xa3, 0xfe, 0x1d, 0x2c, 0x70, 0x42, 0x7e, 0x05, 0x31,
+    0x3d, 0xf2, 0xa3, 0xef, 0x05, 0x61, 0xd6, 0x48, 0x57, 0xe0, 0xab, 0x51, 0xbc, 0x6f, 0xb9, 0x87,
+]);
+
+const HISTORY_QUERY_V2: Digest = Digest([
+    0x7d, 0x9e, 0x26, 0x04, 0xef, 0xfe, 0xf9, 0xa1, 0xcb, 0xb5, 0x43, 0x5a, 0x2c, 0xda, 0x96, 0x8f,
+    0xd6, 0x9c, 0x32, 0x6a, 0x75, 0x85, 0x95, 0xcb, 0x43, 0x5b, 0x8e, 0x78, 0x24, 0x4b, 0x01, 0xf1,
+]);
+
+const POOL_V2: Digest = Digest([
+    0xfd, 0xbb, 0xb8, 0x9a, 0xfa, 0x6b, 0x18, 0xa7, 0x5b, 0x6d, 0xab, 0x74, 0x00, 0xde, 0xe0, 0x8f,
+    0x4f, 0x10, 0x66, 0x84, 0x79, 0x3e, 0x43, 0x25, 0xac, 0x58, 0xa6, 0xc8, 0xe4, 0x8b, 0x9f, 0xaf,
+]);
 
 const SOURCE_V1: Digest = Digest([
     0xc5, 0xa1, 0xd8, 0x68, 0xe1, 0x76, 0x64, 0x79, 0x66, 0xce, 0x6e, 0x72, 0x88, 0x60, 0xc9, 0x22,
