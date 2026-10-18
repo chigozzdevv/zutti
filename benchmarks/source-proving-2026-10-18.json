@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "date": "2026-10-18",
+  "network": "zcash_testnet",
+  "scope": "Early public history only. Execution measurements are not current-chain proving throughput or an end-to-end swap.",
+  "runtime": {
+    "risc0_zkvm": "3.0.5",
+    "segment_limit_po2": 20,
+    "session_limit_cycles": 2147483648
+  },
+  "comparison": {
+    "start_height": 4,
+    "end_height": 68,
+    "blocks": 64,
+    "stdin_sha256": "0f3253b0c4e142c23ab5f2eec26844c6f7b1fc0647b985faaa0b31d797890a82",
+    "journal_sha256": "6ab1e216f140824242aeb43843d0753f85df6cc94cec4e42971e61ade634c898",
+    "same_input_and_expected_journal": true,
+    "wall_times_comparable": false,
+    "candidate_execution_is_admitted_proof": false,
+    "variants": [
+      {
+        "cycles": 1131221545,
+        "segments": 1263,
+        "seconds": 178.31497589,
+        "journal_matches": true,
+        "proof_generated": false,
+        "expected_program": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
+        "executed_program": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
+        "program_matches_statement": true,
+        "name": "baseline",
+        "execution_host": "linux_x86_64"
+      },
+      {
+        "cycles": 1087088064,
+        "segments": 1170,
+        "seconds": 141.358313167,
+        "journal_matches": true,
+        "proof_generated": false,
+        "expected_program": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
+        "executed_program": "a33ed6f17b2762bba079b6997cb1e48ec340d47bae6bd382b0e62154995d5007",
+        "program_matches_statement": false,
+        "name": "shared_witnesses",
+        "execution_host": "macos_aarch64"
+      },
+      {
+        "cycles": 1002991243,
+        "segments": 1106,
+        "seconds": 131.94399075,
+        "journal_matches": true,
+        "proof_generated": false,
+        "expected_program": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
+        "executed_program": "a49256f996e39694bf805aa82605a9bf1cb0c6caa50ddcbd6f6c93163dc7946f",
+        "program_matches_statement": false,
+        "name": "contiguous_hashing",
+        "execution_host": "macos_aarch64"
+      },
+      {
+        "cycles": 965126249,
+        "segments": 1053,
+        "seconds": 127.418331625,
+        "journal_matches": true,
+        "proof_generated": false,
+        "expected_program": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
+        "executed_program": "c84ae92048d23f982ae4b601979fbeb18d8661eb1ab934434e4fad4b8f54cf5a",
+        "program_matches_statement": false,
+        "name": "streamed_paths",
+        "execution_host": "macos_aarch64"
+      },
+      {
+        "cycles": 963692593,
+        "segments": 1036,
+        "seconds": 118.764140667,
+        "journal_matches": true,
+        "proof_generated": false,
+        "expected_program": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
+        "executed_program": "cafd92592105197acfda036bc2c50cd19eef9de664d944a187753b6a626cc03e",
+        "program_matches_statement": false,
+        "name": "cached_empty_subtrees",
+        "execution_host": "macos_aarch64"
+      }
+    ],
+    "cycles_reduction_percent": 14.8096,
+    "segments_reduction_percent": 17.9731
+  },
+  "larger_batch": {
+    "start_height": 0,
+    "end_height": 128,
+    "blocks": 128,
+    "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+    "stdin_sha256": "bc267137b6b911ce582448f30aca28b4b4a3f74010799cfc3552ae092753c5f3",
+    "journal_sha256": "cab4f7497172d928185a03b7394f6a438f709b35c3d84febad04f0e5818a1f81",
+    "policy_matches_program": true,
+    "execution": {
+      "cycles": 1885148375,
+      "segments": 2027,
+      "seconds": 236.894715958,
+      "journal_matches": true,
+      "proof_generated": false
+    },
+    "boundless_proof_verified": false
+  },
+  "limits": {
+    "maximum_blocks": 128,
+    "archived_program_maximum_blocks": 64,
+    "witness_bytes": 67108864,
+    "eth_price_ceiling_wei": "62425842512343",
+    "automatic_funding": false,
+    "whole_bootstrap_cost_measured": false,
+    "modern_block_throughput_measured": false
+  },
+  "public_proving": {
+    "genesis": {
+      "cryptographic_proof_verified": true,
+      "proof_fixture": "tests/fixtures/source-optimized-genesis-proof.json",
+      "evidence": {
+        "chain_id": 8453,
+        "fulfilled_at": 1792356747,
+        "fulfillment_block": 52783700,
+        "fulfillment_transaction": "0x6ad8500d74ebbde4ba60a4a86480fc1eaf70e6ff51dd95a8cee8c9e6a74db229",
+        "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+        "input_visibility": "public",
+        "lock_to_fulfillment_seconds": 36,
+        "locked_at": 1792356711,
+        "price_wei": "26635026138599",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74830a7d3c34",
+        "submission_to_fulfillment_seconds": 53,
+        "submitted_at": 1792356694,
+        "version": 1
+      }
+    }
+  }
+}

@@ -241,6 +241,7 @@ pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
                 || image == SOURCE_V3
                 || image == SOURCE_V4
                 || image == SOURCE_V5
+                || image == SOURCE_V6
         }
         ProofKind::Source => {
             image == crate::source::update_image_id()
@@ -248,6 +249,7 @@ pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
                 || image == SOURCE_UPDATE_V2
                 || image == SOURCE_UPDATE_V3
                 || image == SOURCE_UPDATE_V4
+                || image == SOURCE_UPDATE_V5
         }
         ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement => {
             image == crate::pool::pool_image_id() || image == POOL_V1 || image == POOL_V2
@@ -324,8 +326,18 @@ const SOURCE_V5: Digest = Digest([
     0x61, 0xf0, 0x43, 0x87, 0xf5, 0x52, 0x23, 0xf8, 0x7b, 0x3f, 0x53, 0x5a, 0x89, 0xc6, 0xf5, 0x1c,
 ]);
 
+const SOURCE_V6: Digest = Digest([
+    0x8e, 0xba, 0xe8, 0x34, 0xd6, 0xc8, 0x3a, 0x75, 0x01, 0xc4, 0xf9, 0x64, 0x5c, 0x54, 0x42, 0xeb,
+    0xba, 0x81, 0x56, 0x6a, 0x24, 0xdd, 0x67, 0x05, 0x81, 0x7b, 0x8a, 0x80, 0xea, 0xec, 0x2a, 0x5a,
+]);
+
+const SOURCE_UPDATE_V5: Digest = Digest([
+    0x6d, 0x89, 0x22, 0x5b, 0x11, 0x0c, 0x75, 0x48, 0xc1, 0x13, 0x82, 0x26, 0x3b, 0xa1, 0x94, 0x1c,
+    0xb8, 0xb6, 0xd2, 0x8c, 0x49, 0xd2, 0xa8, 0xc0, 0x87, 0xcb, 0xbd, 0xc0, 0x69, 0x4d, 0x74, 0x11,
+]);
+
 pub(crate) fn admitted_range_program(image: Digest) -> bool {
-    image == crate::source::source_image_id() || image == SOURCE_V5
+    image == crate::source::source_image_id() || matches!(image, SOURCE_V5 | SOURCE_V6)
 }
 
 pub(crate) fn source_block_limit(image: Digest) -> usize {
@@ -334,7 +346,7 @@ pub(crate) fn source_block_limit(image: Digest) -> usize {
         SOURCE_V1 | SOURCE_V2 | SOURCE_V3 | SOURCE_V4 | SOURCE_V5
     ) {
         64
-    } else if image == crate::source::source_image_id() {
+    } else if image == SOURCE_V6 || image == crate::source::source_image_id() {
         zutti_source::transition::MAX_BLOCKS
     } else {
         0
@@ -348,6 +360,7 @@ pub(crate) fn admitted_source_pair(source: Digest, update: Digest) -> bool {
         || (source == SOURCE_V3 && update == SOURCE_UPDATE_V3)
         || (source == SOURCE_V4 && update == SOURCE_UPDATE_V4)
         || (source == SOURCE_V5 && update == SOURCE_UPDATE_V4)
+        || (source == SOURCE_V6 && update == SOURCE_UPDATE_V5)
 }
 
 pub(crate) fn source_height_supported(source: Digest, genesis: Digest, height: u32) -> bool {
@@ -375,6 +388,7 @@ mod source_upgrade_tests {
         for program in [SOURCE_V1, SOURCE_V2, SOURCE_V3, SOURCE_V4, SOURCE_V5] {
             assert_eq!(source_block_limit(program), 64);
         }
+        assert_eq!(source_block_limit(SOURCE_V6), 128);
         let current = crate::source::source_image_id();
         if !matches!(
             current,
