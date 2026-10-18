@@ -1,0 +1,22 @@
+{
+  "history-query": {
+    "image_id": "7d9e2604effef9a1cbb5435a2cda968fd69c326a758595cb435b8e78244b01f1",
+    "sha256": "c16f92c89918046b466a8826f53a6e561ce88d27d2266d3deafacfd3762191d4"
+  },
+  "pool": {
+    "image_id": "fdbbb89afa6b18a75b6dab7400dee08f4f106684793e4325ac58a6c8e48b9faf",
+    "sha256": "fe0d9c8978e18b01ca0d2954fb609b4c4f76ca7d5a06c0482cb49da79c7af7e0"
+  },
+  "preparation": {
+    "image_id": "d7cf4f9eef1769a3fe1d2c70427e05313df2a3ef0561d64857e0ab51bc6fb987",
+    "sha256": "0e272da422f82ce7427813966662511c57fa7696f5c47eade69716b3c5542a7b"
+  },
+  "source": {
+    "image_id": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
+    "sha256": "f76036ed7269476cc97ae0148b46a93f5f9d5ba75c803a759ee99d5d97d47ebd"
+  },
+  "source-update": {
+    "image_id": "f5b14f1fa25a45a6ae86316006e802d7adcf1df087ff8f4779da01922c1dc37f",
+    "sha256": "4696d730c0f91b2ffdd403c3224f3840819a43b450c4f21dbf9f5397b375cd2d"
+  }
+}

@@ -5694,6 +5694,8 @@ version = "0.1.0"
 dependencies = [
  "risc0-binfmt",
  "risc0-build",
+ "serde_json",
+ "sha2 0.10.9",
 ]
 
 [[package]]

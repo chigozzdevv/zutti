@@ -22,11 +22,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ] {
         println!("cargo:rerun-if-changed={path}");
     }
+    println!("cargo:rerun-if-changed=programs.json");
+    println!("cargo:rerun-if-env-changed=ZUTTI_PROGRAMS_DIR");
     println!("cargo:rerun-if-env-changed=RISC0_SKIP_BUILD");
     println!("cargo:rerun-if-env-changed=CARGO_HOME");
     println!("cargo:rerun-if-env-changed=HOME");
     if env::var_os("RISC0_SKIP_BUILD").is_some() {
         return Err("guest builds cannot be skipped".into());
+    }
+    if let Some(directory) = env::var_os("ZUTTI_PROGRAMS_DIR") {
+        return pinned_programs(PathBuf::from(directory));
     }
     let manifest =
         PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").ok_or("missing manifest directory")?);
@@ -131,6 +136,45 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         methods.push_str(&format!(
             "pub const {constant}_ELF: &[u8] = include_bytes!({path:?});\npub const {constant}_ID: [u32; 8] = {:?};\n",
             image.as_words()
+        ));
+    }
+    fs::write(out.join("methods.rs"), methods)?;
+    Ok(())
+}
+
+fn pinned_programs(directory: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    use sha2::{Digest as _, Sha256};
+    let manifest: serde_json::Value = serde_json::from_str(include_str!("programs.json"))?;
+    let out = PathBuf::from(env::var_os("OUT_DIR").ok_or("missing build output directory")?);
+    let mut methods = String::new();
+    for (name, constant) in [
+        ("history-query", "HISTORY_QUERY"),
+        ("preparation", "PREPARATION"),
+        ("source", "SOURCE"),
+        ("source-update", "SOURCE_UPDATE"),
+        ("pool", "POOL"),
+    ] {
+        let source = directory.join(name).join("program.elf");
+        println!("cargo:rerun-if-changed={}", source.display());
+        let metadata = fs::metadata(&source)?;
+        if !metadata.is_file() || metadata.len() > 32 * 1024 * 1024 {
+            return Err("invalid pinned program file".into());
+        }
+        let binary = fs::read(&source)?;
+        let hash = format!("{:x}", Sha256::digest(&binary));
+        if manifest[name]["sha256"].as_str() != Some(hash.as_str()) {
+            return Err(
+                format!("pinned {name} program bytes differ from the release manifest").into(),
+            );
+        }
+        let image = risc0_binfmt::compute_image_id(&binary)?;
+        if manifest[name]["image_id"].as_str() != Some(image.to_string().as_str()) {
+            return Err(format!("pinned {name} image differs from the release manifest").into());
+        }
+        let path = out.join(format!("{name}.bin"));
+        fs::write(&path, &binary)?;
+        methods.push_str(&format!(
+            "pub const {constant}_ELF: &[u8] = include_bytes!({path:?});\npub const {constant}_ID: [u32; 8] = {:?};\n",image.as_words(),
         ));
     }
     fs::write(out.join("methods.rs"), methods)?;
