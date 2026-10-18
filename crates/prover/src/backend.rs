@@ -227,12 +227,14 @@ pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
     match kind {
         ProofKind::Preparation => image == preparation_image_id() || image == PREPARATION_V1,
         ProofKind::HistoryQuery => image == query_image_id() || image == HISTORY_QUERY_V1,
-        ProofKind::SourceTransition | ProofKind::SourceRange => {
+        ProofKind::SourceRange => admitted_range_program(image),
+        ProofKind::SourceTransition => {
             image == crate::source::source_image_id()
                 || image == SOURCE_V1
                 || image == SOURCE_V2
                 || image == SOURCE_V3
                 || image == SOURCE_V4
+                || image == SOURCE_V5
         }
         ProofKind::Source => {
             image == crate::source::update_image_id()
@@ -296,12 +298,22 @@ const SOURCE_UPDATE_V4: Digest = Digest([
     0xad, 0xcf, 0x1d, 0xf0, 0x87, 0xff, 0x8f, 0x47, 0x79, 0xda, 0x01, 0x92, 0x2c, 0x1d, 0xc3, 0x7f,
 ]);
 
+const SOURCE_V5: Digest = Digest([
+    0x55, 0xff, 0x5c, 0x6b, 0x46, 0xec, 0x01, 0x18, 0xd3, 0x72, 0xa7, 0xd2, 0x73, 0x9d, 0xe2, 0x0c,
+    0x61, 0xf0, 0x43, 0x87, 0xf5, 0x52, 0x23, 0xf8, 0x7b, 0x3f, 0x53, 0x5a, 0x89, 0xc6, 0xf5, 0x1c,
+]);
+
+pub(crate) fn admitted_range_program(image: Digest) -> bool {
+    image == crate::source::source_image_id() || image == SOURCE_V5
+}
+
 pub(crate) fn admitted_source_pair(source: Digest, update: Digest) -> bool {
     (source == crate::source::source_image_id() && update == crate::source::update_image_id())
         || (source == SOURCE_V1 && update == SOURCE_UPDATE_V1)
         || (source == SOURCE_V2 && update == SOURCE_UPDATE_V2)
         || (source == SOURCE_V3 && update == SOURCE_UPDATE_V3)
         || (source == SOURCE_V4 && update == SOURCE_UPDATE_V4)
+        || (source == SOURCE_V5 && update == SOURCE_UPDATE_V4)
 }
 
 pub(crate) fn source_height_supported(source: Digest, genesis: Digest, height: u32) -> bool {

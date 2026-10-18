@@ -143,7 +143,7 @@ impl SourcePrograms {
     }
     fn check_range(&self, policy: SourcePolicy) -> Result<(), Error> {
         self.check(policy)?;
-        if self.source.image() != source_image_id() {
+        if !crate::backend::admitted_range_program(self.source.image()) {
             return Err(Error::BackendUnavailable);
         }
         Ok(())
