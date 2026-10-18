@@ -222,6 +222,10 @@ enum Command {
         job: PathBuf,
         #[arg(long, default_value = "r0vm")]
         prover: PathBuf,
+        #[arg(long)]
+        profile: Option<PathBuf>,
+        #[arg(long, requires = "profile")]
+        candidate: Option<PathBuf>,
     },
     Prove {
         #[arg(long)]
@@ -558,12 +562,30 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             pipeline.accept(&artifact)?;
             print_store(&pipeline)?;
         }
-        Command::Execute { job, prover } => println!(
-            "{}",
-            serde_json::to_string(
-                &LocalProver::new(prover).execute_source(&SourceJob::read_public(&job)?)?
-            )?
-        ),
+        Command::Execute {
+            job,
+            prover,
+            profile,
+            candidate,
+        } => {
+            let job = SourceJob::read_public(&job)?;
+            let prover = LocalProver::new(prover);
+            let metrics = match candidate {
+                Some(candidate) => serde_json::to_value(
+                    prover.compare_source_execution(
+                        &job,
+                        &candidate,
+                        profile
+                            .as_deref()
+                            .ok_or("candidate execution requires a profile")?,
+                    )?,
+                )?,
+                None => {
+                    serde_json::to_value(prover.execute_source_profiled(&job, profile.as_deref())?)?
+                }
+            };
+            println!("{}", serde_json::to_string(&metrics)?);
+        }
         Command::Prove { job, out, prover } => {
             let job = SourceJob::read_public(&job)?;
             let (statement, proof) = LocalProver::new(prover).prove_source(&job)?;

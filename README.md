@@ -398,6 +398,10 @@ cargo run --locked -p zutti-prover --bin source-prover -- execute   --job .data/
 
 These commands export public chain data and measure execution. Submission and collection use the existing capped Boundless client; `private-prover import-boundless` verifies the returned seal against the retained statement. `source-prover continue` takes the predecessor proof, exact native prefix and consecutive new blocks. `source-prover update` produces the registry proof job and checkpoint package. The command help lists the complete arguments. Execution output always distinguishes execution from proof generation.
 
+Add `--profile <output.pb>` to `source-prover execute` to record a pprof cycle profile. Profiling executes the retained program and input, checks the exact expected journal, and generates no proof or market request. Compare the same input and segment limit when measuring an optimization; a cycle reduction alone does not establish a market price.
+
+Use `--candidate <program.elf> --profile <output.pb>` to execute a candidate program against the retained input and expected journal. The report includes both program images and whether they match. This diagnostic comparison does not admit the candidate program, generate a proof, advance stored source state or change the deployment policy.
+
 The first mainnet-genesis job executed in 24,111,161 cycles after replacing repeated empty-tree construction with 66 consensus constants independently checked against the pinned upstream implementations. The preceding implementation used 1,056,212,137 cycles. Boundless fulfilled the genuine genesis proof in 76 seconds after submission; it cost 35,790,816,373,743 wei from the proving deposit. Local cryptographic verification passed. The retained public fixture tests verification and altered-seal rejection.
 
 A continuation through mainnet blocks 1 to 4, including in-guest verification of the genuine genesis proof, executed in 253,879,014 cycles. These measurements cover this early public prefix. They do not establish current-chain proving cost, a current bootstrap or a completed swap.

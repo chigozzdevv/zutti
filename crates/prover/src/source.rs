@@ -25,6 +25,15 @@ use zutti_source::{
 pub const MAX_SOURCE_CYCLES: u64 = 2_147_483_648;
 const MAX_SOURCE_STDIN: usize = MAX_WITNESS + 4 + MAX_RANGE_INPUTS * 260;
 
+#[derive(Debug, serde::Serialize)]
+pub struct SourceExecutionComparison {
+    #[serde(flatten)]
+    pub execution: crate::local::ExecutionMetrics,
+    pub expected_program: String,
+    pub executed_program: String,
+    pub program_matches_statement: bool,
+}
+
 pub fn source_image_id() -> Digest {
     Digest(risc0_zkvm::sha::Digest::from(zutti_methods::SOURCE_ID).into())
 }
@@ -423,14 +432,58 @@ impl LocalProver {
         &self,
         job: &SourceJob,
     ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
-        let env = ExecutorEnv::builder()
+        self.execute_source_profiled(job, None)
+    }
+    pub fn execute_source_profiled(
+        &self,
+        job: &SourceJob,
+        profile: Option<&Path>,
+    ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
+        self.execute_source_program(job, job.program(), profile)
+    }
+    pub fn compare_source_execution(
+        &self,
+        job: &SourceJob,
+        candidate: &Path,
+        profile: &Path,
+    ) -> Result<SourceExecutionComparison, Box<dyn std::error::Error>> {
+        use std::io::Read;
+        let file = std::fs::File::open(candidate)?;
+        if !file.metadata()?.is_file() {
+            return Err("candidate program must be a regular file".into());
+        }
+        let mut bytes = Vec::new();
+        file.take(crate::program::MAX_PROGRAM as u64 + 1)
+            .read_to_end(&mut bytes)?;
+        if bytes.is_empty() || bytes.len() > crate::program::MAX_PROGRAM {
+            return Err(Error::Binding.into());
+        }
+        let executed = Digest(risc0_zkvm::compute_image_id(&bytes)?.into());
+        Ok(SourceExecutionComparison {
+            execution: self.execute_source_program(job, &bytes, Some(profile))?,
+            expected_program: job.statement.program().to_string(),
+            executed_program: executed.to_string(),
+            program_matches_statement: executed == job.statement.program(),
+        })
+    }
+    fn execute_source_program(
+        &self,
+        job: &SourceJob,
+        program: &[u8],
+        profile: Option<&Path>,
+    ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
+        let mut builder = ExecutorEnv::builder();
+        builder
             .write_slice(job.stdin.as_slice())
             .session_limit(Some(MAX_SOURCE_CYCLES))
-            .segment_limit_po2(20)
-            .build()?;
+            .segment_limit_po2(20);
+        if let Some(path) = profile {
+            builder.enable_profiler(path);
+        }
+        let env = builder.build()?;
         let started = std::time::Instant::now();
-        let session = ExternalProver::new("zutti-source-executor", &self.executable)
-            .execute(env, job.program())?;
+        let session =
+            ExternalProver::new("zutti-source-executor", &self.executable).execute(env, program)?;
         if session.journal.bytes != job.statement.payload() {
             return Err(Error::Journal.into());
         }
