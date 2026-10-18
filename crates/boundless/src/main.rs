@@ -328,7 +328,7 @@ async fn run(args: Args, config: &Config) -> Result<()> {
             let job: Job = serde_json::from_slice(&private_read(&job, 16_384)?)?;
             job.validate()?;
             let program = private_read(&job.program, 64 * 1024 * 1024)?;
-            let stdin = private_read(&job.stdin, 9 * 1024 * 1024)?;
+            let stdin = private_read(&job.stdin, 64 * 1024 * 1024 + 524)?;
             let journal = private_read(&job.journal, 65_664)?;
             let image = Digest::from(
                 <[u8; 32]>::try_from(hex::decode(&job.image_id)?)
