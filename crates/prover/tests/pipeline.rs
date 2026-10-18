@@ -77,6 +77,10 @@ fn retained_testnet_genesis_receipt_matches_the_exact_native_policy_and_state() 
             include_str!("../../../tests/fixtures/source-nu7-genesis-proof.json"),
             "7742c955d72428f0c643a7d92cd4aa81567779a46c48d2e6e24c2c7c2a73667b",
         ),
+        (
+            include_str!("../../../tests/fixtures/source-canonical-genesis-proof.json"),
+            "f5b14f1fa25a45a6ae86316006e802d7adcf1df087ff8f4779da01922c1dc37f",
+        ),
     ] {
         check_retained_genesis(fixture, registry);
     }

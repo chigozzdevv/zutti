@@ -9,13 +9,14 @@ use zutti_prover::{
     artifact::ProofArtifact,
     local::LocalProver,
     pipeline::SourcePipeline,
-    source::{SourceJob, SourcePrograms, source_image_id, update_image_id},
+    source::{MAX_SOURCE_CYCLES, SourceJob, SourcePrograms, source_image_id, update_image_id},
 };
 use zutti_source::{
     block::ParsedBlock,
     bootstrap::GenesisBlock,
     checkpoint::SourceCheckpoint,
     proof::{SourceInput, SourceReceiptClaim, SourceWitness},
+    range::{SourceRangeClaim, SourceRangeWitness},
     state::SourceCandidate,
     transition::StateSnapshot,
     update::{PreviousUpdate, SourceUpdateWitness},
@@ -118,6 +119,34 @@ enum Command {
         prefix: Vec<PathBuf>,
         #[arg(long, required = true)]
         block: Vec<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Range {
+        #[command(flatten)]
+        chain: Chain,
+        #[arg(long)]
+        prefix: Vec<PathBuf>,
+        #[arg(long, required = true)]
+        block: Vec<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    AggregateRanges {
+        #[command(flatten)]
+        chain: Profile,
+        #[arg(long, required = true)]
+        proof: Vec<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    FoldRange {
+        #[command(flatten)]
+        chain: Profile,
+        #[arg(long)]
+        prefix: PathBuf,
+        #[arg(long)]
+        range: PathBuf,
         #[arg(long)]
         out: PathBuf,
     },
@@ -278,6 +307,83 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             println!(
                 "{}",
                 serde_json::json!({"job":out,"kind":"genesis","proof_generated":false})
+            );
+        }
+        Command::Range {
+            chain,
+            prefix,
+            block,
+            out,
+        } => {
+            let programs = chain.programs()?;
+            let mut source = chain.source(&prefix, &programs)?;
+            let transition = source.record_transition(
+                block
+                    .iter()
+                    .map(|p| block_bytes(p))
+                    .collect::<Result<Vec<_>, _>>()?,
+            )?;
+            let witness = SourceRangeWitness::transition(chain.policy(&programs), transition)?;
+            SourceJob::range(&witness, &[], &programs)?.export_public(&out, MAX_SOURCE_CYCLES)?;
+            println!(
+                "{}",
+                serde_json::json!({"job":out,"kind":"source_range","proof_generated":false,"settlement_authority":false})
+            );
+        }
+        Command::AggregateRanges { chain, proof, out } => {
+            let programs = chain.programs()?;
+            let proofs = proof
+                .iter()
+                .map(|p| ProofArtifact::read(p))
+                .collect::<Result<Vec<_>, _>>()?;
+            let ranges = proofs
+                .iter()
+                .map(|p| {
+                    if p.statement().kind() != ProofKind::SourceRange {
+                        return Err(zutti_protocol::Error::Invalid("source range proof kind"));
+                    }
+                    SourceRangeClaim::from_bytes(p.statement().payload())
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            let witness = SourceRangeWitness::Aggregate {
+                policy: chain.policy(&programs),
+                ranges,
+            };
+            SourceJob::range(&witness, &proofs.iter().collect::<Vec<_>>(), &programs)?
+                .export_public(&out, MAX_SOURCE_CYCLES)?;
+            println!(
+                "{}",
+                serde_json::json!({"job":out,"kind":"source_range_aggregate","proof_generated":false,"settlement_authority":false})
+            );
+        }
+        Command::FoldRange {
+            chain,
+            prefix,
+            range,
+            out,
+        } => {
+            let programs = chain.programs()?;
+            let prefix = ProofArtifact::read(&prefix)?;
+            let range = ProofArtifact::read(&range)?;
+            if prefix.statement().kind() != ProofKind::SourceTransition
+                || range.statement().kind() != ProofKind::SourceRange
+            {
+                return Err("unexpected source prefix or range proof kind".into());
+            }
+            let witness = SourceWitness {
+                policy: chain.policy(&programs),
+                input: SourceInput::Fold {
+                    previous: Box::new(SourceReceiptClaim::from_bytes(
+                        prefix.statement().payload(),
+                    )?),
+                    range: Box::new(SourceRangeClaim::from_bytes(range.statement().payload())?),
+                },
+            };
+            SourceJob::fold(&witness, &prefix, &range, &programs)?
+                .export_public(&out, MAX_SOURCE_CYCLES)?;
+            println!(
+                "{}",
+                serde_json::json!({"job":out,"kind":"source_prefix_fold","proof_generated":false,"settlement_authority":false})
             );
         }
         Command::Continue {
@@ -488,14 +594,14 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             let artifact = ProofArtifact::read(&proof)?;
             if !matches!(
                 artifact.statement().kind(),
-                ProofKind::Source | ProofKind::SourceTransition
+                ProofKind::Source | ProofKind::SourceTransition | ProofKind::SourceRange
             ) {
                 return Err("expected source evidence".into());
             }
             artifact.verify(artifact.statement())?;
             println!(
                 "{}",
-                serde_json::json!({"proof_verified":true,"program":artifact.statement().program().to_string(),"policy":artifact.statement().domain().to_string(),"current_chain_admitted":false,"swap_executed":false})
+                serde_json::json!({"proof_verified":true,"range_only":artifact.statement().kind() == ProofKind::SourceRange,"program":artifact.statement().program().to_string(),"policy":artifact.statement().domain().to_string(),"current_chain_admitted":false,"swap_executed":false})
             );
         }
     }

@@ -1,7 +1,11 @@
 #![no_main]
 use risc0_zkvm::guest::env;
 use zutti_protocol::encoding::Canonical;
-use zutti_source::{proof::SourceWitness, transition::MAX_WITNESS};
+use zutti_source::{
+    proof::{SourceInput, SourceWitness},
+    range::{RANGE_WITNESS_MAGIC, SourceRangeWitness},
+    transition::MAX_WITNESS,
+};
 
 mod seal;
 
@@ -17,6 +21,15 @@ fn main() {
     );
     let mut bytes = vec![0; length];
     env::read_slice(&mut bytes);
+    if bytes.starts_with(RANGE_WITNESS_MAGIC) {
+        let witness = SourceRangeWitness::from_bytes(&bytes).expect("invalid source range witness");
+        let claim = witness.evaluate().expect("invalid source range");
+        for previous in witness.assumptions() {
+            seal::verify(witness.policy().program.0, previous.to_bytes().expect("invalid source range predecessor"));
+        }
+        env::commit_slice(&claim.to_bytes().expect("invalid source range claim"));
+        return;
+    }
     let witness = SourceWitness::from_bytes(&bytes).expect("invalid source witness");
     let claim = witness.evaluate().expect("invalid source transition");
     if let Some(previous) = witness.assumption() {
@@ -28,6 +41,9 @@ fn main() {
             previous.program.0,
             previous.to_bytes().expect("invalid predecessor"),
         );
+    }
+    if let SourceInput::Fold { range, .. } = &witness.input {
+        seal::verify(witness.policy.program.0, range.to_bytes().expect("invalid source range predecessor"));
     }
     env::commit_slice(&claim.to_bytes().expect("invalid source claim"));
 }

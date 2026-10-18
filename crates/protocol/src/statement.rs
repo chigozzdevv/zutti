@@ -14,6 +14,7 @@ pub enum ProofKind {
     Settlement = 5,
     HistoryQuery = 6,
     SourceTransition = 7,
+    SourceRange = 8,
 }
 impl ProofKind {
     pub fn from_id(id: u8) -> Result<Self> {
@@ -25,6 +26,7 @@ impl ProofKind {
             5 => Ok(Self::Settlement),
             6 => Ok(Self::HistoryQuery),
             7 => Ok(Self::SourceTransition),
+            8 => Ok(Self::SourceRange),
             _ => Err(Error::Invalid("proof kind")),
         }
     }

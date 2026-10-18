@@ -115,6 +115,7 @@ fn report(artifact: &ProofArtifact, kind: ProofKind) -> Result<(), Box<dyn std::
         ProofKind::HistoryQuery => "history_query",
         ProofKind::Preparation => "preparation",
         ProofKind::SourceTransition => "source_transition",
+        ProofKind::SourceRange => "source_range",
         ProofKind::Source => "source_update",
         ProofKind::Note => "private_note",
         ProofKind::Reservation => "reservation",

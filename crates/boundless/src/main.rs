@@ -119,7 +119,10 @@ impl Job {
 }
 
 fn proof_timeouts(cycles: u64) -> Result<(u32, u32)> {
-    ensure!(cycles > 0 && cycles <= 2_147_483_648, "unsupported cycle bound");
+    ensure!(
+        cycles > 0 && cycles <= 2_147_483_648,
+        "unsupported cycle bound"
+    );
     let lock_timeout = u32::try_from(cycles.div_ceil(1_000_000) + 300)?.max(900);
     Ok((lock_timeout, (lock_timeout + 900).max(1800)))
 }
@@ -334,7 +337,7 @@ async fn run(args: Args, config: &Config) -> Result<()> {
             let job: Job = serde_json::from_slice(&private_read(&job, 16_384)?)?;
             job.validate()?;
             let program = private_read(&job.program, 64 * 1024 * 1024)?;
-            let stdin = private_read(&job.stdin, 64 * 1024 * 1024 + 524)?;
+            let stdin = private_read(&job.stdin, 64 * 1024 * 1024 + 1044)?;
             let journal = private_read(&job.journal, 65_664)?;
             let image = Digest::from(
                 <[u8; 32]>::try_from(hex::decode(&job.image_id)?)

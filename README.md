@@ -315,6 +315,16 @@ The default cycle ceiling is `268435456`. Use `--cycle-limit` to benchmark large
 
 Historical transaction paths can be reconstructed from stored first-inclusion heights for an archived stable root. `SourceCandidate::prove_at` checks the reconstructed root against the authenticated header archive; later transactions stay absent from that earlier root. Rebuilding these paths currently scans retained index entries and is not an optimized historical-query service.
 
+## Composable source ranges
+
+`source-prover range` exports a validity proof job for a consecutive block range. The claim commits to both endpoint states; it proves a transition conditional on its starting state and does not establish a prefix from genesis. Its witness contains public block data and authenticated state accesses, without requiring the preceding range's proof.
+
+`aggregate-ranges` combines two to four genuine range receipts. Every boundary must match the entire preceding endpoint claim, including policy, height, tip, work, history index and state commitment. Gaps, reordered ranges and substituted states fail. A tree of these jobs can combine independently proved ranges.
+
+`fold-range` combines a genuine full-prefix receipt with a genuine range receipt whose starting claim exactly equals that prefix. The source guest verifies both receipts before emitting the existing full-prefix claim. This preserves the genesis anchor and the source-registry interface. Range receipts use a separate claim encoding and proof kind; they cannot advance the full-prefix store or substitute for source admission.
+
+Native and guest execution tests cover the range path. Full-history parallel scheduling, bounded witness retention and current-chain throughput remain separate implementation and measurement work. Retain the matching program pair, and run execution preflight before submitting a job to Boundless.
+
 ## Source upgrade support
 
 The source program implements NU7 using `zebra-chain` 14.0.0 and the matching Zcash transaction libraries. Public Testnet activates NU7 at height `4_465_026`, branch `0x77190ad9`. Difficulty validation retains 113 ancestor headers, applies the 102-block averaging window and 25-second spacing at activation, and uses the new Testnet minimum-difficulty threshold. Parsing enforces per-pool and combined shielded action limits. Transaction checks reject v4 at NU7, retain valid v5/v6 formats, enforce Orchard freezing, and bind authorization signatures to the active branch.

@@ -160,6 +160,10 @@ pub enum SourceInput {
         previous: Box<SourceReceiptClaim>,
         transition: Box<TransitionWitness>,
     },
+    Fold {
+        previous: Box<SourceReceiptClaim>,
+        range: Box<crate::range::SourceRangeClaim>,
+    },
 }
 #[derive(Debug, Clone)]
 pub struct SourceWitness {
@@ -168,11 +172,16 @@ pub struct SourceWitness {
 }
 impl SourceWitness {
     pub fn evaluate(&self) -> Result<SourceReceiptClaim, TransitionError> {
-        let state = match &self.input {
+        match &self.input {
             SourceInput::Genesis(bytes) => {
                 let genesis = GenesisBlock::parse(bytes, self.policy.network)?;
-                SourceCandidate::from_genesis(&genesis, self.policy.id()?, self.policy.index_start)?
-                    .state_snapshot()?
+                let state = SourceCandidate::from_genesis(
+                    &genesis,
+                    self.policy.id()?,
+                    self.policy.index_start,
+                )?
+                .state_snapshot()?;
+                SourceReceiptClaim::from_state(self.policy, &state)
             }
             SourceInput::Advance {
                 previous,
@@ -182,14 +191,22 @@ impl SourceWitness {
                 if **previous != expected {
                     return Err(Error::Invalid("recursive source predecessor").into());
                 }
-                transition.evaluate()?
+                SourceReceiptClaim::from_state(self.policy, &transition.evaluate()?)
             }
-        };
-        SourceReceiptClaim::from_state(self.policy, &state)
+            SourceInput::Fold { previous, range } => {
+                range.require_policy(self.policy)?;
+                if **previous != range.start {
+                    return Err(Error::Invalid("source prefix and range boundary").into());
+                }
+                Ok(range.end.clone())
+            }
+        }
     }
     pub fn assumption(&self) -> Option<&SourceReceiptClaim> {
         match &self.input {
-            SourceInput::Advance { previous, .. } => Some(previous.as_ref()),
+            SourceInput::Advance { previous, .. } | SourceInput::Fold { previous, .. } => {
+                Some(previous.as_ref())
+            }
             _ => None,
         }
     }
@@ -213,6 +230,11 @@ impl Canonical for SourceWitness {
                 previous.encode(writer)?;
                 transition.encode(writer)?;
             }
+            SourceInput::Fold { previous, range } => {
+                writer.u8(2);
+                previous.encode(writer)?;
+                range.encode(writer)?;
+            }
         }
         Ok(())
     }
@@ -226,6 +248,10 @@ impl Canonical for SourceWitness {
             1 => SourceInput::Advance {
                 previous: Box::new(SourceReceiptClaim::decode(reader)?),
                 transition: Box::new(TransitionWitness::decode(reader)?),
+            },
+            2 => SourceInput::Fold {
+                previous: Box::new(SourceReceiptClaim::decode(reader)?),
+                range: Box::new(crate::range::SourceRangeClaim::decode(reader)?),
             },
             _ => return Err(Error::Invalid("source witness kind")),
         };

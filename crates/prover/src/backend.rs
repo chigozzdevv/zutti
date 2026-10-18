@@ -8,7 +8,7 @@ use zutti_protocol::{
     encoding::{Canonical, Reader, Writer},
     statement::{ProofKind, Statement},
 };
-use zutti_source::{proof::SourceReceiptClaim, query::QueryClaim};
+use zutti_source::{proof::SourceReceiptClaim, query::QueryClaim, range::SourceRangeClaim};
 use zutti_wallet::preparation::PreparationClaim;
 
 pub const MAX_PROOF: usize = 16 * 1024 * 1024;
@@ -156,6 +156,22 @@ impl ProofVerifier {
                     risc0_zkvm::sha::Digest::from(expected.program().0),
                 )
             }
+            ProofKind::SourceRange if admitted_program(expected.kind(), expected.program()) => {
+                let claim = SourceRangeClaim::from_bytes(expected.payload())?;
+                if claim.end.program != expected.program()
+                    || !source_height_supported(
+                        claim.end.program,
+                        claim.end.genesis,
+                        claim.end.height,
+                    )
+                {
+                    return Err(Error::Binding);
+                }
+                (
+                    claim.end.policy,
+                    risc0_zkvm::sha::Digest::from(expected.program().0),
+                )
+            }
             ProofKind::Source if admitted_program(expected.kind(), expected.program()) => (
                 SourceUpdateClaim::from_bytes(expected.payload())?.policy,
                 risc0_zkvm::sha::Digest::from(expected.program().0),
@@ -211,17 +227,19 @@ pub(crate) fn admitted_program(kind: ProofKind, image: Digest) -> bool {
     match kind {
         ProofKind::Preparation => image == preparation_image_id() || image == PREPARATION_V1,
         ProofKind::HistoryQuery => image == query_image_id() || image == HISTORY_QUERY_V1,
-        ProofKind::SourceTransition => {
+        ProofKind::SourceTransition | ProofKind::SourceRange => {
             image == crate::source::source_image_id()
                 || image == SOURCE_V1
                 || image == SOURCE_V2
                 || image == SOURCE_V3
+                || image == SOURCE_V4
         }
         ProofKind::Source => {
             image == crate::source::update_image_id()
                 || image == SOURCE_UPDATE_V1
                 || image == SOURCE_UPDATE_V2
                 || image == SOURCE_UPDATE_V3
+                || image == SOURCE_UPDATE_V4
         }
         ProofKind::Note | ProofKind::Reservation | ProofKind::Settlement => {
             image == crate::pool::pool_image_id() || image == POOL_V1
@@ -269,11 +287,21 @@ const SOURCE_UPDATE_V3: Digest = Digest([
     0x56, 0x77, 0x79, 0xa4, 0x6c, 0x48, 0xd2, 0xe6, 0xe2, 0x4c, 0x2c, 0x7c, 0x2a, 0x73, 0x66, 0x7b,
 ]);
 
+const SOURCE_V4: Digest = Digest([
+    0x8a, 0x14, 0x4e, 0xde, 0xb2, 0xd5, 0x2a, 0x0c, 0xbc, 0x5a, 0xce, 0xb1, 0xaf, 0x94, 0x25, 0xf9,
+    0x05, 0x84, 0x17, 0x6f, 0xc4, 0x1d, 0x41, 0xaa, 0xf7, 0x05, 0x41, 0xf1, 0x9a, 0xee, 0xd3, 0x39,
+]);
+const SOURCE_UPDATE_V4: Digest = Digest([
+    0xf5, 0xb1, 0x4f, 0x1f, 0xa2, 0x5a, 0x45, 0xa6, 0xae, 0x86, 0x31, 0x60, 0x06, 0xe8, 0x02, 0xd7,
+    0xad, 0xcf, 0x1d, 0xf0, 0x87, 0xff, 0x8f, 0x47, 0x79, 0xda, 0x01, 0x92, 0x2c, 0x1d, 0xc3, 0x7f,
+]);
+
 pub(crate) fn admitted_source_pair(source: Digest, update: Digest) -> bool {
     (source == crate::source::source_image_id() && update == crate::source::update_image_id())
         || (source == SOURCE_V1 && update == SOURCE_UPDATE_V1)
         || (source == SOURCE_V2 && update == SOURCE_UPDATE_V2)
         || (source == SOURCE_V3 && update == SOURCE_UPDATE_V3)
+        || (source == SOURCE_V4 && update == SOURCE_UPDATE_V4)
 }
 
 pub(crate) fn source_height_supported(source: Digest, genesis: Digest, height: u32) -> bool {

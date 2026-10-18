@@ -16,12 +16,14 @@ use zutti_protocol::{
     statement::{ProofKind, Statement},
 };
 use zutti_source::{
-    proof::{SourcePolicy, SourceReceiptClaim, SourceWitness},
+    proof::{SourceInput, SourcePolicy, SourceReceiptClaim, SourceWitness},
+    range::{MAX_RANGE_INPUTS, SourceRangeClaim, SourceRangeWitness},
     transition::MAX_WITNESS,
     update::SourceUpdateWitness,
 };
 
 pub const MAX_SOURCE_CYCLES: u64 = 2_147_483_648;
+const MAX_SOURCE_STDIN: usize = MAX_WITNESS + 4 + MAX_RANGE_INPUTS * 260;
 
 pub fn source_image_id() -> Digest {
     Digest(risc0_zkvm::sha::Digest::from(zutti_methods::SOURCE_ID).into())
@@ -61,6 +63,21 @@ fn source_statement_with(
 }
 pub fn update_statement(claim: &SourceUpdateClaim) -> Result<Statement, Error> {
     update_statement_with(claim, &Program::current(ProgramKind::SourceUpdate))
+}
+
+pub fn range_statement(claim: &SourceRangeClaim) -> Result<Statement, Error> {
+    range_statement_with(claim, &Program::current(ProgramKind::Source))
+}
+fn range_statement_with(claim: &SourceRangeClaim, program: &Program) -> Result<Statement, Error> {
+    if program.kind() != ProgramKind::Source || claim.end.program != program.image() {
+        return Err(Error::Binding);
+    }
+    Ok(Statement::new(
+        ProofKind::SourceRange,
+        claim.end.policy,
+        program.image(),
+        claim.to_bytes()?,
+    )?)
 }
 fn update_statement_with(claim: &SourceUpdateClaim, program: &Program) -> Result<Statement, Error> {
     if program.kind() != ProgramKind::SourceUpdate {
@@ -124,6 +141,13 @@ impl SourcePrograms {
         policy.to_bytes()?;
         Ok(())
     }
+    fn check_range(&self, policy: SourcePolicy) -> Result<(), Error> {
+        self.check(policy)?;
+        if self.source.image() != source_image_id() {
+            return Err(Error::BackendUnavailable);
+        }
+        Ok(())
+    }
 }
 pub fn groth16_seal(artifact: &ProofArtifact, expected: &Statement) -> Result<Vec<u8>, Error> {
     ProofVerifier.verify(artifact.proof(), expected)?;
@@ -160,7 +184,7 @@ impl SourceJob {
         )?)?;
         let kind = match statement.kind() {
             ProofKind::Source => ProgramKind::SourceUpdate,
-            ProofKind::SourceTransition => ProgramKind::Source,
+            ProofKind::SourceTransition | ProofKind::SourceRange => ProgramKind::Source,
             _ => return Err(Error::Binding.into()),
         };
         let code = Program::read(kind, &directory.join("program.elf"))?;
@@ -185,10 +209,18 @@ impl SourceJob {
                 }
                 false
             }
+            ProofKind::SourceRange => {
+                if range_statement_with(&SourceRangeClaim::from_bytes(statement.payload())?, &code)?
+                    != statement
+                {
+                    return Err(Error::Binding.into());
+                }
+                false
+            }
             _ => return Err(Error::Binding.into()),
         };
         let stdin =
-            zutti_wallet::backup::read_private(&directory.join("stdin.bin"), MAX_WITNESS + 524)?;
+            zutti_wallet::backup::read_private(&directory.join("stdin.bin"), MAX_SOURCE_STDIN)?;
         if stdin.len() < 4 {
             return Err(Error::Witness.into());
         }
@@ -211,6 +243,9 @@ impl SourceJob {
         programs: &SourcePrograms,
     ) -> Result<Self, Error> {
         programs.check(witness.policy)?;
+        if matches!(witness.input, SourceInput::Fold { .. }) {
+            return Err(Error::Binding);
+        }
         let claim = witness.evaluate().map_err(|_| Error::Witness)?;
         let mut stdin = framed(witness)?;
         match (witness.assumption(), previous) {
@@ -221,6 +256,58 @@ impl SourceJob {
             (None, None) => {}
             _ => return Err(Error::Binding),
         }
+        Ok(Self {
+            statement: source_statement_with(&claim, &programs.source)?,
+            stdin,
+            update: false,
+            code: programs.source.clone(),
+        })
+    }
+    pub fn range(
+        witness: &SourceRangeWitness,
+        children: &[&ProofArtifact],
+        programs: &SourcePrograms,
+    ) -> Result<Self, Error> {
+        programs.check_range(witness.policy())?;
+        let claim = witness.evaluate().map_err(|_| Error::Witness)?;
+        let mut stdin = framed(witness)?;
+        let assumptions = witness.assumptions();
+        if assumptions.len() != children.len() {
+            return Err(Error::Binding);
+        }
+        for (claim, proof) in assumptions.iter().zip(children) {
+            stdin.extend_from_slice(&groth16_seal(
+                proof,
+                &range_statement_with(claim, &programs.source)?,
+            )?);
+        }
+        Ok(Self {
+            statement: range_statement_with(&claim, &programs.source)?,
+            stdin,
+            update: false,
+            code: programs.source.clone(),
+        })
+    }
+    pub fn fold(
+        witness: &SourceWitness,
+        prefix: &ProofArtifact,
+        range_proof: &ProofArtifact,
+        programs: &SourcePrograms,
+    ) -> Result<Self, Error> {
+        programs.check_range(witness.policy)?;
+        let SourceInput::Fold { previous, range } = &witness.input else {
+            return Err(Error::Binding);
+        };
+        let claim = witness.evaluate().map_err(|_| Error::Witness)?;
+        let mut stdin = framed(witness)?;
+        stdin.extend_from_slice(&groth16_seal(
+            prefix,
+            &source_statement_with(previous, &programs.source)?,
+        )?);
+        stdin.extend_from_slice(&groth16_seal(
+            range_proof,
+            &range_statement_with(range, &programs.source)?,
+        )?);
         Ok(Self {
             statement: source_statement_with(&claim, &programs.source)?,
             stdin,
@@ -314,7 +401,7 @@ fn framed(value: &impl Canonical) -> Result<Zeroizing<Vec<u8>>, Error> {
     if bytes.is_empty() || bytes.len() > MAX_WITNESS {
         return Err(Error::Witness);
     }
-    let mut framed = Zeroizing::new(Vec::with_capacity(bytes.len() + 524));
+    let mut framed = Zeroizing::new(Vec::with_capacity(bytes.len() + 4 + MAX_RANGE_INPUTS * 260));
     framed.extend_from_slice(&(bytes.len() as u32).to_le_bytes());
     framed.extend_from_slice(&bytes);
     Ok(framed)
