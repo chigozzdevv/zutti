@@ -1,4 +1,5 @@
 use crate::{CandidateIndex, Error, IndexContext, IndexProof, IndexSnapshot, Result};
+use std::sync::Arc;
 use zutti_protocol::Digest;
 
 #[derive(Debug, Clone)]
@@ -9,7 +10,7 @@ pub(crate) enum HistoryIndex {
     },
     Witness {
         snapshot: IndexSnapshot,
-        proofs: Vec<IndexProof>,
+        proofs: Arc<[IndexProof]>,
         cursor: usize,
     },
 }
@@ -23,7 +24,7 @@ impl HistoryIndex {
     pub(crate) fn witness(snapshot: IndexSnapshot, proofs: Vec<IndexProof>) -> Self {
         Self::Witness {
             snapshot,
-            proofs,
+            proofs: proofs.into(),
             cursor: 0,
         }
     }
@@ -96,5 +97,37 @@ impl HistoryIndex {
             return Err(Error::Path);
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cloned_witnesses_validate_independent_index_transitions() {
+        let context = IndexContext::new(Digest([1; 32]), Digest([2; 32]), 0).unwrap();
+        let mut full = HistoryIndex::new(context);
+        let before = full.snapshot();
+        let first = [Digest([3; 32])];
+        let second = [Digest([4; 32])];
+        full.start_recording().unwrap();
+        full.append_block(1, &first).unwrap();
+        full.append_block(2, &second).unwrap();
+        let mut left = HistoryIndex::witness(before, full.take_transcript().unwrap());
+        let mut right = left.clone();
+        assert!(left.append_block(1, &second).is_err());
+        assert_eq!(left.snapshot(), before);
+        left.append_block(1, &first).unwrap();
+        left.append_block(2, &second).unwrap();
+        left.finish().unwrap();
+        assert_eq!(right.snapshot(), before);
+        assert!(right.finish().is_err());
+        right.append_block(1, &first).unwrap();
+        right.append_block(2, &second).unwrap();
+        right.finish().unwrap();
+        assert_eq!(left.snapshot(), full.snapshot());
+        assert_eq!(right.snapshot(), full.snapshot());
     }
 }

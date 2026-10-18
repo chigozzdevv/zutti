@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::{cell::RefCell, sync::Arc};
 use zutti_protocol::{
     Digest, Error,
     commitment::hash,
@@ -143,7 +143,7 @@ enum Backend {
         recording: RefCell<Option<Vec<Access>>>,
     },
     Witness {
-        accesses: Vec<Access>,
+        accesses: Arc<[Access]>,
         cursor: RefCell<usize>,
     },
 }
@@ -152,12 +152,12 @@ enum Backend {
 pub struct AuthenticatedMap {
     context: Digest,
     root: Digest,
-    empty: [Digest; DEPTH + 1],
+    empty: Arc<[Digest; DEPTH + 1]>,
     backend: Backend,
 }
 impl AuthenticatedMap {
     pub fn new(context: Digest) -> Self {
-        let empty = empty_nodes(context);
+        let empty = Arc::new(empty_nodes(context));
         Self {
             context,
             root: empty[0],
@@ -182,9 +182,9 @@ impl AuthenticatedMap {
         Self {
             context,
             root,
-            empty: empty_nodes(context),
+            empty: Arc::new(empty_nodes(context)),
             backend: Backend::Witness {
-                accesses: transcript.0,
+                accesses: transcript.0.into(),
                 cursor: RefCell::new(0),
             },
         }
@@ -435,6 +435,36 @@ mod tests {
         assert_eq!(map.len(), Some(0));
         assert_eq!(fork.len(), Some(100));
         assert_ne!(fork.root(), root);
+    }
+    #[test]
+    fn cloned_witnesses_keep_independent_roots_and_access_cursors() {
+        let context = Digest([4; 32]);
+        let key = Digest([1; 32]);
+        let mut full = AuthenticatedMap::new(context);
+        let root = full.root();
+        full.start_recording().unwrap();
+        full.set(key, Some(vec![7])).unwrap();
+        full.get(key).unwrap();
+        let mut first =
+            AuthenticatedMap::from_witness(context, root, full.take_transcript().unwrap());
+        let mut second = first.clone();
+        assert!(first.get(Digest([2; 32])).is_err());
+        first.set(key, Some(vec![7])).unwrap();
+        assert_eq!(second.root(), root);
+        assert!(second.finish().is_err());
+        second.set(key, Some(vec![7])).unwrap();
+        let third = first.clone();
+        assert_eq!(first.get(key).unwrap(), Some(vec![7]));
+        first.finish().unwrap();
+        assert!(second.finish().is_err());
+        assert!(third.finish().is_err());
+        assert_eq!(second.get(key).unwrap(), Some(vec![7]));
+        assert_eq!(third.get(key).unwrap(), Some(vec![7]));
+        second.finish().unwrap();
+        third.finish().unwrap();
+        assert_eq!(first.root(), full.root());
+        assert_eq!(second.root(), full.root());
+        assert_eq!(third.root(), full.root());
     }
     #[test]
     fn empty_values_and_noncanonical_transcripts_are_rejected() {
