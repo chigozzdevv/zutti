@@ -2,6 +2,8 @@
 mod bootstrap;
 #[path = "source-prover/bootstrap_run.rs"]
 mod bootstrap_run;
+#[path = "source-prover/preflight.rs"]
+mod preflight;
 #[path = "source-prover/sync.rs"]
 mod sync;
 #[path = "source-prover/worker.rs"]

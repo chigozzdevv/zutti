@@ -157,6 +157,14 @@ impl SourcePrograms {
         }
         Ok(())
     }
+    fn check_batch(&self, witness: &SourceWitness) -> Result<(), Error> {
+        if let SourceInput::Advance { transition, .. } = &witness.input
+            && transition.block_count() > crate::backend::source_block_limit(self.source.image())
+        {
+            return Err(Error::Witness);
+        }
+        Ok(())
+    }
 }
 pub fn groth16_seal(artifact: &ProofArtifact, expected: &Statement) -> Result<Vec<u8>, Error> {
     ProofVerifier.verify(artifact.proof(), expected)?;
@@ -252,6 +260,7 @@ impl SourceJob {
         programs: &SourcePrograms,
     ) -> Result<Self, Error> {
         programs.check(witness.policy)?;
+        programs.check_batch(witness)?;
         if matches!(witness.input, SourceInput::Fold { .. }) {
             return Err(Error::Binding);
         }
@@ -278,6 +287,9 @@ impl SourceJob {
         programs: &SourcePrograms,
     ) -> Result<Self, Error> {
         programs.check_range(witness.policy())?;
+        if let SourceRangeWitness::Transition(witness) = witness {
+            programs.check_batch(witness)?;
+        }
         let claim = witness.evaluate().map_err(|_| Error::Witness)?;
         let mut stdin = framed(witness)?;
         let assumptions = witness.assumptions();
@@ -482,8 +494,23 @@ impl LocalProver {
         }
         let env = builder.build()?;
         let started = std::time::Instant::now();
-        let session =
-            ExternalProver::new("zutti-source-executor", &self.executable).execute(env, program)?;
+        let session = ExternalProver::new("zutti-source-executor", &self.executable)
+            .execute(env, program)
+            .map_err(|error| -> Box<dyn std::error::Error> {
+                if error
+                    .chain()
+                    .any(|cause| cause.to_string().starts_with("Session limit exceeded: "))
+                {
+                    Error::ExecutionLimit.into()
+                } else {
+                    error.into()
+                }
+            })?;
+        match session.exit_code {
+            risc0_zkvm::ExitCode::Halted(0) => {}
+            risc0_zkvm::ExitCode::SessionLimit => return Err(Error::ExecutionLimit.into()),
+            _ => return Err(Error::Proving.into()),
+        }
         if session.journal.bytes != job.statement.payload() {
             return Err(Error::Journal.into());
         }

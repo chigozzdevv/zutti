@@ -9,7 +9,7 @@ use zutti_prover::{
     rpc::SourceRpc,
     source::{MAX_SOURCE_CYCLES, SourceJob},
 };
-use zutti_source::storage::RangeLimits;
+use zutti_source::{storage::RangeLimits, transition::MAX_BLOCKS};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 #[derive(Debug, Args)]
@@ -31,7 +31,7 @@ pub(super) struct FillOptions {
     pub rpc: String,
     #[arg(long)]
     pub rpc_cookie: Option<PathBuf>,
-    #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=64))]
+    #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=MAX_BLOCKS as i64))]
     pub batch_size: u8,
     #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=64))]
     pub batches: u8,
@@ -296,24 +296,14 @@ pub(super) fn fill(
         let mut blocks = (height + 1..=end)
             .map(|h| rpc.block(h))
             .collect::<Result<Vec<_>>>()?;
-        loop {
-            let job = bootstrap.preview(blocks.clone())?;
-            let metrics = executor.execute_source(&job)?;
-            if metrics.cycles <= options.cycle_limit {
-                let batch = bootstrap.advance(blocks)?;
-                eprintln!(
-                    "{}",
-                    serde_json::json!({"stage":"queued","batch":batch,"cycles":metrics.cycles})
-                );
-                break;
-            }
-            if blocks.len() == 1 {
-                return Err(
-                    "a single source block exceeds the configured proving cycle ceiling".into(),
-                );
-            }
-            blocks.truncate(blocks.len().div_ceil(2));
-        }
+        let metrics = super::preflight::fit(&mut blocks, options.cycle_limit, |blocks| {
+            executor.execute_source(&bootstrap.preview(blocks.to_vec())?)
+        })?;
+        let batch = bootstrap.advance(blocks)?;
+        eprintln!(
+            "{}",
+            serde_json::json!({"stage":"queued","batch":batch,"cycles":metrics.cycles})
+        );
     }
     Ok(())
 }

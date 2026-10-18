@@ -13,8 +13,9 @@ use zutti_protocol::{
     encoding::{Canonical, Reader, Writer},
 };
 
-pub const MAX_BLOCKS: usize = 64;
+pub const MAX_BLOCKS: usize = 128;
 pub const MAX_WITNESS: usize = 64 * 1024 * 1024;
+const _: () = assert!(MAX_BLOCKS <= u8::MAX as usize);
 
 #[derive(Debug, Clone)]
 pub struct StateSnapshot {
@@ -141,6 +142,9 @@ pub struct TransitionWitness {
     pub(crate) blocks: Vec<Vec<u8>>,
 }
 impl TransitionWitness {
+    pub fn block_count(&self) -> usize {
+        self.blocks.len()
+    }
     pub const fn before(&self) -> &StateSnapshot {
         &self.before
     }

@@ -309,7 +309,7 @@ Execution preflight checks the expected guest journal and measures cycles withou
 
 Each invocation processes a bounded number of batches and stops when its limit or the RPC tip is reached. This is not an installed background service. No current-chain bootstrap throughput or proving budget has been demonstrated.
 
-The default cycle ceiling is `268435456`. Use `--cycle-limit` to benchmark larger batches, up to `2147483648` cycles, while retaining the 64-block and 64 MiB witness bounds. Preflight must succeed before the batch is committed or submitted. A retained job above a later invocation's limit stays pending. This option does not raise the configured ETH price ceiling or enable automatic funding.
+The default cycle ceiling is `268435456`. Use `--cycle-limit` to benchmark larger batches, up to `2147483648` cycles, while retaining the 128-block and 64 MiB witness bounds. Archived source programs retain their original 64-block limit. The block limit is a maximum; transaction-heavy batches may require fewer blocks. Preflight must succeed before the batch is committed or submitted. A retained job above a later invocation's limit stays pending. This option does not raise the configured ETH price ceiling or enable automatic funding.
 
 `init-store`, `advance-store`, `export-store`, `import-store`, `accept-store` and `store-status` expose the individual recovery steps. Status distinguishes the validated height, proved height, pending work and current-chain admission. Only verified evidence advances the proved height.
 

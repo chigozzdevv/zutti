@@ -31,6 +31,8 @@ pub enum Error {
     StaleSource,
     #[error("local proof generation failed")]
     Proving,
+    #[error("source execution exceeds the session cycle limit")]
+    ExecutionLimit,
     #[error("private proof witness is invalid")]
     Witness,
 }
@@ -326,6 +328,19 @@ pub(crate) fn admitted_range_program(image: Digest) -> bool {
     image == crate::source::source_image_id() || image == SOURCE_V5
 }
 
+pub(crate) fn source_block_limit(image: Digest) -> usize {
+    if matches!(
+        image,
+        SOURCE_V1 | SOURCE_V2 | SOURCE_V3 | SOURCE_V4 | SOURCE_V5
+    ) {
+        64
+    } else if image == crate::source::source_image_id() {
+        zutti_source::transition::MAX_BLOCKS
+    } else {
+        0
+    }
+}
+
 pub(crate) fn admitted_source_pair(source: Digest, update: Digest) -> bool {
     (source == crate::source::source_image_id() && update == crate::source::update_image_id())
         || (source == SOURCE_V1 && update == SOURCE_UPDATE_V1)
@@ -354,6 +369,24 @@ mod source_upgrade_tests {
     use super::*;
     use zcash_protocol::consensus::NetworkType;
     use zutti_source::{bootstrap::genesis_hash, upgrade::TESTNET_NU7_HEIGHT};
+
+    #[test]
+    fn batch_limits_preserve_archived_program_bounds() {
+        for program in [SOURCE_V1, SOURCE_V2, SOURCE_V3, SOURCE_V4, SOURCE_V5] {
+            assert_eq!(source_block_limit(program), 64);
+        }
+        let current = crate::source::source_image_id();
+        if !matches!(
+            current,
+            SOURCE_V1 | SOURCE_V2 | SOURCE_V3 | SOURCE_V4 | SOURCE_V5
+        ) {
+            assert_eq!(
+                source_block_limit(current),
+                zutti_source::transition::MAX_BLOCKS
+            );
+        }
+        assert_eq!(source_block_limit(Digest([1; 32])), 0);
+    }
 
     #[test]
     fn legacy_source_programs_cannot_admit_nu7_testnet_history() {

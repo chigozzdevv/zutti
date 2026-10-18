@@ -13,6 +13,7 @@ use zutti_prover::{
     rpc::SourceRpc,
     source::{MAX_SOURCE_CYCLES, SourceJob},
 };
+use zutti_source::transition::MAX_BLOCKS;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 const DEFAULT_CYCLE_LIMIT: u64 = 268_435_456;
@@ -29,7 +30,7 @@ pub(super) struct Options {
     rpc_cookie: Option<PathBuf>,
     #[arg(long)]
     jobs: PathBuf,
-    #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=64))]
+    #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=MAX_BLOCKS as i64))]
     batch_size: u8,
     #[arg(long, default_value_t = DEFAULT_CYCLE_LIMIT, value_parser = clap::value_parser!(u64).range(1..=MAX_SOURCE_CYCLES))]
     cycle_limit: u64,
@@ -80,22 +81,14 @@ pub(super) fn run(options: Options) -> Result<()> {
             let mut blocks = (height + 1..=end)
                 .map(|h| rpc.block(h))
                 .collect::<Result<Vec<_>>>()?;
-            loop {
-                let job = pipeline.preview(blocks.clone())?;
-                let metrics = executor.execute_source(&job)?;
-                eprintln!(
-                    "{}",
-                    serde_json::json!({"stage":"preflight","blocks":blocks.len(),"cycles":metrics.cycles,"seconds":metrics.seconds})
-                );
-                if metrics.cycles <= options.cycle_limit {
-                    pipeline.advance(blocks)?;
-                    break;
-                }
-                if blocks.len() == 1 {
-                    return Err("a single validated source block exceeds the configured proving cycle ceiling".into());
-                }
-                blocks.truncate(blocks.len().div_ceil(2));
-            }
+            let metrics = super::preflight::fit(&mut blocks, options.cycle_limit, |blocks| {
+                executor.execute_source(&pipeline.preview(blocks.to_vec())?)
+            })?;
+            eprintln!(
+                "{}",
+                serde_json::json!({"stage":"preflight","blocks":blocks.len(),"cycles":metrics.cycles,"seconds":metrics.seconds})
+            );
+            pipeline.advance(blocks)?;
         }
         let job = pipeline.job()?;
         let statement = job.statement().digest()?.to_string();
