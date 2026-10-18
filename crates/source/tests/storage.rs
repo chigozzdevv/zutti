@@ -194,3 +194,57 @@ fn interrupted_database_transaction_restores_the_previous_complete_batch() {
     assert_eq!(store.candidate().height().unwrap(), 0);
     assert!(store.pending().is_none());
 }
+
+#[test]
+fn restored_history_queries_bind_the_stable_root_and_exclude_later_payments() {
+    use zcash_protocol::consensus::TEST_NETWORK;
+    use zutti_source::{Observation, block::ParsedBlock};
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("source.sqlite");
+    let policy = policy(NetworkType::Test, 0);
+    let mut store = SourceStore::create(&path, genesis(NetworkType::Test), policy).unwrap();
+    evidence(&mut store);
+    store.advance(blocks(NetworkType::Test, 1, 10)).unwrap();
+    drop(store);
+    let store = SourceStore::open(&path, policy).unwrap();
+    let source = store.candidate();
+    let checkpoint = source.checkpoint(3).unwrap();
+    assert_eq!(checkpoint.stable.height, 7);
+    let paid = ParsedBlock::parse(zebra_test::vectors::TESTNET_BLOCKS[&7], &TEST_NETWORK)
+        .unwrap()
+        .txids()[0];
+    let later = ParsedBlock::parse(zebra_test::vectors::TESTNET_BLOCKS[&9], &TEST_NETWORK)
+        .unwrap()
+        .txids()[0];
+    assert_eq!(
+        source
+            .prove_at(paid, 7)
+            .unwrap()
+            .verify(checkpoint.stable.index, paid)
+            .unwrap(),
+        Observation::Present(7)
+    );
+    assert_eq!(
+        source
+            .prove_at(later, 7)
+            .unwrap()
+            .verify(checkpoint.stable.index, later)
+            .unwrap(),
+        Observation::Absent
+    );
+    assert!(
+        source
+            .prove_at(later, 9)
+            .unwrap()
+            .verify(checkpoint.stable.index, later)
+            .is_err()
+    );
+    assert!(source.prove_at(later, 11).is_err());
+    assert!(
+        source
+            .prove(later)
+            .unwrap()
+            .verify(checkpoint.stable.index, later)
+            .is_err()
+    );
+}

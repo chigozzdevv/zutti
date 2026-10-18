@@ -310,6 +310,41 @@ impl SourceCandidate {
         }
         Ok(())
     }
+    #[cfg(feature = "storage")]
+    pub fn prove_at(
+        &self,
+        txid: Digest,
+        height: u32,
+    ) -> core::result::Result<IndexProof, TransitionError> {
+        use zutti_protocol::encoding::Canonical;
+        let current = self.index_snapshot()?;
+        if height < current.context.start() || height > self.height()? {
+            return Err(Error::Height.into());
+        }
+        let bytes = self
+            .archive
+            .get(crate::checkpoint::key(height))?
+            .ok_or(Error::Height)?;
+        let header = crate::checkpoint::HeaderRecord::from_bytes(&bytes)?;
+        if header.height != height
+            || header.index.context != current.context
+            || header.index.height != height
+        {
+            return Err(Error::Path.into());
+        }
+        let HistoryIndex::Full { index, .. } = &self.index else {
+            return Err(Error::Path.into());
+        };
+        let mut historical = CandidateIndex::new(current.context);
+        for (key, first) in index
+            .stored_entries()
+            .filter(|(_, first)| **first <= height)
+        {
+            historical.restore_entry(*key, *first, height)?;
+        }
+        historical.restore_height(header.index)?;
+        Ok(historical.prove(txid))
+    }
     pub fn prove_header(
         &self,
         height: u32,
