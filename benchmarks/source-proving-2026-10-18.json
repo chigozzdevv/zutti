@@ -28,7 +28,8 @@
         "executed_program": "55ff5c6b46ec0118d372a7d2739de20c61f04387f55223f87b3f535a89c6f51c",
         "program_matches_statement": true,
         "name": "baseline",
-        "execution_host": "linux_x86_64"
+        "execution_host": "linux_x86_64",
+        "profiling_enabled": true
       },
       {
         "cycles": 1087088064,
@@ -40,7 +41,8 @@
         "executed_program": "a33ed6f17b2762bba079b6997cb1e48ec340d47bae6bd382b0e62154995d5007",
         "program_matches_statement": false,
         "name": "shared_witnesses",
-        "execution_host": "macos_aarch64"
+        "execution_host": "macos_aarch64",
+        "profiling_enabled": true
       },
       {
         "cycles": 1002991243,
@@ -52,7 +54,8 @@
         "executed_program": "a49256f996e39694bf805aa82605a9bf1cb0c6caa50ddcbd6f6c93163dc7946f",
         "program_matches_statement": false,
         "name": "contiguous_hashing",
-        "execution_host": "macos_aarch64"
+        "execution_host": "macos_aarch64",
+        "profiling_enabled": true
       },
       {
         "cycles": 965126249,
@@ -64,7 +67,8 @@
         "executed_program": "c84ae92048d23f982ae4b601979fbeb18d8661eb1ab934434e4fad4b8f54cf5a",
         "program_matches_statement": false,
         "name": "streamed_paths",
-        "execution_host": "macos_aarch64"
+        "execution_host": "macos_aarch64",
+        "profiling_enabled": true
       },
       {
         "cycles": 963692593,
@@ -76,7 +80,8 @@
         "executed_program": "cafd92592105197acfda036bc2c50cd19eef9de664d944a187753b6a626cc03e",
         "program_matches_statement": false,
         "name": "cached_empty_subtrees",
-        "execution_host": "macos_aarch64"
+        "execution_host": "macos_aarch64",
+        "profiling_enabled": true
       }
     ],
     "cycles_reduction_percent": 14.8096,
@@ -97,7 +102,8 @@
       "journal_matches": true,
       "proof_generated": false
     },
-    "boundless_proof_verified": false
+    "boundless_proof_verified": true,
+    "profiling_enabled": true
   },
   "limits": {
     "maximum_blocks": 128,
@@ -127,6 +133,60 @@
         "submitted_at": 1792356694,
         "version": 1
       }
+    },
+    "range128": {
+      "cryptographic_proof_verified": true,
+      "proof_fixture": "tests/fixtures/source-optimized-range-128-proof.json",
+      "evidence": {
+        "chain_id": 8453,
+        "fulfilled_at": 1792358541,
+        "fulfillment_block": 52784597,
+        "fulfillment_transaction": "0x6b9c51de96aac35c732a44db6ea66b93437d90c04f0f8acd97c3d721a603c351",
+        "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+        "input_visibility": "public",
+        "lock_to_fulfillment_seconds": 1788,
+        "locked_at": 1792356753,
+        "price_wei": "39952539207899",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c85b2aba",
+        "submission_to_fulfillment_seconds": 1821,
+        "submitted_at": 1792356720,
+        "version": 1
+      }
+    },
+    "prefix128": {
+      "cryptographic_proof_verified": true,
+      "proof_fixture": "tests/fixtures/source-optimized-prefix-128-proof.json",
+      "evidence": {
+        "chain_id": 8453,
+        "fulfilled_at": 1792359093,
+        "fulfillment_block": 52784873,
+        "fulfillment_transaction": "0x43b3904cdd3ebd4b6da02fb17f62e62970b685e93cc3c2013947116ab26852ba",
+        "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+        "input_visibility": "public",
+        "lock_to_fulfillment_seconds": 128,
+        "locked_at": 1792358965,
+        "price_wei": "24970337004936",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c6608257",
+        "submission_to_fulfillment_seconds": 143,
+        "submitted_at": 1792358950,
+        "version": 1
+      }
+    },
+    "total_jobs": 3,
+    "total_price_wei_excluding_gas": "91557902351434",
+    "full_prefix_height": 128,
+    "current_chain_admitted": false,
+    "execution_only_direct_inputs": [
+      112,
+      128
+    ],
+    "accounting": {
+      "market_before_wei": "1219919797625532",
+      "market_after_wei": "1128361895274098",
+      "market_decrease_matches_recorded_fees": true,
+      "remaining_jobs_at_ceiling_excluding_gas": 18,
+      "maximum_price_wei": "62425842512343",
+      "automatic_funding": false
     }
   },
   "direct_extension": {
@@ -146,7 +206,8 @@
     "predecessor_groth16_verified_in_guest_execution": true,
     "requests_per_extension_excluding_initial_genesis": 1,
     "boundless_proof_verified": false,
-    "market_time_and_cost_measured": false
+    "market_time_and_cost_measured": false,
+    "profiling_enabled": true
   },
   "launch_index": {
     "index_start": 128,
@@ -169,6 +230,41 @@
     "cycles_reduction_from_zero_start_percent": 6.3529,
     "segments_reduction_from_zero_start_percent": 6.8574,
     "boundless_proof_verified": false,
-    "deployment_index_start_selected": false
+    "deployment_index_start_selected": false,
+    "profiling_enabled": true
+  },
+  "direct_extension_128": {
+    "start_height": 0,
+    "end_height": 128,
+    "blocks": 128,
+    "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+    "stdin_sha256": "c5ec76964d50e5f03249102a68f9aa40fe553f6a12f068f98a9198ff752ca81d",
+    "journal_sha256": "22f6a9c59133eab91362c7407cee6d5c652ac144788c72289a96154ae7a4393a",
+    "execution": {
+      "cycles": 2068555597,
+      "segments": 2214,
+      "seconds": 36.357281583,
+      "journal_matches": true,
+      "proof_generated": false
+    },
+    "profiling_enabled": false,
+    "predecessor_groth16_verified_in_guest_execution": true,
+    "same_expected_journal_as_range_fold": true,
+    "requests_per_extension_excluding_initial_genesis": 1,
+    "boundless_proof_generated_from_direct_input": false,
+    "market_time_and_cost_measured": false
+  },
+  "source_program": {
+    "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+    "program_sha256": "4cdccfb026a8a7d3f7cf595cbe558946fea6ed99f538fb27bc72a4b7a7079714",
+    "public_image_url": "https://gateway.pinata.cloud/ipfs/bafybeiaa4iwjxknnlvjmaan2oyzbqxdjard3u5cx6hjp4zv4rkqt5ug56m",
+    "risc0_rust_toolchain": "1.94.1"
+  },
+  "validation": {
+    "native_128_block_queue_completed": true,
+    "genuine_prefix_retained": true,
+    "reopened_height": 128,
+    "reopened_native_state_matches_proof": true,
+    "test": "optimized_prefix_completes_and_reopens_the_128_block_native_queue"
   }
 }

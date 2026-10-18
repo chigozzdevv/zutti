@@ -8,6 +8,7 @@ use zutti_protocol::{
 };
 use zutti_prover::{artifact::ProofArtifact, remote::import_groth16};
 use zutti_source::proof::{SourceInput, SourcePolicy, SourceReceiptClaim, SourceWitness};
+use zutti_source::range::SourceRangeClaim;
 
 fn import(value: &serde_json::Value, kind: ProofKind, domain: Digest) -> ProofArtifact {
     let payload = hex::decode(value["journal"].as_str().unwrap()).unwrap();
@@ -60,4 +61,140 @@ fn optimized_genesis_receipt_matches_native_validation_and_rejects_tampering() {
     let path = directory.path().join("result.json");
     zutti_wallet::backup::persist_new(&path, &serde_json::to_vec(&changed).unwrap()).unwrap();
     assert!(import_groth16(&path, proof.statement()).is_err());
+}
+
+#[test]
+fn optimized_range_receipt_authenticates_the_genesis_to_128_boundary() {
+    let (_, initial, policy) = genesis();
+    let value: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/source-optimized-range-128-proof.json"
+    ))
+    .unwrap();
+    let proof = import(&value, ProofKind::SourceRange, initial.policy);
+    let range = SourceRangeClaim::from_bytes(proof.statement().payload()).unwrap();
+    assert_eq!(range.start, initial);
+    assert_eq!(range.end.height, 128);
+    assert_eq!(range.end.program, policy.program);
+    let folded = SourceWitness {
+        policy,
+        input: SourceInput::Fold {
+            previous: Box::new(initial.clone()),
+            range: Box::new(range.clone()),
+        },
+    }
+    .evaluate()
+    .unwrap();
+    assert_eq!(folded, range.end);
+    let mut changed = range;
+    changed.start.state.0[0] ^= 1;
+    assert!(
+        SourceWitness {
+            policy,
+            input: SourceInput::Fold {
+                previous: Box::new(initial),
+                range: Box::new(changed),
+            },
+        }
+        .evaluate()
+        .is_err()
+    );
+}
+
+#[test]
+fn optimized_full_prefix_receipt_matches_the_proved_range_end() {
+    let (_, initial, policy) = genesis();
+    let range = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/source-optimized-range-128-proof.json"
+    ))
+    .unwrap();
+    let range = import(&range, ProofKind::SourceRange, initial.policy);
+    let range = SourceRangeClaim::from_bytes(range.statement().payload()).unwrap();
+    let value = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/source-optimized-prefix-128-proof.json"
+    ))
+    .unwrap();
+    let prefix = import(&value, ProofKind::SourceTransition, initial.policy);
+    let expected = SourceWitness {
+        policy,
+        input: SourceInput::Fold {
+            previous: Box::new(initial),
+            range: Box::new(range),
+        },
+    }
+    .evaluate()
+    .unwrap();
+    assert_eq!(
+        SourceReceiptClaim::from_bytes(prefix.statement().payload()).unwrap(),
+        expected
+    );
+    assert_eq!(expected.height, 128);
+}
+
+#[test]
+#[ignore = "requires retained optimized ELFs, public Testnet blocks and the genuine prefix artifact"]
+fn optimized_prefix_completes_and_reopens_the_128_block_native_queue() {
+    use std::path::PathBuf;
+    use zutti_prover::{bootstrap::SourceBootstrap, source::SourcePrograms};
+    use zutti_source::storage::RangeLimits;
+
+    let programs = SourcePrograms::read(&PathBuf::from(
+        std::env::var_os("ZUTTI_OPTIMIZED_PROGRAMS").unwrap(),
+    ))
+    .unwrap();
+    let blocks = PathBuf::from(std::env::var_os("ZUTTI_TESTNET_BLOCKS").unwrap());
+    let prefix = ProofArtifact::read(&PathBuf::from(
+        std::env::var_os("ZUTTI_SOURCE_PREFIX").unwrap(),
+    ))
+    .unwrap();
+    let (value, initial, policy) = genesis();
+    assert_eq!(policy, programs.policy(NetworkType::Test, 0, 3));
+    let genesis = import(&value, ProofKind::SourceTransition, initial.policy);
+    let value = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/source-optimized-range-128-proof.json"
+    ))
+    .unwrap();
+    let range = import(&value, ProofKind::SourceRange, initial.policy);
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("source.sqlite");
+    let limits = RangeLimits::default();
+    let mut bootstrap = SourceBootstrap::create(
+        &path,
+        std::fs::read(blocks.join("0.bin")).unwrap(),
+        policy,
+        programs.clone(),
+        limits,
+    )
+    .unwrap();
+    bootstrap.accept_prefix(&genesis).unwrap();
+    let raw = (1..=128)
+        .map(|height| std::fs::read(blocks.join(format!("{height}.bin"))).unwrap())
+        .collect();
+    let batch = bootstrap.advance(raw).unwrap();
+    assert_eq!(
+        bootstrap.range_job(batch).unwrap().statement(),
+        range.statement()
+    );
+    bootstrap.accept_range(batch, &range).unwrap();
+    assert_eq!(
+        bootstrap.fold_job(batch).unwrap().statement(),
+        prefix.statement()
+    );
+    bootstrap.accept_prefix(&prefix).unwrap();
+    assert!(bootstrap.store().batches().is_empty());
+    drop(bootstrap);
+    let restored = SourceBootstrap::open(&path, policy, programs, limits).unwrap();
+    assert_eq!(restored.store().base().height, 128);
+    assert_eq!(restored.store().candidate().height().unwrap(), 128);
+    assert!(restored.store().batches().is_empty());
+    let claim = SourceReceiptClaim::from_bytes(prefix.statement().payload()).unwrap();
+    assert_eq!(
+        restored
+            .store()
+            .candidate()
+            .state_snapshot()
+            .unwrap()
+            .commitment()
+            .unwrap(),
+        claim.state
+    );
 }
