@@ -1,3 +1,4 @@
+mod ranges;
 use crate::{
     CandidateIndex, IndexSnapshot, Observation,
     access_index::HistoryIndex,
@@ -9,6 +10,7 @@ use crate::{
     transaction::CandidateLedger,
     transition::{MAX_WITNESS, StateSnapshot, TransitionWitness},
 };
+pub use ranges::{RangeBatch, RangeLimits, RangeStore};
 use rusqlite::{Connection, OpenFlags, TransactionBehavior, params};
 use std::{collections::BTreeSet, path::Path, time::Duration};
 use zutti_protocol::{Digest, encoding::Canonical};
@@ -32,6 +34,8 @@ pub enum Error {
     Stale,
     #[error("the pending source batch requires evidence before advancing")]
     Pending,
+    #[error("the source range queue has reached its configured bound")]
+    QueueFull,
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -67,53 +71,21 @@ impl SourceStore {
         if pending.evaluate()?.state != snapshot.commitment()? {
             return Err(Error::Binding);
         }
-        let parent = path
-            .parent()
-            .filter(|p| !p.as_os_str().is_empty())
-            .unwrap_or(Path::new("."));
-        let temporary = tempfile::NamedTempFile::new_in(parent)?;
-        let mut connection = connect(temporary.path())?;
-        let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
-        transaction.execute_batch(
-            "PRAGMA application_id=1515541588;
-            PRAGMA user_version=1;
-            CREATE TABLE metadata (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL,
-                policy BLOB NOT NULL, state BLOB NOT NULL, pending BLOB, evidence BLOB);
-            CREATE TABLE leaves (tree INTEGER NOT NULL CHECK(tree BETWEEN 0 AND 3),
-                key BLOB NOT NULL CHECK(length(key)=32), value BLOB NOT NULL,
-                PRIMARY KEY(tree,key)) WITHOUT ROWID;",
-        )?;
-        for (tree, map) in [
-            (0, &candidate.ledger.outputs),
-            (1, &candidate.spends.state),
-            (3, &candidate.archive),
-        ] {
-            for (key, value) in map.stored_values().map_err(TransitionError::from)? {
-                put(&transaction, tree, *key, Some(value))?;
-            }
-        }
-        if let HistoryIndex::Full { index, .. } = &candidate.index {
-            for (key, height) in index.stored_entries() {
-                put(&transaction, 2, *key, Some(&height.to_le_bytes()))?;
-            }
-        } else {
-            return Err(Error::Binding);
-        }
-        transaction.execute(
-            "INSERT INTO metadata VALUES(1,0,?1,?2,?3,NULL)",
-            params![
-                policy.to_bytes()?,
-                snapshot.to_bytes()?,
-                pending.to_bytes()?
-            ],
-        )?;
-        transaction.commit()?;
-        connection.pragma_update(None, "journal_mode", "DELETE")?;
-        drop(connection);
-        temporary.as_file().sync_all()?;
-        temporary.persist_noclobber(path).map_err(|e| e.error)?;
-        std::fs::File::open(parent)?.sync_all()?;
-        let connection = connect(path)?;
+        let connection = initialize(path, &candidate, 1, |transaction| {
+            transaction.execute_batch(
+                "CREATE TABLE metadata (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL,
+                    policy BLOB NOT NULL, state BLOB NOT NULL, pending BLOB, evidence BLOB);",
+            )?;
+            transaction.execute(
+                "INSERT INTO metadata VALUES(1,0,?1,?2,?3,NULL)",
+                params![
+                    policy.to_bytes()?,
+                    snapshot.to_bytes()?,
+                    pending.to_bytes()?
+                ],
+            )?;
+            Ok(())
+        })?;
         Ok(Self {
             connection,
             policy,
@@ -162,59 +134,7 @@ impl SourceStore {
             return Err(Error::Binding);
         }
         let state = StateSnapshot::from_bytes(&state)?;
-        if state.headers.network() != policy.network
-            || state.index.context.rules() != policy.id()?
-            || state.index.context.start() != policy.index_start
-        {
-            return Err(Error::Binding);
-        }
-        let ledger_map = load_map(
-            &transaction,
-            0,
-            crate::transaction::ledger_context(),
-            state.ledger_root,
-        )?;
-        if ledger_map.len().map(|n| n as u64) != Some(state.ledger_count) {
-            return Err(Error::Binding);
-        }
-        let spends_map = load_map(&transaction, 1, crate::spends::context(), state.spends_root)?;
-        let archive = load_map(
-            &transaction,
-            3,
-            crate::checkpoint::context(state.index.context.genesis(), policy.id()?),
-            state.archive_root,
-        )?;
-        let mut index = CandidateIndex::new(state.index.context);
-        for_each_leaf(&transaction, 2, |key, value| {
-            let height = u32::from_le_bytes(value.try_into().map_err(|_| Error::Binding)?);
-            index
-                .restore_entry(key, height, state.index.height)
-                .map_err(TransitionError::from)?;
-            Ok(())
-        })?;
-        index
-            .restore_height(state.index)
-            .map_err(TransitionError::from)?;
-        let candidate = SourceCandidate {
-            headers: state.headers.clone(),
-            trees: state.trees.clone(),
-            history: state.history.clone(),
-            index: HistoryIndex::Full {
-                index: Box::new(index),
-                recorded: None,
-            },
-            ledger: CandidateLedger {
-                outputs: ledger_map,
-                count: state.ledger_count,
-            },
-            spends: CandidateSpends {
-                state: spends_map,
-                counts: state.nullifier_counts,
-                balances: state.pool_balances,
-            },
-            monetary: state.monetary.clone(),
-            archive,
-        };
+        let candidate = restore_candidate(&transaction, policy, &state)?;
         let pending = pending
             .map(|bytes| SourceWitness::from_bytes(&bytes))
             .transpose()?;
@@ -403,4 +323,109 @@ fn persist_delta(
         }
     }
     Ok(())
+}
+
+fn initialize(
+    path: &Path,
+    candidate: &SourceCandidate,
+    version: i32,
+    setup: impl FnOnce(&Connection) -> Result<()>,
+) -> Result<Connection> {
+    let parent = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    let temporary = tempfile::NamedTempFile::new_in(parent)?;
+    let mut connection = connect(temporary.path())?;
+    let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+    transaction.execute_batch(
+        "PRAGMA application_id=1515541588;
+            CREATE TABLE leaves (tree INTEGER NOT NULL CHECK(tree BETWEEN 0 AND 3),
+                key BLOB NOT NULL CHECK(length(key)=32), value BLOB NOT NULL,
+                PRIMARY KEY(tree,key)) WITHOUT ROWID;",
+    )?;
+    transaction.pragma_update(None, "user_version", version)?;
+    for (tree, map) in [
+        (0, &candidate.ledger.outputs),
+        (1, &candidate.spends.state),
+        (3, &candidate.archive),
+    ] {
+        for (key, value) in map.stored_values().map_err(TransitionError::from)? {
+            put(&transaction, tree, *key, Some(value))?;
+        }
+    }
+    if let HistoryIndex::Full { index, .. } = &candidate.index {
+        for (key, height) in index.stored_entries() {
+            put(&transaction, 2, *key, Some(&height.to_le_bytes()))?;
+        }
+    } else {
+        return Err(Error::Binding);
+    }
+    setup(&transaction)?;
+    transaction.commit()?;
+    connection.pragma_update(None, "journal_mode", "DELETE")?;
+    drop(connection);
+    temporary.as_file().sync_all()?;
+    temporary.persist_noclobber(path).map_err(|e| e.error)?;
+    std::fs::File::open(parent)?.sync_all()?;
+    connect(path)
+}
+fn restore_candidate(
+    connection: &Connection,
+    policy: SourcePolicy,
+    state: &StateSnapshot,
+) -> Result<SourceCandidate> {
+    if state.headers.network() != policy.network
+        || state.index.context.rules() != policy.id()?
+        || state.index.context.start() != policy.index_start
+    {
+        return Err(Error::Binding);
+    }
+    let ledger_map = load_map(
+        connection,
+        0,
+        crate::transaction::ledger_context(),
+        state.ledger_root,
+    )?;
+    if ledger_map.len().map(|n| n as u64) != Some(state.ledger_count) {
+        return Err(Error::Binding);
+    }
+    let spends_map = load_map(connection, 1, crate::spends::context(), state.spends_root)?;
+    let archive = load_map(
+        connection,
+        3,
+        crate::checkpoint::context(state.index.context.genesis(), policy.id()?),
+        state.archive_root,
+    )?;
+    let mut index = CandidateIndex::new(state.index.context);
+    for_each_leaf(connection, 2, |key, value| {
+        let height = u32::from_le_bytes(value.try_into().map_err(|_| Error::Binding)?);
+        index
+            .restore_entry(key, height, state.index.height)
+            .map_err(TransitionError::from)?;
+        Ok(())
+    })?;
+    index
+        .restore_height(state.index)
+        .map_err(TransitionError::from)?;
+    Ok(SourceCandidate {
+        headers: state.headers.clone(),
+        trees: state.trees.clone(),
+        history: state.history.clone(),
+        index: HistoryIndex::Full {
+            index: Box::new(index),
+            recorded: None,
+        },
+        ledger: CandidateLedger {
+            outputs: ledger_map,
+            count: state.ledger_count,
+        },
+        spends: CandidateSpends {
+            state: spends_map,
+            counts: state.nullifier_counts,
+            balances: state.pool_balances,
+        },
+        monetary: state.monetary.clone(),
+        archive,
+    })
 }
