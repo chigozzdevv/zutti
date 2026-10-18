@@ -139,14 +139,28 @@ impl MongoDatabase {
                 .session(&mut session)
                 .run())?;
         }
+        let mut leaves = Vec::new();
+        let mut leaf_bytes = 0usize;
         store.for_each_leaf(&mut |record| {
-            db(self
-                .collection("source_leaves")
-                .insert_one(self.encode_leaf(&record)?)
-                .session(&mut session)
-                .run())?;
+            leaf_bytes += record.value.len();
+            leaves.push(self.encode_leaf(&record)?);
+            if leaves.len() >= 128 || leaf_bytes >= 8 * 1024 * 1024 {
+                db(self
+                    .collection("source_leaves")
+                    .insert_many(std::mem::take(&mut leaves))
+                    .session(&mut session)
+                    .run())?;
+                leaf_bytes = 0;
+            }
             Ok(())
         })?;
+        if !leaves.is_empty() {
+            db(self
+                .collection("source_leaves")
+                .insert_many(leaves)
+                .session(&mut session)
+                .run())?;
+        }
         db(session.commit_transaction().run())?;
         Ok(())
     }
