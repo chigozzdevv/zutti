@@ -147,5 +147,28 @@
     "requests_per_extension_excluding_initial_genesis": 1,
     "boundless_proof_verified": false,
     "market_time_and_cost_measured": false
+  },
+  "launch_index": {
+    "index_start": 128,
+    "start_height": 0,
+    "end_height": 128,
+    "blocks": 128,
+    "full_consensus_validation_from_genesis": true,
+    "payment_index_before_launch": false,
+    "different_policy_from_comparison_and_larger_batch": true,
+    "image_id": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+    "stdin_sha256": "7811bb85d4087740131900eaf6f830f280724dfc53c708c8fd4da15b673afa9e",
+    "journal_sha256": "85ce58229bbd948a21f236d688320a5d256a182760cd5514158b477b42ffe7f8",
+    "execution": {
+      "cycles": 1765386732,
+      "segments": 1888,
+      "seconds": 223.752454583,
+      "journal_matches": true,
+      "proof_generated": false
+    },
+    "cycles_reduction_from_zero_start_percent": 6.3529,
+    "segments_reduction_from_zero_start_percent": 6.8574,
+    "boundless_proof_verified": false,
+    "deployment_index_start_selected": false
   }
 }
