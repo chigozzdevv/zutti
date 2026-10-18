@@ -341,7 +341,18 @@ source-prover bootstrap --network testnet --confirmations 100 \
 
 `export` executes the exact guest before writing a job with its measured cycle budget. Submit each exported `job.json` using the existing capped Boundless client, preserve its request, and import its returned result with `private-prover import-boundless`. Use `accept --proof <artifact> range --batch 1` for leaf receipts and `accept --proof <artifact> prefix` for the genuine genesis receipt. Once consecutive ranges are proved, `export --out <job> aggregate --batch 1 --batch 2` prepares their aggregation; `accept --proof <artifact> aggregate --batch 1 --batch 2` retains it. `export --out <job> fold --batch 1` joins that range to the retained full prefix, whose receipt is collected with `accept ... prefix`. Exact repeated acceptance is idempotent. `status` distinguishes native height, full-prefix proved height and individual range completion.
 
-Queue operations do not automatically submit market requests or establish canonical-chain admission. Keep exact job/request/result files and matching program ELFs for recovery; the queue does not authorize replacement of uncertain requests. End-to-end automatic worker scheduling, full-history catch-up, modern block cost and sustained proving throughput still require validation.
+`bootstrap run` fills a bounded window, submits independent leaves, collects them with bounded concurrency, builds an aggregation tree and folds the result into the retained full prefix. Submission is sequential to avoid concurrent account-nonce allocation. `--workers` bounds concurrent collectors; `--max-jobs` limits new submissions in that invocation, and the existing Boundless ETH price ceiling and `FundingMode::Never` still apply. A saved request is reused only if its image and journal match the exact queued job. An uncertain request is never replaced automatically. Completed receipts stay on disk if another collector fails, and restarting re-verifies them before acceptance.
+
+```sh
+source-prover bootstrap --network testnet --confirmations 100 \
+  --database .data/bootstrap.sqlite run \
+  --rpc http://127.0.0.1:18232 --rpc-cookie .data/zebra-rpc/.cookie \
+  --jobs .data/bootstrap-jobs --batch-size 64 --batches 2 \
+  --rounds 1 --workers 2 --max-jobs 5 \
+  --boundless crates/boundless/target/debug/zutti-boundless
+```
+
+These commands require an initialized queue. Keep exact job/request/result files and matching program ELFs for recovery. A bounded run is not an installed daemon, a demonstrated full-history catch-up or canonical-chain admission. Modern block cost and sustained proving throughput remain measurements to establish.
 
 ## Source upgrade support
 

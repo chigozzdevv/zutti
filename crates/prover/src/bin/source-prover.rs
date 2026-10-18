@@ -1,7 +1,11 @@
 #[path = "source-prover/bootstrap.rs"]
 mod bootstrap;
+#[path = "source-prover/bootstrap_run.rs"]
+mod bootstrap_run;
 #[path = "source-prover/sync.rs"]
 mod sync;
+#[path = "source-prover/worker.rs"]
+mod worker;
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::{Path, PathBuf};
 use zcash_protocol::consensus::{MAIN_NETWORK, NetworkType, TEST_NETWORK};

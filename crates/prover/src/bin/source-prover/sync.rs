@@ -179,7 +179,7 @@ fn invoke(options: &Options, operation: &str, args: &[&str]) -> Result<()> {
     }
     Ok(())
 }
-fn repair_paths(directory: &Path, job: &SourceJob, cycle_limit: u64) -> Result<()> {
+pub(super) fn repair_paths(directory: &Path, job: &SourceJob, cycle_limit: u64) -> Result<()> {
     let path = directory.join("job.json");
     let mut value: serde_json::Value =
         serde_json::from_slice(&zutti_wallet::backup::read_private(&path, 16_384)?)?;

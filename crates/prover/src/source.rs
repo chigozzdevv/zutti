@@ -350,6 +350,17 @@ impl SourceJob {
             code: programs.update.clone(),
         })
     }
+    pub fn id(&self) -> Result<Digest, Error> {
+        Ok(zutti_protocol::commitment::hash(
+            b"source-job",
+            &[
+                &self.statement.to_bytes()?,
+                self.stdin.as_slice(),
+                &[u8::from(self.update)],
+                self.program(),
+            ],
+        ))
+    }
     pub fn matches(&self, other: &Self) -> bool {
         self.statement == other.statement
             && self.stdin == other.stdin

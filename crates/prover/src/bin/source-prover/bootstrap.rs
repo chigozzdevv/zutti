@@ -24,6 +24,23 @@ pub(super) struct Options {
     #[command(subcommand)]
     command: Command,
 }
+#[derive(Debug, Args)]
+pub(super) struct FillOptions {
+    #[arg(long)]
+    pub rpc: String,
+    #[arg(long)]
+    pub rpc_cookie: Option<PathBuf>,
+    #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=64))]
+    pub batch_size: u8,
+    #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=64))]
+    pub batches: u8,
+    #[arg(long)]
+    pub through_height: Option<u32>,
+    #[arg(long, default_value = "r0vm")]
+    pub prover: PathBuf,
+    #[arg(long, default_value_t = MAX_SOURCE_CYCLES, value_parser = clap::value_parser!(u64).range(1..=MAX_SOURCE_CYCLES))]
+    pub cycle_limit: u64,
+}
 #[derive(Debug, Subcommand)]
 enum Command {
     Init {
@@ -31,22 +48,8 @@ enum Command {
         genesis: PathBuf,
     },
     Status,
-    Fill {
-        #[arg(long)]
-        rpc: String,
-        #[arg(long)]
-        rpc_cookie: Option<PathBuf>,
-        #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u8).range(1..=64))]
-        batch_size: u8,
-        #[arg(long, default_value_t = 1, value_parser = clap::value_parser!(u8).range(1..=64))]
-        batches: u8,
-        #[arg(long)]
-        through_height: Option<u32>,
-        #[arg(long, default_value = "r0vm")]
-        prover: PathBuf,
-        #[arg(long, default_value_t = MAX_SOURCE_CYCLES, value_parser = clap::value_parser!(u64).range(1..=MAX_SOURCE_CYCLES))]
-        cycle_limit: u64,
-    },
+    Fill(FillOptions),
+    Run(super::bootstrap_run::Options),
     Queue {
         #[arg(long, required = true)]
         block: Vec<PathBuf>,
@@ -137,64 +140,8 @@ pub(super) fn run(options: Options) -> Result<()> {
                 cycle_limit,
             )?;
         }
-        Command::Fill {
-            rpc,
-            rpc_cookie,
-            batch_size,
-            batches,
-            through_height,
-            prover,
-            cycle_limit,
-        } => {
-            let mut rpc = SourceRpc::new(rpc, policy.network)?;
-            if let Some(cookie) = rpc_cookie {
-                rpc = rpc.with_cookie(&cookie)?;
-            }
-            let executor = LocalProver::new(prover);
-            for _ in 0..batches {
-                if bootstrap.store().batches().len() >= limits.batches {
-                    break;
-                }
-                let height = bootstrap.store().candidate().height()?;
-                if rpc.hash(height)? != bootstrap.store().candidate().tip()? {
-                    return Err(
-                        "source RPC reports a competing branch; fork reconciliation is required"
-                            .into(),
-                    );
-                }
-                let tip = rpc.height()?;
-                let through = through_height.unwrap_or(tip).min(tip);
-                if height >= through {
-                    break;
-                }
-                let end = height
-                    .checked_add(u32::from(batch_size))
-                    .ok_or("source height overflow")?
-                    .min(through);
-                let mut blocks = (height + 1..=end)
-                    .map(|h| rpc.block(h))
-                    .collect::<Result<Vec<_>>>()?;
-                loop {
-                    let job = bootstrap.preview(blocks.clone())?;
-                    let metrics = executor.execute_source(&job)?;
-                    if metrics.cycles <= cycle_limit {
-                        let batch = bootstrap.advance(blocks)?;
-                        eprintln!(
-                            "{}",
-                            serde_json::json!({"stage":"queued","batch":batch,"cycles":metrics.cycles})
-                        );
-                        break;
-                    }
-                    if blocks.len() == 1 {
-                        return Err(
-                            "a single source block exceeds the configured proving cycle ceiling"
-                                .into(),
-                        );
-                    }
-                    blocks.truncate(blocks.len().div_ceil(2));
-                }
-            }
-        }
+        Command::Fill(options) => fill(&mut bootstrap, &options, limits)?,
+        Command::Run(options) => super::bootstrap_run::run(&mut bootstrap, options, limits)?,
         Command::Export {
             job,
             out,
@@ -261,7 +208,7 @@ fn export(job: &SourceJob, out: &Path, prover: &Path, ceiling: u64) -> Result<()
     job.export_public(out, metrics.cycles)?;
     Ok(())
 }
-fn status(bootstrap: &SourceBootstrap) -> Result<()> {
+pub(super) fn status(bootstrap: &SourceBootstrap) -> Result<()> {
     let store = bootstrap.store();
     let height = store.candidate().height()?;
     let proved = store.evidence().map(|_| store.base().height);
@@ -269,5 +216,59 @@ fn status(bootstrap: &SourceBootstrap) -> Result<()> {
         "{}",
         serde_json::json!({"native_height":height,"proved_height":proved,"ranges":store.batches().iter().map(|b|serde_json::json!({"batch":b.id,"start":b.claim.start.height,"end":b.claim.end.height,"proved":b.evidence.is_some()})).collect::<Vec<_>>(),"current_prefix_proved":proved==Some(height),"current_chain_admitted":false,"swap_executed":false})
     );
+    Ok(())
+}
+
+pub(super) fn fill(
+    bootstrap: &mut SourceBootstrap,
+    options: &FillOptions,
+    limits: RangeLimits,
+) -> Result<()> {
+    let mut rpc = SourceRpc::new(options.rpc.clone(), bootstrap.store().policy().network)?;
+    if let Some(cookie) = &options.rpc_cookie {
+        rpc = rpc.with_cookie(cookie)?;
+    }
+    let executor = LocalProver::new(&options.prover);
+    for _ in 0..options.batches {
+        if bootstrap.store().batches().len() >= limits.batches {
+            break;
+        }
+        let height = bootstrap.store().candidate().height()?;
+        if rpc.hash(height)? != bootstrap.store().candidate().tip()? {
+            return Err(
+                "source RPC reports a competing branch; fork reconciliation is required".into(),
+            );
+        }
+        let tip = rpc.height()?;
+        let through = options.through_height.unwrap_or(tip).min(tip);
+        if height >= through {
+            break;
+        }
+        let end = height
+            .checked_add(u32::from(options.batch_size))
+            .ok_or("source height overflow")?
+            .min(through);
+        let mut blocks = (height + 1..=end)
+            .map(|h| rpc.block(h))
+            .collect::<Result<Vec<_>>>()?;
+        loop {
+            let job = bootstrap.preview(blocks.clone())?;
+            let metrics = executor.execute_source(&job)?;
+            if metrics.cycles <= options.cycle_limit {
+                let batch = bootstrap.advance(blocks)?;
+                eprintln!(
+                    "{}",
+                    serde_json::json!({"stage":"queued","batch":batch,"cycles":metrics.cycles})
+                );
+                break;
+            }
+            if blocks.len() == 1 {
+                return Err(
+                    "a single source block exceeds the configured proving cycle ceiling".into(),
+                );
+            }
+            blocks.truncate(blocks.len().div_ceil(2));
+        }
+    }
     Ok(())
 }
