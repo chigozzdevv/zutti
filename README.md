@@ -321,6 +321,8 @@ Monetary transitions check the complete coinbase against the reference subsidy a
 
 Retained V1/V2 source programs cannot admit Testnet heights at or above NU7. Their earlier genuine receipts remain verifiable. Keep the matching binary and both ELFs when recovering older jobs: new native validation rules are not interchangeable with an older program image. Neither NU7 code support nor a synchronized Zebra node establishes a current-chain Zutti proof.
 
+Guest builds remap workspace and Cargo registry paths and preserve the selected `CARGO_HOME` when invoking the RISC Zero compiler. Keep the compiler version, SDK, lockfiles and retained ELFs with each proof profile; path remapping does not make different toolchain versions interchangeable.
+
 Reference: [Zebra NU7 release](https://github.com/ZcashFoundation/zebra/releases/tag/v7.0.0-rc.0).
 
 ## Next verification milestone

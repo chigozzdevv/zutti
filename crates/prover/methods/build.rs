@@ -23,15 +23,39 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("cargo:rerun-if-changed={path}");
     }
     println!("cargo:rerun-if-env-changed=RISC0_SKIP_BUILD");
+    println!("cargo:rerun-if-env-changed=CARGO_HOME");
+    println!("cargo:rerun-if-env-changed=HOME");
     if env::var_os("RISC0_SKIP_BUILD").is_some() {
         return Err("guest builds cannot be skipped".into());
     }
     let manifest =
         PathBuf::from(env::var_os("CARGO_MANIFEST_DIR").ok_or("missing manifest directory")?);
+    let workspace = manifest.join("../../..").canonicalize()?;
+    let default_cargo_home =
+        PathBuf::from(env::var_os("HOME").ok_or("missing Cargo home")?).join(".cargo");
+    let cargo_home = match env::var_os("CARGO_HOME") {
+        Some(path) => PathBuf::from(path),
+        None => default_cargo_home.clone(),
+    };
+    let mut rustc_flags = vec![format!(
+        "--remap-path-prefix={}=/zutti",
+        workspace.display()
+    )];
+    for path in [
+        cargo_home.clone(),
+        cargo_home.canonicalize()?,
+        default_cargo_home,
+    ] {
+        let flag = format!("--remap-path-prefix={}=/cargo", path.display());
+        if !rustc_flags.contains(&flag) {
+            rustc_flags.push(flag);
+        }
+    }
     let out = PathBuf::from(env::var_os("OUT_DIR").ok_or("missing build output directory")?);
     let target =
         risc0_build::get_target_dir(manifest.join("../../../Cargo.toml")).join("riscv-guest/zutti");
-    let mut command = risc0_build::cargo_command("build", &[]);
+    let mut command = risc0_build::cargo_command("build", &rustc_flags);
+    command.env("CARGO_HOME", &cargo_home);
     if !command.get_args().any(|arg| arg == "--locked") {
         command.arg("--locked");
     }
@@ -49,7 +73,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let source_target = risc0_build::get_target_dir(manifest.join("../../../Cargo.toml"))
         .join("riscv-guest/zutti-source");
-    let status = risc0_build::cargo_command("build", &[])
+    let status = risc0_build::cargo_command("build", &rustc_flags)
+        .env("CARGO_HOME", &cargo_home)
         .env_remove("RUSTC_WORKSPACE_WRAPPER")
         .env_remove("RUSTC_WRAPPER")
         .arg("--locked")
@@ -64,7 +89,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let pool_target = risc0_build::get_target_dir(manifest.join("../../../Cargo.toml"))
         .join("riscv-guest/zutti-pool");
-    let status = risc0_build::cargo_command("build", &[])
+    let status = risc0_build::cargo_command("build", &rustc_flags)
+        .env("CARGO_HOME", &cargo_home)
         .env_remove("RUSTC_WORKSPACE_WRAPPER")
         .env_remove("RUSTC_WRAPPER")
         .arg("--locked")
