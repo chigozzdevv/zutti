@@ -80,7 +80,10 @@ pub struct SourceReceiptClaim {
     pub archive: Digest,
 }
 impl SourceReceiptClaim {
-    fn from_state(policy: SourcePolicy, state: &StateSnapshot) -> Result<Self, TransitionError> {
+    pub(crate) fn from_state(
+        policy: SourcePolicy,
+        state: &StateSnapshot,
+    ) -> Result<Self, TransitionError> {
         if state.headers.network() != policy.network
             || state.index.context.rules() != policy.id()?
             || state.index.context.start() != policy.index_start

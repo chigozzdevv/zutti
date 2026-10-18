@@ -29,6 +29,8 @@ mod sparse;
 pub mod spends;
 #[cfg(feature = "blocks")]
 pub mod state;
+#[cfg(feature = "storage")]
+pub mod storage;
 #[cfg(feature = "blocks")]
 pub mod subsidy;
 #[cfg(feature = "blocks")]

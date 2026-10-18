@@ -283,6 +283,14 @@ Root scripts coordinate tools. Package-owned generation stays in `packages/bindi
 - Candidate index tests cover all 256 transaction-ID bits, first-inclusion retention, inclusive expiry, delayed paid observations, truncated/tampered paths and atomic batch rejection. Candidate absence is **not** a refund proof.
 - Recovery tests cover authenticated encryption, nonce freshness, altered ciphertext/header rejection, bounded reads, owner-only permissions, symlinks and refusal to overwrite existing recovery files. The archive format currently retains caller-provided private bytes; it does not yet define a complete recoverable swap transcript.
 
+## Durable source state
+
+The host-only `zutti-source/storage` feature persists authenticated UTXOs, shielded state, transaction-index entries and the permanent header archive in SQLite. Each batch commits its changed leaves, state snapshot and pending witness in one transaction with full synchronous durability. The store rejects stale writers and requires evidence retention before another batch can advance.
+
+Reopening rebuilds the in-memory authenticated trees from stored leaves and checks every root against the saved snapshot. It does not replay previous blocks. Restart cost still grows with the number of retained leaves; this is not a disk-backed Merkle tree or a measured current-chain memory bound. Pending batches are re-evaluated and must match the stored state. Evidence bytes remain untrusted until the proving layer cryptographically verifies their exact program, policy and state binding.
+
+Tests cover both networks, index starts before and after the processed prefix, interrupted transactions, invalid batches, altered leaves, policy changes and concurrent stale writers.
+
 ## Next verification milestone
 
 Connect complete Zcash consensus and authenticated state transitions to the proving backend, including a reproducible genesis prefix. Implement the source proof program that enforces the registry fork/stability policy. Only then can the candidate index support actual paid/refund evidence. Production preparation-profile admission, private pool/reservation/settlement proofs, verified Ethereum finality and independent recovery remain necessary. Boundless supplies proving capacity for implemented programs; it does not fill these missing statements.

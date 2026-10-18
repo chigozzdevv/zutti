@@ -85,8 +85,8 @@ type OutputKey = ([u8; 32], u32);
 
 #[derive(Debug, Clone)]
 pub struct CandidateLedger {
-    outputs: AuthenticatedMap,
-    count: u64,
+    pub(crate) outputs: AuthenticatedMap,
+    pub(crate) count: u64,
 }
 impl Default for CandidateLedger {
     fn default() -> Self {
@@ -96,7 +96,7 @@ impl Default for CandidateLedger {
         }
     }
 }
-fn ledger_context() -> Digest {
+pub(crate) fn ledger_context() -> Digest {
     hash(b"source-utxos", &[])
 }
 fn output_key(key: OutputKey) -> Digest {

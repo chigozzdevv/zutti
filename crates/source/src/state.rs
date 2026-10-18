@@ -70,14 +70,14 @@ pub enum TransitionError {
 
 #[derive(Debug, Clone)]
 pub struct SourceCandidate {
-    headers: HeaderCandidate,
-    trees: CandidateTrees,
-    history: CandidateHistory,
-    index: HistoryIndex,
-    ledger: crate::transaction::CandidateLedger,
-    spends: crate::spends::CandidateSpends,
-    monetary: crate::subsidy::MonetaryState,
-    archive: crate::authenticated::AuthenticatedMap,
+    pub(crate) headers: HeaderCandidate,
+    pub(crate) trees: CandidateTrees,
+    pub(crate) history: CandidateHistory,
+    pub(crate) index: HistoryIndex,
+    pub(crate) ledger: crate::transaction::CandidateLedger,
+    pub(crate) spends: crate::spends::CandidateSpends,
+    pub(crate) monetary: crate::subsidy::MonetaryState,
+    pub(crate) archive: crate::authenticated::AuthenticatedMap,
 }
 
 impl SourceCandidate {

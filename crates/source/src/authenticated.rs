@@ -28,6 +28,11 @@ pub struct Access {
     siblings: Vec<Digest>,
 }
 impl Access {
+    #[cfg(feature = "storage")]
+    pub(crate) const fn key(&self) -> Digest {
+        self.key
+    }
+
     pub fn verify(&self, context: Digest, root: Digest, key: Digest) -> Result<Option<Vec<u8>>> {
         AuthenticatedMap::from_witness(context, root, Transcript(vec![self.clone()])).get(key)
     }
@@ -89,6 +94,11 @@ impl Canonical for Access {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Transcript(Vec<Access>);
 impl Transcript {
+    #[cfg(feature = "storage")]
+    pub(crate) fn accesses(&self) -> &[Access] {
+        &self.0
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -157,6 +167,15 @@ impl AuthenticatedMap {
                 nodes: crate::sparse::SparseTree::default(),
                 recording: RefCell::new(None),
             },
+        }
+    }
+    #[cfg(feature = "storage")]
+    pub(crate) fn stored_values(&self) -> Result<impl Iterator<Item = (&Digest, &Vec<u8>)>> {
+        match &self.backend {
+            Backend::Full {
+                values, recording, ..
+            } if recording.borrow().is_none() => Ok(values.iter()),
+            _ => Err(StateError::Transcript),
         }
     }
     pub fn from_witness(context: Digest, root: Digest, transcript: Transcript) -> Self {

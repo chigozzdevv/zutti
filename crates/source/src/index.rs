@@ -112,6 +112,11 @@ impl core::fmt::Debug for IndexProof {
     }
 }
 impl IndexProof {
+    #[cfg(feature = "storage")]
+    pub(crate) const fn key(&self) -> Digest {
+        self.key
+    }
+
     pub fn verify(&self, snapshot: IndexSnapshot, key: Digest) -> Result<Observation> {
         if self.key != key
             || self.context != snapshot.context.id()
@@ -228,6 +233,37 @@ impl CandidateIndex {
             nodes: crate::sparse::SparseTree::default(),
             empty,
         }
+    }
+    #[cfg(feature = "storage")]
+    pub(crate) fn stored_entries(&self) -> impl Iterator<Item = (&Digest, &u32)> {
+        self.entries.iter()
+    }
+    #[cfg(feature = "storage")]
+    pub(crate) fn restore_entry(&mut self, key: Digest, height: u32, maximum: u32) -> Result<()> {
+        if key.0 == [0; 32]
+            || height <= self.context.start
+            || height > maximum
+            || self.entries.contains_key(&key)
+        {
+            return Err(Error::Path);
+        }
+        self.entries.insert(key, height);
+        let id = self.context.id();
+        self.nodes.set(
+            key,
+            Some(leaf(id, key, height)),
+            &self.empty,
+            &|depth, left, right| branch(id, depth, left, right),
+        );
+        Ok(())
+    }
+    #[cfg(feature = "storage")]
+    pub(crate) fn restore_height(&mut self, snapshot: IndexSnapshot) -> Result<()> {
+        self.height = snapshot.height;
+        if self.snapshot() != snapshot {
+            return Err(Error::Path);
+        }
+        Ok(())
     }
     pub fn snapshot(&self) -> IndexSnapshot {
         IndexSnapshot {

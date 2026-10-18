@@ -28,11 +28,11 @@ type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Debug, Clone)]
 pub struct CandidateSpends {
-    state: AuthenticatedMap,
-    counts: [u64; 4],
-    balances: [u64; 4],
+    pub(crate) state: AuthenticatedMap,
+    pub(crate) counts: [u64; 4],
+    pub(crate) balances: [u64; 4],
 }
-fn context() -> Digest {
+pub(crate) fn context() -> Digest {
     hash(b"source-shielded-state", &[])
 }
 fn state_key(kind: u8, pool: usize, digest: Digest) -> Digest {
