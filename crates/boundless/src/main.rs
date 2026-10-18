@@ -118,6 +118,12 @@ impl Job {
     }
 }
 
+fn proof_timeouts(cycles: u64) -> Result<(u32, u32)> {
+    ensure!(cycles > 0 && cycles <= 2_147_483_648, "unsupported cycle bound");
+    let lock_timeout = u32::try_from(cycles.div_ceil(1_000_000) + 300)?.max(900);
+    Ok((lock_timeout, (lock_timeout + 900).max(1800)))
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Request {
@@ -345,6 +351,7 @@ async fn run(args: Args, config: &Config) -> Result<()> {
                 cap > U256::ZERO && balance >= cap,
                 "insufficient deposited proving balance"
             );
+            let (lock_timeout, timeout) = proof_timeouts(job.cycles)?;
             let offer: OfferParams = OfferParams::builder()
                 .min_price(Amount::new(minimum, Asset::ETH))
                 .max_price(Amount::new(cap, Asset::ETH))
@@ -353,8 +360,8 @@ async fn run(args: Args, config: &Config) -> Result<()> {
                     Asset::ZKC,
                 ))
                 .ramp_up_period(60_u32)
-                .lock_timeout(900_u32)
-                .timeout(1800_u32)
+                .lock_timeout(lock_timeout)
+                .timeout(timeout)
                 .into();
             let parameters = client
                 .new_request()
@@ -365,7 +372,8 @@ async fn run(args: Args, config: &Config) -> Result<()> {
                 .with_journal(Journal::new(journal.to_vec()))
                 .with_offer(offer)
                 .with_groth16_proof();
-            let proof_request = client.build_request(parameters).await?;
+            let mut proof_request = client.build_request(parameters).await?;
+            proof_request.offer.rampUpStart = now()?;
             ensure!(
                 proof_request.offer.maxPrice <= cap,
                 "request exceeds authorized price cap"
@@ -463,6 +471,16 @@ async fn main() -> std::process::ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn large_jobs_receive_a_bounded_proving_window() -> Result<()> {
+        ensure!(proof_timeouts(260_000_000)? == (900, 1800));
+        ensure!(proof_timeouts(1_314_365_753)? == (1615, 2515));
+        ensure!(proof_timeouts(2_147_483_648)? == (2448, 3348));
+        ensure!(proof_timeouts(0).is_err());
+        ensure!(proof_timeouts(u64::MAX).is_err());
+        Ok(())
+    }
 
     #[test]
     fn transport_rejects_private_jobs_and_unbounded_work() -> Result<()> {
