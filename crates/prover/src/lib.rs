@@ -2,6 +2,7 @@ pub mod admission;
 pub mod artifact;
 pub mod backend;
 pub mod bootstrap;
+pub mod database;
 pub mod local;
 pub mod pipeline;
 pub mod pool;

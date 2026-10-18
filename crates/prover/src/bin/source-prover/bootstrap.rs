@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use zutti_prover::{
     artifact::ProofArtifact,
     bootstrap::SourceBootstrap,
+    database::MongoDatabase,
     local::LocalProver,
     rpc::SourceRpc,
     source::{MAX_SOURCE_CYCLES, SourceJob},
@@ -46,6 +47,10 @@ enum Command {
     Init {
         #[arg(long)]
         genesis: PathBuf,
+    },
+    Migrate {
+        #[arg(long)]
+        from: PathBuf,
     },
     Status,
     Fill(FillOptions),
@@ -110,19 +115,59 @@ pub(super) fn run(options: Options) -> Result<()> {
         batches: usize::from(options.queue_batches),
         witness_bytes: options.queue_bytes as usize,
     };
+    let mongo = match std::env::var("ZUTTI_MONGODB_URI") {
+        Ok(uri) => Some(MongoDatabase::connect(
+            &uri,
+            &std::env::var("ZUTTI_MONGODB_DATABASE").unwrap_or_else(|_| "zutti".into()),
+            options
+                .database
+                .to_str()
+                .ok_or("invalid source store name")?,
+        )?),
+        Err(std::env::VarError::NotPresent) => None,
+        Err(_) => return Err("invalid MongoDB configuration".into()),
+    };
+    let cache = match &mongo {
+        Some(_) => PathBuf::from(
+            std::env::var_os("ZUTTI_CACHE_DIR")
+                .ok_or("ZUTTI_CACHE_DIR is required for MongoDB source storage")?,
+        )
+        .join(&options.database)
+        .with_extension("sqlite"),
+        None => options.database.clone(),
+    };
+    if let Command::Migrate { from } = &options.command {
+        let mongo = mongo
+            .as_ref()
+            .ok_or("MongoDB storage must be configured for migration")?;
+        let bootstrap = SourceBootstrap::open(from, policy, programs.clone(), limits)?;
+        mongo.initialize(bootstrap.store())?;
+        drop(bootstrap);
+        let restored = SourceBootstrap::from_store(mongo.open(&cache, policy, limits)?, programs)?;
+        return status(&restored);
+    }
     if let Command::Init { genesis } = &options.command {
+        let temp = mongo.as_ref().map(|_| tempfile::tempdir()).transpose()?;
+        let initial = temp.as_ref().map(|d| d.path().join("source.sqlite"));
         let bootstrap = SourceBootstrap::create(
-            &options.database,
+            initial.as_deref().unwrap_or(&cache),
             block_bytes(genesis)?,
             policy,
             programs,
             limits,
         )?;
+        if let Some(mongo) = mongo {
+            mongo.initialize(bootstrap.store())?;
+        }
         return status(&bootstrap);
     }
-    let mut bootstrap = SourceBootstrap::open(&options.database, policy, programs, limits)?;
+    let mut bootstrap = match mongo {
+        Some(mongo) => SourceBootstrap::from_store(mongo.open(&cache, policy, limits)?, programs)?,
+        None => SourceBootstrap::open(&cache, policy, programs, limits)?,
+    };
     match options.command {
         Command::Init { .. } => return Err("source bootstrap is already initialized".into()),
+        Command::Migrate { .. } => return Err("source migration was not initialized".into()),
         Command::Status => {}
         Command::Queue {
             block,

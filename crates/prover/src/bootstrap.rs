@@ -47,6 +47,12 @@ impl SourceBootstrap {
         bootstrap.verify_retained()?;
         Ok(bootstrap)
     }
+    pub fn from_store(store: RangeStore, programs: SourcePrograms) -> Result<Self> {
+        check_policy(store.policy(), &programs)?;
+        let bootstrap = Self { store, programs };
+        bootstrap.verify_retained()?;
+        Ok(bootstrap)
+    }
     pub const fn store(&self) -> &RangeStore {
         &self.store
     }
