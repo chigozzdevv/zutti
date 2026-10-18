@@ -1,3 +1,4 @@
+use super::durable::{self, LeafRecord, RangeArchive, RangeDurability};
 use super::{
     APPLICATION, Error, MAX_EVIDENCE, Result, connect, initialize, persist_delta, restore_candidate,
 };
@@ -11,6 +12,12 @@ use crate::{
 use rusqlite::{Connection, TransactionBehavior, params};
 use std::path::Path;
 use zutti_protocol::encoding::Canonical;
+
+const RANGE_SCHEMA: &str = "CREATE TABLE range_metadata (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL,
+                    policy BLOB NOT NULL, state BLOB NOT NULL, genesis BLOB NOT NULL, base BLOB NOT NULL,
+                    evidence BLOB, next_id INTEGER NOT NULL CHECK(next_id>0));
+                CREATE TABLE range_batches (id INTEGER PRIMARY KEY CHECK(id>0), claim BLOB NOT NULL,
+                    witness BLOB, evidence BLOB, CHECK((witness IS NULL)!=(evidence IS NULL)));";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RangeLimits {
@@ -55,6 +62,7 @@ pub struct RangeStore {
     limits: RangeLimits,
     revision: i64,
     next_id: i64,
+    durability: Option<Box<dyn RangeDurability>>,
 }
 impl RangeStore {
     pub fn create(
@@ -70,13 +78,7 @@ impl RangeStore {
         let snapshot = candidate.state_snapshot()?;
         let base = SourceReceiptClaim::from_state(policy, &snapshot)?;
         let connection = initialize(path, &candidate, 2, |tx| {
-            tx.execute_batch(
-                "CREATE TABLE range_metadata (id INTEGER PRIMARY KEY CHECK(id=1), revision INTEGER NOT NULL,
-                    policy BLOB NOT NULL, state BLOB NOT NULL, genesis BLOB NOT NULL, base BLOB NOT NULL,
-                    evidence BLOB, next_id INTEGER NOT NULL CHECK(next_id>0));
-                CREATE TABLE range_batches (id INTEGER PRIMARY KEY CHECK(id>0), claim BLOB NOT NULL,
-                    witness BLOB, evidence BLOB, CHECK((witness IS NULL)!=(evidence IS NULL)));",
-            )?;
+            tx.execute_batch(RANGE_SCHEMA)?;
             tx.execute(
                 "INSERT INTO range_metadata VALUES(1,0,?1,?2,?3,?4,NULL,1)",
                 params![
@@ -99,11 +101,18 @@ impl RangeStore {
             limits,
             revision: 0,
             next_id: 1,
+            durability: None,
         })
     }
     pub fn open(path: &Path, policy: SourcePolicy, limits: RangeLimits) -> Result<Self> {
+        Self::open_connection(connect(path)?, policy, limits)
+    }
+    fn open_connection(
+        mut connection: Connection,
+        policy: SourcePolicy,
+        limits: RangeLimits,
+    ) -> Result<Self> {
         limits.validate()?;
-        let mut connection = connect(path)?;
         if connection.pragma_query_value(None, "application_id", |r| r.get::<_, i32>(0))?
             != APPLICATION
             || connection.pragma_query_value(None, "user_version", |r| r.get::<_, i32>(0))? != 2
@@ -207,7 +216,45 @@ impl RangeStore {
             limits,
             revision,
             next_id,
+            durability: None,
         })
+    }
+    pub fn archive(&self) -> Result<RangeArchive> {
+        durable::archive(&self.connection)
+    }
+    pub fn attach_durability(&mut self, durability: Box<dyn RangeDurability>) {
+        self.durability = Some(durability);
+    }
+    pub fn for_each_leaf(&self, visit: &mut dyn FnMut(LeafRecord) -> Result<()>) -> Result<()> {
+        for tree in 0..4 {
+            super::for_each_leaf(&self.connection, tree, |key, value| {
+                visit(LeafRecord {
+                    tree,
+                    key,
+                    value: value.to_vec(),
+                })
+            })?;
+        }
+        Ok(())
+    }
+    pub fn restore(
+        path: &Path,
+        archive: &RangeArchive,
+        policy: SourcePolicy,
+        limits: RangeLimits,
+        load: impl FnOnce(&mut dyn FnMut(LeafRecord) -> Result<()>) -> Result<()>,
+    ) -> Result<Self> {
+        let connection = super::initialize_rows(path, 2, |connection| {
+            connection.execute_batch(RANGE_SCHEMA)?;
+            durable::write_archive(connection, archive)?;
+            load(&mut |record| {
+                if record.tree > 3 {
+                    return Err(Error::Binding);
+                }
+                super::put(connection, record.tree, record.key, Some(&record.value))
+            })
+        })?;
+        Self::open_connection(connection, policy, limits)
     }
     pub const fn policy(&self) -> SourcePolicy {
         self.policy
@@ -279,7 +326,16 @@ impl RangeStore {
             "INSERT INTO range_batches VALUES(?1,?2,?3,NULL)",
             params![self.next_id, claim.to_bytes()?, witness.to_bytes()?],
         )?;
-        tx.commit()?;
+        let leaves = durable::changed_leaves(&tx, transition)?;
+        durable::commit(
+            tx,
+            self.durability.as_deref(),
+            self.revision,
+            &[self.next_id],
+            &[],
+            None,
+            leaves,
+        )?;
         let id = self.next_id as u64;
         self.candidate = next;
         self.batches.push(RangeBatch {
@@ -323,7 +379,15 @@ impl RangeStore {
         {
             return Err(Error::Binding);
         }
-        tx.commit()?;
+        durable::commit(
+            tx,
+            self.durability.as_deref(),
+            self.revision,
+            &[sql_id(id)?],
+            &[],
+            None,
+            Vec::new(),
+        )?;
         let batch = self
             .batches
             .iter_mut()
@@ -382,7 +446,19 @@ impl RangeStore {
             "INSERT INTO range_batches VALUES(?1,?2,NULL,?3)",
             params![sql_id(ids[0])?, claim.to_bytes()?, evidence],
         )?;
-        tx.commit()?;
+        let removed = ids
+            .iter()
+            .map(|id| sql_id(*id))
+            .collect::<Result<Vec<_>>>()?;
+        durable::commit(
+            tx,
+            self.durability.as_deref(),
+            self.revision,
+            &[sql_id(ids[0])?],
+            &removed,
+            None,
+            Vec::new(),
+        )?;
         let start = self
             .batches
             .iter()
@@ -429,7 +505,20 @@ impl RangeStore {
                 [sql_id(self.batches[through - 1].id)?],
             )?;
         }
-        tx.commit()?;
+        let removed = if through > 0 {
+            Some(sql_id(self.batches[through - 1].id)?)
+        } else {
+            None
+        };
+        durable::commit(
+            tx,
+            self.durability.as_deref(),
+            self.revision,
+            &[],
+            &[],
+            removed,
+            Vec::new(),
+        )?;
         self.batches.drain(..through);
         self.base = claim.clone();
         self.evidence = Some(evidence);

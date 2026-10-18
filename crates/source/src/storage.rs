@@ -1,3 +1,4 @@
+pub mod durable;
 mod ranges;
 use crate::{
     CandidateIndex, IndexSnapshot, Observation,
@@ -36,6 +37,8 @@ pub enum Error {
     Pending,
     #[error("the source range queue has reached its configured bound")]
     QueueFull,
+    #[error("durable state operation failed; reopen before continuing")]
+    Persistence,
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -331,6 +334,31 @@ fn initialize(
     version: i32,
     setup: impl FnOnce(&Connection) -> Result<()>,
 ) -> Result<Connection> {
+    initialize_rows(path, version, |connection| {
+        for (tree, map) in [
+            (0, &candidate.ledger.outputs),
+            (1, &candidate.spends.state),
+            (3, &candidate.archive),
+        ] {
+            for (key, value) in map.stored_values().map_err(TransitionError::from)? {
+                put(connection, tree, *key, Some(value))?;
+            }
+        }
+        if let HistoryIndex::Full { index, .. } = &candidate.index {
+            for (key, height) in index.stored_entries() {
+                put(connection, 2, *key, Some(&height.to_le_bytes()))?;
+            }
+        } else {
+            return Err(Error::Binding);
+        }
+        setup(connection)
+    })
+}
+fn initialize_rows(
+    path: &Path,
+    version: i32,
+    setup: impl FnOnce(&Connection) -> Result<()>,
+) -> Result<Connection> {
     let parent = path
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
@@ -345,22 +373,6 @@ fn initialize(
                 PRIMARY KEY(tree,key)) WITHOUT ROWID;",
     )?;
     transaction.pragma_update(None, "user_version", version)?;
-    for (tree, map) in [
-        (0, &candidate.ledger.outputs),
-        (1, &candidate.spends.state),
-        (3, &candidate.archive),
-    ] {
-        for (key, value) in map.stored_values().map_err(TransitionError::from)? {
-            put(&transaction, tree, *key, Some(value))?;
-        }
-    }
-    if let HistoryIndex::Full { index, .. } = &candidate.index {
-        for (key, height) in index.stored_entries() {
-            put(&transaction, 2, *key, Some(&height.to_le_bytes()))?;
-        }
-    } else {
-        return Err(Error::Binding);
-    }
     setup(&transaction)?;
     transaction.commit()?;
     connection.pragma_update(None, "journal_mode", "DELETE")?;

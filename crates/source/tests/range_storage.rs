@@ -227,3 +227,90 @@ fn corrupt_leaves_range_boundaries_and_interrupted_writes_fail_closed() {
         .is_err()
     );
 }
+
+#[test]
+fn external_durability_failure_rolls_back_state_and_pending_work() {
+    use zutti_source::storage::{
+        Error,
+        durable::{RangeCommit, RangeDurability},
+    };
+    #[derive(Debug)]
+    struct Reject;
+    impl RangeDurability for Reject {
+        fn commit(&self, _: &RangeCommit) -> zutti_source::storage::Result<()> {
+            Err(Error::Persistence)
+        }
+    }
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("source.sqlite");
+    let mut store = queue(&path, RangeLimits::default());
+    let before = store.archive().unwrap();
+    store.attach_durability(Box::new(Reject));
+    assert!(store.advance(blocks(1, 2)).is_err());
+    assert_eq!(store.candidate().height().unwrap(), 0);
+    assert_eq!(store.archive().unwrap(), before);
+    drop(store);
+    let mut store = RangeStore::open(&path, policy(), RangeLimits::default()).unwrap();
+    let id = store.advance(blocks(1, 2)).unwrap();
+    let claim = store.batch(id).unwrap().claim.clone();
+    let before = store.archive().unwrap();
+    store.attach_durability(Box::new(Reject));
+    assert!(store.retain_range(id, &claim, vec![1]).is_err());
+    assert_eq!(store.archive().unwrap(), before);
+    drop(store);
+    let store = RangeStore::open(&path, policy(), RangeLimits::default()).unwrap();
+    assert!(store.batch(id).unwrap().witness.is_some());
+    assert!(store.batch(id).unwrap().evidence.is_none());
+}
+#[test]
+fn logical_archive_restores_all_roots_and_pending_witnesses() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("source.sqlite");
+    let mut store = queue(&path, RangeLimits::default());
+    store.advance(blocks(1, 2)).unwrap();
+    store.advance(blocks(3, 4)).unwrap();
+    let archive = store.archive().unwrap();
+    let mut leaves = Vec::new();
+    store
+        .for_each_leaf(&mut |row| {
+            leaves.push(row);
+            Ok(())
+        })
+        .unwrap();
+    let restored = RangeStore::restore(
+        &dir.path().join("restored.sqlite"),
+        &archive,
+        policy(),
+        RangeLimits::default(),
+        |put| {
+            for row in leaves {
+                put(row)?;
+            }
+            Ok(())
+        },
+    )
+    .unwrap();
+    assert_eq!(restored.archive().unwrap(), archive);
+    assert_eq!(
+        restored
+            .candidate()
+            .state_snapshot()
+            .unwrap()
+            .to_bytes()
+            .unwrap(),
+        store
+            .candidate()
+            .state_snapshot()
+            .unwrap()
+            .to_bytes()
+            .unwrap()
+    );
+    let invalid = RangeStore::restore(
+        &dir.path().join("invalid.sqlite"),
+        &archive,
+        policy(),
+        RangeLimits::default(),
+        |_| Ok(()),
+    );
+    assert!(invalid.is_err());
+}
