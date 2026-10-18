@@ -10,7 +10,7 @@ use crate::{
     transition::{MAX_WITNESS, StateSnapshot, TransitionWitness},
 };
 use rusqlite::{Connection, OpenFlags, TransactionBehavior, params};
-use std::{collections::BTreeSet, fs::OpenOptions, path::Path, time::Duration};
+use std::{collections::BTreeSet, path::Path, time::Duration};
 use zutti_protocol::{Digest, encoding::Canonical};
 
 const APPLICATION: i32 = 0x5a555454;
@@ -67,9 +67,12 @@ impl SourceStore {
         if pending.evaluate()?.state != snapshot.commitment()? {
             return Err(Error::Binding);
         }
-        let file = OpenOptions::new().write(true).create_new(true).open(path)?;
-        file.sync_all()?;
-        let mut connection = connect(path)?;
+        let parent = path
+            .parent()
+            .filter(|p| !p.as_os_str().is_empty())
+            .unwrap_or(Path::new("."));
+        let temporary = tempfile::NamedTempFile::new_in(parent)?;
+        let mut connection = connect(temporary.path())?;
         let transaction = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
         transaction.execute_batch(
             "PRAGMA application_id=1515541588;
@@ -105,12 +108,12 @@ impl SourceStore {
             ],
         )?;
         transaction.commit()?;
-        std::fs::File::open(
-            path.parent()
-                .filter(|p| !p.as_os_str().is_empty())
-                .unwrap_or(Path::new(".")),
-        )?
-        .sync_all()?;
+        connection.pragma_update(None, "journal_mode", "DELETE")?;
+        drop(connection);
+        temporary.as_file().sync_all()?;
+        temporary.persist_noclobber(path).map_err(|e| e.error)?;
+        std::fs::File::open(parent)?.sync_all()?;
+        let connection = connect(path)?;
         Ok(Self {
             connection,
             policy,
