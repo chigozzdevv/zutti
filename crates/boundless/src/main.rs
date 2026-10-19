@@ -1,4 +1,8 @@
-use alloy::{primitives::U256, providers::Provider, signers::local::PrivateKeySigner};
+use alloy::{
+    primitives::U256,
+    providers::{Provider, ProviderBuilder},
+    signers::local::PrivateKeySigner,
+};
 use anyhow::{Context, Result, ensure};
 use boundless_market::{
     Client, Deployment, StorageUploaderConfig,
@@ -274,6 +278,9 @@ async fn run(args: Args, config: &Config) -> Result<()> {
         "development mode is not allowed"
     );
     let network = args.network;
+    let rpc_url: url::Url = config.get("BOUNDLESS_RPC_URL")?.parse()?;
+    let primary = ProviderBuilder::new().connect_http(rpc_url.clone());
+    network.require_chain(primary.get_chain_id().await?)?;
     let signer: PrivateKeySigner = config
         .get("BOUNDLESS_PRIVATE_KEY")?
         .parse()
@@ -287,7 +294,7 @@ async fn run(args: Args, config: &Config) -> Result<()> {
     storage.storage_uploader = StorageUploaderType::Pinata;
     storage.pinata_jwt = Some(config.get("PINATA_JWT")?.to_owned());
     let client = Client::builder()
-        .with_rpc_url(config.get("BOUNDLESS_RPC_URL")?.parse()?)
+        .with_rpc_url(rpc_url)
         .with_rpc_urls(vec![network.fallback().parse()?])
         .with_deployment(Some(
             Deployment::from_chain_id(network.chain_id())
