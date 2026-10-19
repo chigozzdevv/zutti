@@ -8,6 +8,8 @@ mod preflight;
 mod sync;
 #[path = "source-prover/worker.rs"]
 mod worker;
+#[path = "source-prover/workload.rs"]
+mod workload;
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::{Path, PathBuf};
 use zcash_protocol::consensus::{MAIN_NETWORK, NetworkType, TEST_NETWORK};
@@ -328,6 +330,10 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 return Err("a complete public source transition witness is required".into());
             }
             SourceJob::range(&witness, &[], &programs)?.export_public(&out, MAX_SOURCE_CYCLES)?;
+            zutti_wallet::backup::persist_new(
+                &out.join("workload.json"),
+                &serde_json::to_vec_pretty(&workload::describe(&witness)?)?,
+            )?;
             println!(
                 "{}",
                 serde_json::json!({"job":out,"range_only":true,

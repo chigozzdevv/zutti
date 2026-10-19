@@ -145,6 +145,10 @@ impl TransitionWitness {
     pub fn block_count(&self) -> usize {
         self.blocks.len()
     }
+    #[cfg(feature = "storage")]
+    pub fn blocks(&self) -> &[Vec<u8>] {
+        &self.blocks
+    }
     pub const fn before(&self) -> &StateSnapshot {
         &self.before
     }

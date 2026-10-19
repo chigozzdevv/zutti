@@ -383,6 +383,8 @@ source-prover execute --job /path/to/range-job
 
 This measures a conditional range transition. Its starting state has native replay evidence, not a proved prefix. The range cannot substitute for a full-prefix receipt. Neither command purchases proofs; any paid range test still uses the separately capped Boundless client.
 
+Exported jobs include `workload.json` with transaction versions and shielded-action counts, so execution costs can be compared against the work each range actually contains.
+
 ## Source upgrade support
 
 The source program implements NU7 using `zebra-chain` 14.0.0 and the matching Zcash transaction libraries. Public Testnet activates NU7 at height `4_465_026`, branch `0x77190ad9`. Difficulty validation retains 113 ancestor headers, applies the 102-block averaging window and 25-second spacing at activation, and uses the new Testnet minimum-difficulty threshold. Parsing enforces per-pool and combined shielded action limits. Transaction checks reject v4 at NU7, retain valid v5/v6 formats, enforce Orchard freezing, and bind authorization signatures to the active branch.
