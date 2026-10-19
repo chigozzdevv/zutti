@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "date": "2026-10-19",
+  "implementation_commit": "911a42c",
+  "scope": "Public transparent ECDSA verification; no private swap witness, receipts, admission or paid requests.",
+  "runtime": {
+    "risc0_zkvm": "3.0.5",
+    "risc0_rust_toolchain": "1.94.1",
+    "host": "macos_aarch64",
+    "session_limit": 2147483648,
+    "segment_limit_po2": 20
+  },
+  "accelerator": {
+    "k256_version": "0.13.4",
+    "k256_git": "https://github.com/risc0/RustCrypto-elliptic-curves",
+    "k256_revision": "7d4a8d6477e258ce4169ee4669cf92aee0582c39",
+    "crypto_bigint_revision": "3ab63a6f1048833f7047d5a50532e4a4cc789384",
+    "current_parsing_library": "secp256k1 0.33.1",
+    "sighash_rehashed": false,
+    "high_s_normalized": true,
+    "script_interpreter_changed": false
+  },
+  "measured_programs": {
+    "source": "d15208d9e8a96d7f35e2393a819e4d58740158ed0f1bbfaf5d83ca8f0f592691",
+    "source-update": "6e1b7e56aabaa1b5ece822923f91e31acd90a388c53e1cf8a788e3759ed63984",
+    "pool": "94a152919ef0549e1547226094249f7b201f07981a8bdc3df086ac164c6bcd52",
+    "preparation": "69727497d3ff6259dd59268d97ee4395774ea484e59ab50a7e20eb129cd39cef",
+    "history-query": "9a598f8a0c6c6141fecc83993eb9477d3f2e51a770717af98775cd6b5d21db7a"
+  },
+  "cases": [
+    {
+      "signature_count": 1,
+      "accelerated": false,
+      "public_data": true,
+      "generated_inputs": true,
+      "cycles": 1870530,
+      "segments": 2,
+      "padded_cycles": 2097152,
+      "seconds": 0.240892041,
+      "image_id": "8855c009d72bee4e56effe0be4831125f617606a0194e8d02e0db47ef8e12b22",
+      "program_sha256": "8738d343eca8e9a822a30e973d82955d53ec8d81857012e3c3c35d1ad5d1b275",
+      "stdin_sha256": "6d282613edb236ea84dac39a4f598f4f17733e2a9b04cb2807aaf588cfeea973",
+      "journal_sha256": "9dd3b712c8bc465aa6631b01a4038c1d2f350225051017fe6370a925c7ca215d",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false,
+      "name": "reference-1"
+    },
+    {
+      "signature_count": 16,
+      "accelerated": false,
+      "public_data": true,
+      "generated_inputs": true,
+      "cycles": 28588117,
+      "segments": 29,
+      "padded_cycles": 30408704,
+      "seconds": 0.6230095,
+      "image_id": "8855c009d72bee4e56effe0be4831125f617606a0194e8d02e0db47ef8e12b22",
+      "program_sha256": "8738d343eca8e9a822a30e973d82955d53ec8d81857012e3c3c35d1ad5d1b275",
+      "stdin_sha256": "53ba6813d269ae0b2e646423a3a7ceb7f090a79d6b69653a891a9485ac47921b",
+      "journal_sha256": "6a23729961dd9183b19c13bbfc51fe643eb77f002572994f32163f17c85f2066",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false,
+      "name": "reference-16"
+    },
+    {
+      "signature_count": 1,
+      "accelerated": true,
+      "public_data": true,
+      "generated_inputs": true,
+      "cycles": 322134,
+      "segments": 1,
+      "padded_cycles": 524288,
+      "seconds": 0.075503625,
+      "image_id": "8a7083ced530c68d820f9d9c3c7d97cb9f2d999820bf4087284b690dc2631a3b",
+      "program_sha256": "0e22c80f9d0d91e8a5f99671bf6a8afe25e492fc7884a55855a6b2fba534e65b",
+      "stdin_sha256": "6d282613edb236ea84dac39a4f598f4f17733e2a9b04cb2807aaf588cfeea973",
+      "journal_sha256": "9dd3b712c8bc465aa6631b01a4038c1d2f350225051017fe6370a925c7ca215d",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false,
+      "name": "accelerated-1"
+    },
+    {
+      "signature_count": 16,
+      "accelerated": true,
+      "public_data": true,
+      "generated_inputs": true,
+      "cycles": 5692835,
+      "segments": 6,
+      "padded_cycles": 6291456,
+      "seconds": 0.25677125,
+      "image_id": "8a7083ced530c68d820f9d9c3c7d97cb9f2d999820bf4087284b690dc2631a3b",
+      "program_sha256": "0e22c80f9d0d91e8a5f99671bf6a8afe25e492fc7884a55855a6b2fba534e65b",
+      "stdin_sha256": "53ba6813d269ae0b2e646423a3a7ceb7f090a79d6b69653a891a9485ac47921b",
+      "journal_sha256": "6a23729961dd9183b19c13bbfc51fe643eb77f002572994f32163f17c85f2066",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false,
+      "name": "accelerated-16"
+    }
+  ],
+  "sixteen_signature_comparison": {
+    "reference_cycles": 28588117,
+    "accelerated_cycles": 5692835,
+    "cycle_speedup": 5.021771577781545,
+    "cycle_reduction_percent": 80.08670875385042,
+    "identical_stdin_and_journal": true,
+    "fee_savings_measured": false
+  },
+  "actual_guest_negative_checks": {
+    "reference": [
+      {
+        "case": "changed_digest",
+        "guest_rejected": true,
+        "stdin_sha256": "9fbde7578e41f1a5b4beb04febcc8f132bbf7d6562c6d8f2f54709b6a058714c",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "malformed_key",
+        "guest_rejected": true,
+        "stdin_sha256": "5688b8118faf240949a78f36e0f6d03919885ae3a66522c9b22e37d4bccc5c6e",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "malformed_der",
+        "guest_rejected": true,
+        "stdin_sha256": "12d042e91452171fc3cdc9b455a24777aebc2ed7f386da0563622e87428820c8",
+        "error": "Guest panicked: invalid signature encoding"
+      },
+      {
+        "case": "zero_scalars",
+        "guest_rejected": true,
+        "stdin_sha256": "80b1255f093bb00d43f079cab5e1422082c3aa68ef742b23d8c304e22988909f",
+        "error": "Guest panicked: invalid signature"
+      }
+    ],
+    "accelerated": [
+      {
+        "case": "changed_digest",
+        "guest_rejected": true,
+        "stdin_sha256": "9fbde7578e41f1a5b4beb04febcc8f132bbf7d6562c6d8f2f54709b6a058714c",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "malformed_key",
+        "guest_rejected": true,
+        "stdin_sha256": "5688b8118faf240949a78f36e0f6d03919885ae3a66522c9b22e37d4bccc5c6e",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "malformed_der",
+        "guest_rejected": true,
+        "stdin_sha256": "12d042e91452171fc3cdc9b455a24777aebc2ed7f386da0563622e87428820c8",
+        "error": "Guest panicked: invalid signature encoding"
+      },
+      {
+        "case": "zero_scalars",
+        "guest_rejected": true,
+        "stdin_sha256": "80b1255f093bb00d43f079cab5e1422082c3aa68ef742b23d8c304e22988909f",
+        "error": "Guest panicked: invalid signature"
+      }
+    ]
+  },
+  "validation": {
+    "transaction_unit_tests": 10,
+    "valid_native_ecdsa_differential_comparisons": 144,
+    "source_integration_tests": 23,
+    "source_lib_bin_test_clippy": "passed",
+    "prover_examples_clippy": "passed",
+    "guest_builds_locked": true,
+    "formatting": "passed"
+  },
+  "full_source_workload": {
+    "height": 282757,
+    "network": "zcash_testnet",
+    "block_bytes": 1999172,
+    "transactions": 1635,
+    "sapling_outputs": 1634,
+    "stdin_sha256": "8f16bbd599246b914d7a46fb200e72a3e54a9a36868dc9e111997b70c3195746",
+    "expected_journal_sha256": "ef564fac88ac6407941f3076089fe35c5433b594ed7eba0668fc29ee7910952e",
+    "prior_state_genesis_proof_available": false,
+    "tree_optimized_control": {
+      "cycles": 104557044301,
+      "segments": 105838,
+      "seconds": 1984.7019975,
+      "journal_matches": true,
+      "proof_generated": false,
+      "expected_program": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+      "executed_program": "3f3be9ab7c9fd68699be651483fa591e04e9073e663730742e5f3095a9c892a8",
+      "program_matches_statement": false,
+      "cycle_limit": 137438953472
+    },
+    "signature_optimized_candidate": {
+      "status": "running",
+      "image_id": "d15208d9e8a96d7f35e2393a819e4d58740158ed0f1bbfaf5d83ca8f0f592691",
+      "cycle_limit": 137438953472
+    }
+  },
+  "new_policy_ancestry_proved": false,
+  "proofs_generated": 0,
+  "paid_jobs_submitted": 0,
+  "current_chain_admitted": false,
+  "whole_bootstrap_budget_measured": false,
+  "wall_times_are_not_proving_latency": true,
+  "interpretation": "Signature component gains require full-block measurement. A matching diagnostic journal does not authorize an old program-bound statement. Neither a genesis bootstrap budget nor provider proving latency has been established."
+}
