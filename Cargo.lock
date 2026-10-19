@@ -2827,6 +2827,20 @@ dependencies = [
 
 [[package]]
 name = "jubjub"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8499f7a74008aafbecb2a2e608a3e13e4dd3e84df198b604451efe93f2de6e61"
+dependencies = [
+ "bitvec",
+ "bls12_381 0.8.0",
+ "ff 0.13.1",
+ "group 0.13.0",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "jubjub"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95fdd9a071f72385ed8b17d819f273d73c3887a93d34d2ac1419fca5b25dbbd2"
@@ -3553,7 +3567,7 @@ dependencies = [
  "document-features",
  "ff 0.14.0",
  "getset",
- "jubjub",
+ "jubjub 0.11.1",
  "nonempty",
  "orchard",
  "pasta_curves",
@@ -3972,7 +3986,7 @@ dependencies = [
  "byteorder",
  "group 0.14.0",
  "hex",
- "jubjub",
+ "jubjub 0.11.1",
  "pasta_curves",
  "rand_core 0.10.1",
  "serde",
@@ -4545,7 +4559,7 @@ dependencies = [
  "group 0.14.0",
  "hex",
  "incrementalmerkletree",
- "jubjub",
+ "jubjub 0.11.1",
  "lazy_static",
  "memuse",
  "rand 0.10.3",
@@ -6108,7 +6122,7 @@ dependencies = [
  "ff 0.14.0",
  "hex",
  "incrementalmerkletree",
- "jubjub",
+ "jubjub 0.11.1",
  "memuse",
  "nonempty",
  "orchard",
@@ -6215,7 +6229,7 @@ dependencies = [
  "humantime",
  "incrementalmerkletree",
  "itertools 0.14.0",
- "jubjub",
+ "jubjub 0.11.1",
  "lazy_static",
  "mset",
  "num-integer",
@@ -6475,11 +6489,13 @@ dependencies = [
  "clap",
  "ed25519-zebra",
  "groth16",
+ "group 0.13.0",
  "group 0.14.0",
  "hex",
  "im",
  "incrementalmerkletree",
- "jubjub",
+ "jubjub 0.10.0",
+ "jubjub 0.11.1",
  "num-bigint 0.4.6",
  "orchard",
  "primitive-types",

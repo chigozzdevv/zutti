@@ -1,9 +1,32 @@
+use curve::{AffineNielsPoint, ExtendedPoint};
+#[cfg(not(feature = "accelerated-trees"))]
 use group::Curve;
-use jubjub::{AffineNielsPoint, ExtendedPoint};
+#[cfg(feature = "accelerated-trees")]
+use group_legacy::Curve;
+#[cfg(not(feature = "accelerated-trees"))]
+use jubjub as curve;
+#[cfg(feature = "accelerated-trees")]
+use jubjub_legacy as curve;
 use std::sync::OnceLock;
 
 const GENERATOR_CHUNKS: [usize; 3] = [63, 63, 46];
 static TABLE: OnceLock<Vec<AffineNielsPoint>> = OnceLock::new();
+
+fn generator_point(generator: &jubjub::SubgroupPoint) -> ExtendedPoint {
+    #[cfg(not(feature = "accelerated-trees"))]
+    {
+        ExtendedPoint::from(*generator)
+    }
+    #[cfg(feature = "accelerated-trees")]
+    {
+        let bytes = group::GroupEncoding::to_bytes(generator);
+        let decoded = <curve::SubgroupPoint as group_legacy::GroupEncoding>::from_bytes(&bytes);
+        match decoded.into_option() {
+            Some(point) => ExtendedPoint::from(point),
+            None => panic!("invalid canonical Sapling generator"),
+        }
+    }
+}
 
 fn table() -> &'static [AffineNielsPoint] {
     TABLE.get_or_init(|| {
@@ -16,7 +39,7 @@ fn table() -> &'static [AffineNielsPoint] {
             .iter()
             .zip(GENERATOR_CHUNKS)
         {
-            let mut base = ExtendedPoint::from(*generator);
+            let mut base = generator_point(generator);
             for chunk in (0..chunks).step_by(2) {
                 if chunk + 1 == chunks {
                     let mut multiple = base;
@@ -40,7 +63,7 @@ fn table() -> &'static [AffineNielsPoint] {
                 }
             }
         }
-        jubjub::batch_normalize(&mut points)
+        curve::batch_normalize(&mut points)
             .map(|point| point.to_niels())
             .collect()
     })

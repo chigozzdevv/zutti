@@ -1,0 +1,15 @@
+{
+  "package": "jubjub",
+  "version": "0.10.0",
+  "upstream_repository": "https://github.com/zkcrypto/jubjub",
+  "upstream_commit": "47dfe5181ccf39166c0c479c35c0644d708f4294",
+  "registry_archive_sha256": "8499f7a74008aafbecb2a2e608a3e13e4dd3e84df198b604451efe93f2de6e61",
+  "source_changes": [
+    {
+      "file": "src/lib.rs",
+      "change": "Remove const from AffinePoint::to_niels; RISC Zero scalar operations execute at runtime. Arithmetic and validation are unchanged.",
+      "upstream_sha256": "2cda8d5fa806db35bfced2aa6fbea4389447714c45aa8a25eef069a775ea5598",
+      "patched_sha256": "e474fcc50fbafe62e2dd5c7aa2691cb9478f8889b87ae8ee70144e0a532b0313"
+    }
+  ]
+}
