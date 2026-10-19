@@ -3,6 +3,7 @@ mod empty;
 use incrementalmerkletree::{Hashable, Level, Position, frontier::Frontier};
 use orchard::tree::MerkleHashOrchard;
 use sapling::Node as SaplingNode;
+use std::sync::OnceLock;
 use zcash_primitives::transaction::Transaction;
 use zutti_protocol::{
     Digest, Error as CodecError,
@@ -206,6 +207,7 @@ pub struct CandidateTrees {
     sapling: Frontier<SaplingHash, 32>,
     orchard: Frontier<OrchardHash, 32>,
     ironwood: Frontier<OrchardHash, 32>,
+    cached_roots: [OnceLock<Digest>; 4],
 }
 
 impl Default for CandidateTrees {
@@ -215,6 +217,7 @@ impl Default for CandidateTrees {
             sapling: Frontier::empty(),
             orchard: Frontier::empty(),
             ironwood: Frontier::empty(),
+            cached_roots: Default::default(),
         }
     }
 }
@@ -225,13 +228,16 @@ impl CandidateTrees {
     }
     pub fn roots(&self) -> CommitmentTreeRoots {
         CommitmentTreeRoots {
-            sapling: Digest(self.sapling.root().encode_node()),
-            orchard: Digest(self.orchard.root().encode_node()),
-            ironwood: Digest(self.ironwood.root().encode_node()),
+            sapling: *self.cached_roots[1]
+                .get_or_init(|| Digest(self.sapling.root().encode_node())),
+            orchard: *self.cached_roots[2]
+                .get_or_init(|| Digest(self.orchard.root().encode_node())),
+            ironwood: *self.cached_roots[3]
+                .get_or_init(|| Digest(self.ironwood.root().encode_node())),
         }
     }
     pub fn sprout_root(&self) -> Digest {
-        Digest(self.sprout.root().0)
+        *self.cached_roots[0].get_or_init(|| Digest(self.sprout.root().0))
     }
     pub fn sizes(&self) -> CommitmentTreeSizes {
         CommitmentTreeSizes {
@@ -245,19 +251,25 @@ impl CandidateTrees {
         Ok(hash(b"candidate-note-trees", &[&self.to_bytes()?]))
     }
     pub fn append(&mut self, updates: &CommitmentUpdates) -> Result<()> {
-        let count = [
+        let counts = [
             updates.sprout.len(),
             updates.sapling.len(),
             updates.orchard.len(),
             updates.ironwood.len(),
-        ]
-        .into_iter()
-        .try_fold(0_usize, |sum, length| sum.checked_add(length))
-        .ok_or(Error::Limit)?;
+        ];
+        let count = counts
+            .into_iter()
+            .try_fold(0_usize, |sum, length| sum.checked_add(length))
+            .ok_or(Error::Limit)?;
         if count > 100_000 {
             return Err(Error::Limit);
         }
         let mut candidate = self.clone();
+        for (cache, count) in candidate.cached_roots.iter_mut().zip(counts) {
+            if count != 0 {
+                cache.take();
+            }
+        }
         append(&mut candidate.sprout, &updates.sprout)?;
         append(&mut candidate.sapling, &updates.sapling)?;
         append(&mut candidate.orchard, &updates.orchard)?;
@@ -336,6 +348,7 @@ impl Canonical for CandidateTrees {
             sapling: decode_tree(reader)?,
             orchard: decode_tree(reader)?,
             ironwood: decode_tree(reader)?,
+            cached_roots: Default::default(),
         })
     }
 }

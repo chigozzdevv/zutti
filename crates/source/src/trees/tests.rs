@@ -12,6 +12,87 @@ fn bytes(height: u32) -> Vec<u8> {
     hex::decode(std::fs::read_to_string(path).unwrap().trim()).unwrap()
 }
 
+fn all_roots(trees: &CandidateTrees) -> [Digest; 4] {
+    let roots = trees.roots();
+    [
+        trees.sprout_root(),
+        roots.sapling,
+        roots.orchard,
+        roots.ironwood,
+    ]
+}
+
+#[test]
+fn root_cache_is_derived_and_does_not_change_the_frontier_encoding() {
+    let mut trees = CandidateTrees::default();
+    trees
+        .append(&CommitmentUpdates {
+            sprout: vec![Digest([1; 32])],
+            sapling: vec![Digest([2; 32])],
+            orchard: vec![Digest([3; 32])],
+            ironwood: vec![Digest([4; 32])],
+        })
+        .unwrap();
+    let bytes = trees.to_bytes().unwrap();
+    let roots = all_roots(&trees);
+    assert!(trees.cached_roots.iter().all(|root| root.get().is_some()));
+    assert_eq!(trees.to_bytes().unwrap(), bytes);
+    let restored = CandidateTrees::from_bytes(&bytes).unwrap();
+    assert!(
+        restored
+            .cached_roots
+            .iter()
+            .all(|root| root.get().is_none())
+    );
+    assert_eq!(all_roots(&restored), roots);
+    assert_eq!(restored.to_bytes().unwrap(), bytes);
+    trees.append(&CommitmentUpdates::default()).unwrap();
+    assert_eq!(all_roots(&trees), roots);
+    assert!(trees.cached_roots.iter().all(|root| root.get().is_some()));
+}
+
+#[test]
+fn root_cache_invalidates_changed_pools_without_affecting_clones() {
+    let original = CandidateTrees::default();
+    let before = all_roots(&original);
+    for changed in 0..4 {
+        let mut trees = original.clone();
+        let mut updates = CommitmentUpdates::default();
+        match changed {
+            0 => updates.sprout.push(Digest([1; 32])),
+            1 => updates.sapling.push(Digest([2; 32])),
+            2 => updates.orchard.push(Digest([3; 32])),
+            3 => updates.ironwood.push(Digest([4; 32])),
+            _ => unreachable!(),
+        }
+        trees.append(&updates).unwrap();
+        for (index, root) in trees.cached_roots.iter().enumerate() {
+            assert_eq!(root.get().is_none(), index == changed);
+        }
+        let after = all_roots(&trees);
+        let uncached = [
+            Digest(trees.sprout.root().0),
+            Digest(trees.sapling.root().encode_node()),
+            Digest(trees.orchard.root().encode_node()),
+            Digest(trees.ironwood.root().encode_node()),
+        ];
+        assert_eq!(after, uncached);
+        assert_ne!(after[changed], before[changed]);
+        assert_eq!(all_roots(&original), before);
+        let encoded = trees.to_bytes().unwrap();
+        assert!(
+            trees
+                .append(&CommitmentUpdates {
+                    sapling: vec![Digest([255; 32])],
+                    ..Default::default()
+                })
+                .is_err()
+        );
+        assert_eq!(trees.to_bytes().unwrap(), encoded);
+        assert_eq!(all_roots(&trees), after);
+    }
+}
+
 #[test]
 fn public_block_commitment_updates_match_zebra_trees() {
     let mut ours = CandidateTrees::default();
