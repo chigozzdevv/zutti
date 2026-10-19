@@ -8,7 +8,11 @@ use std::{
 use zcash_protocol::consensus::NetworkType;
 use zutti_protocol::{Digest, encoding::Canonical};
 use zutti_source::{
-    block::MAX_BLOCK_BYTES, proof::SourcePolicy, storage::ReplayStore, transition::MAX_BLOCKS,
+    block::MAX_BLOCK_BYTES,
+    proof::SourcePolicy,
+    state::TransitionError,
+    storage::{Error as StorageError, ReplayStore},
+    transition::MAX_BLOCKS,
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -81,6 +85,25 @@ fn block(input: &mut impl Read) -> Result<Vec<u8>> {
     let mut bytes = vec![0; length];
     input.read_exact(&mut bytes)?;
     Ok(bytes)
+}
+fn advance(store: &mut ReplayStore, blocks: Vec<Vec<u8>>) -> Result<()> {
+    match store.advance(blocks.clone()) {
+        Ok(_) => Ok(()),
+        Err(StorageError::Source(TransitionError::WitnessSize { bytes, limit }))
+            if blocks.len() > 1 =>
+        {
+            eprintln!(
+                "{}",
+                serde_json::json!({"stage":"split","start_height":store.candidate().height()?,
+                "blocks":blocks.len(),"witness_bytes":bytes,"limit":limit})
+            );
+            let mut first = blocks;
+            let second = first.split_off(first.len() / 2);
+            advance(store, first)?;
+            advance(store, second)
+        }
+        Err(error) => Err(error.into()),
+    }
 }
 fn export(store: &ReplayStore, start: u32, out: &Path) -> Result<()> {
     let witness = store
@@ -185,18 +208,24 @@ fn run(mut args: Args) -> Result<()> {
             .collect::<Result<Vec<_>>>()?;
         let bytes = blocks.iter().map(Vec::len).sum::<usize>();
         let started = Instant::now();
-        let claim = if sample {
-            store.sample(blocks)?
+        let result = if sample {
+            store.sample(blocks).map(|_| ()).map_err(Into::into)
         } else {
-            store.advance(blocks)?
+            advance(&mut store, blocks)
         };
+        result.map_err(|error: Box<dyn std::error::Error>| {
+            format!(
+                "source replay {}..={end} ({bytes} block bytes): {error}",
+                height + 1
+            )
+        })?;
         if sample {
             export(&store, height, &args.samples)?;
         }
         eprintln!(
             "{}",
             serde_json::json!({"stage":"replayed","start_height":height,
-            "end_height":claim.end.height,"block_bytes":bytes,"seconds":started.elapsed().as_secs_f64(),
+            "end_height":store.candidate().height()?,"block_bytes":bytes,"seconds":started.elapsed().as_secs_f64(),
             "sample_retained":sample,"genesis_anchored_proof":false,"current_chain_admitted":false})
         );
     }

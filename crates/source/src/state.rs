@@ -66,6 +66,8 @@ pub enum TransitionError {
     IndexUnavailable,
     #[error("block does not commit to the computed Sapling tree root")]
     SaplingRoot,
+    #[error("source transition witness requires {bytes} bytes, exceeding its {limit}-byte bound")]
+    WitnessSize { bytes: usize, limit: usize },
 }
 
 #[derive(Debug, Clone)]
@@ -234,8 +236,12 @@ impl SourceCandidate {
             archive: next.archive.take_transcript()?,
             blocks,
         };
-        if witness.to_bytes()?.len() > crate::transition::MAX_WITNESS {
-            return Err(zutti_protocol::Error::Length.into());
+        let bytes = witness.to_bytes()?.len();
+        if bytes > crate::transition::MAX_WITNESS {
+            return Err(TransitionError::WitnessSize {
+                bytes,
+                limit: crate::transition::MAX_WITNESS,
+            });
         }
         *self = next;
         Ok(witness)
