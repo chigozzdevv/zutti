@@ -14,6 +14,7 @@ pub(crate) enum Error {
     Proof,
 }
 type Result<T> = core::result::Result<T, Error>;
+type PreparedG2 = <Bn254 as Pairing>::G2Prepared;
 
 #[derive(Debug)]
 struct Key {
@@ -71,14 +72,15 @@ pub(crate) fn verify(proof: &[u8], public: &[u8]) -> Result<()> {
         acc += base.mul_bigint(scalar.into_bigint());
     }
     let a_acc = (a.into_group() + acc).into_affine();
-    let g2 = G2Affine::generator();
-    let valid = Bn254::multi_pairing([a, -a_prime], [key.alpha_a, g2]).is_zero()
-        && Bn254::multi_pairing([key.alpha_b, -b_prime], [b, g2]).is_zero()
-        && Bn254::multi_pairing([c, -c_prime], [key.alpha_c, g2]).is_zero()
-        && Bn254::multi_pairing([a_acc, -h, -c], [b, key.z, g2]).is_zero()
+    let b = PreparedG2::from(b);
+    let g2 = PreparedG2::from(G2Affine::generator());
+    let valid = Bn254::multi_pairing([a, -a_prime], [key.alpha_a.into(), g2.clone()]).is_zero()
+        && Bn254::multi_pairing([key.alpha_b, -b_prime], [b.clone(), g2.clone()]).is_zero()
+        && Bn254::multi_pairing([c, -c_prime], [key.alpha_c.into(), g2.clone()]).is_zero()
+        && Bn254::multi_pairing([a_acc, -h, -c], [b.clone(), key.z.into(), g2]).is_zero()
         && Bn254::multi_pairing(
             [k, -(a_acc + c).into_affine(), -key.gamma_beta_g1],
-            [key.gamma, key.gamma_beta_g2, b],
+            [key.gamma.into(), key.gamma_beta_g2.into(), b],
         )
         .is_zero();
     if !valid {
