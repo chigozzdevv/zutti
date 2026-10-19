@@ -197,9 +197,18 @@
       "cycle_limit": 137438953472
     },
     "signature_optimized_candidate": {
-      "status": "running",
-      "image_id": "d15208d9e8a96d7f35e2393a819e4d58740158ed0f1bbfaf5d83ca8f0f592691",
-      "cycle_limit": 137438953472
+      "status": "completed",
+      "execution_only": true,
+      "cycles": 102198405440,
+      "segments": 103482,
+      "seconds": 2477.274674458,
+      "journal_matches": true,
+      "proof_generated": false,
+      "expected_program": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+      "executed_program": "d15208d9e8a96d7f35e2393a819e4d58740158ed0f1bbfaf5d83ca8f0f592691",
+      "program_matches_statement": false,
+      "cycle_limit": 137438953472,
+      "source_state_admitted": false
     }
   },
   "new_policy_ancestry_proved": false,
@@ -208,7 +217,7 @@
   "current_chain_admitted": false,
   "whole_bootstrap_budget_measured": false,
   "wall_times_are_not_proving_latency": true,
-  "interpretation": "Signature component gains require full-block measurement. A matching diagnostic journal does not authorize an old program-bound statement. Neither a genesis bootstrap budget nor provider proving latency has been established.",
+  "interpretation": "The sixteen-signature component uses 80.09 percent fewer cycles. The complete retained busy block fell from 104.557 billion to 102.198 billion cycles, a 2.26 percent reduction after the tree changes. Its exact journal matched, but it still exceeds the normal job bound. A genuine one-signature diagnostic receipt is retained separately; no block receipt or source-history admission was produced. Bootstrap budget and provider proving latency remain unmeasured.",
   "local_arithmetic_receipt": {
     "image_id": "8a7083ced530c68d820f9d9c3c7d97cb9f2d999820bf4087284b690dc2631a3b",
     "seconds": 0.075503625,
@@ -235,5 +244,14 @@
     "receipt_type": "succinct",
     "receipt_fixture": "tests/fixtures/script-accelerated-receipt.bin",
     "input_fixture": "tests/fixtures/script-accelerated-input.bin"
+  },
+  "full_source_comparison": {
+    "tree_control_cycles": 104557044301,
+    "signature_optimized_cycles": 102198405440,
+    "cycle_reduction_percent": 2.255839266276427,
+    "same_expected_journal": true,
+    "normal_job_cycle_bound": 2147483648,
+    "fits_normal_job_bound": false,
+    "fee_savings_measured": false
   }
 }

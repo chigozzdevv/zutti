@@ -36,3 +36,5 @@ A separate local run generated a genuine succinct receipt for the one-signature 
 ```sh
 cargo test --locked -p zutti-prover --test accelerators
 ```
+
+The full retained stress block used 102,198,405,440 cycles after transparent signature acceleration, versus 104,557,044,301 with the preceding tree-optimized image. The 2.26% whole-block reduction is separate from the 80.09% sixteen-signature component reduction. The later Sapling signature implementation is measured in its own [record](../source-sapling-signatures-2026-10-19.json).
