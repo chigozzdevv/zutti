@@ -375,12 +375,24 @@ dependencies = [
 
 [[package]]
 name = "bls12_381"
+version = "0.8.0"
+source = "git+https://github.com/risc0/zkcrypto-bls12_381?rev=a3192e1bc58921d42d03d99957abf3be55f9d435#a3192e1bc58921d42d03d99957abf3be55f9d435"
+dependencies = [
+ "bytemuck",
+ "ff 0.13.1",
+ "rand_core 0.6.4",
+ "risc0-bigint2",
+ "subtle",
+]
+
+[[package]]
+name = "bls12_381"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18f887f26229478dcd0e0d063566b51c68fb55a38fba21799c5f3371a74ec61f"
 dependencies = [
- "ff",
- "group",
+ "ff 0.14.0",
+ "group 0.14.0",
  "rand_core 0.10.1",
  "subtle",
 ]
@@ -723,6 +735,17 @@ checksum = "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826"
 
 [[package]]
 name = "ff"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c0b50bfb653653f9ca9095b427bed08ab8d75a137839d9ad64eb11810d5b6393"
+dependencies = [
+ "bitvec",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "ff"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1f686ab92a9fb0eaf188f6c6c87b89490baa6fdb0db4544ba4dc47f7942489f"
@@ -847,11 +870,22 @@ dependencies = [
 
 [[package]]
 name = "group"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0f9ef7462f7c099f518d754361858f86d8a07af53ba9af0fe635bbccb151a63"
+dependencies = [
+ "ff 0.13.1",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "group"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fd1a1c7a5206c5b7a3f5a0d7ccd3ff85d0c8f5133d62a02680255b0004af5f4"
 dependencies = [
- "ff",
+ "ff 0.14.0",
  "rand_core 0.10.1",
  "subtle",
 ]
@@ -937,14 +971,26 @@ dependencies = [
 
 [[package]]
 name = "jubjub"
+version = "0.10.0"
+dependencies = [
+ "bitvec",
+ "bls12_381 0.8.0",
+ "ff 0.13.1",
+ "group 0.13.0",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "jubjub"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95fdd9a071f72385ed8b17d819f273d73c3887a93d34d2ac1419fca5b25dbbd2"
 dependencies = [
  "bitvec",
- "bls12_381",
- "ff",
- "group",
+ "bls12_381 0.9.0",
+ "ff 0.14.0",
+ "group 0.14.0",
  "rand_core 0.10.1",
  "subtle",
 ]
@@ -1120,8 +1166,8 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a0ed53ba43531a06e1f82020907cf192fc3c25d7c0baf5c49c547b74e7103b62"
 dependencies = [
- "ff",
- "group",
+ "ff 0.14.0",
+ "group 0.14.0",
  "rand 0.10.3",
  "static_assertions",
  "subtle",
@@ -1297,9 +1343,9 @@ checksum = "4a70b6dbd7b3277cbd4d89ee750a30bebab3b9951ee4e166ce15c00975fe410f"
 dependencies = [
  "blake2b_simd",
  "byteorder",
- "group",
+ "group 0.14.0",
  "hex",
- "jubjub",
+ "jubjub 0.11.1",
  "pasta_curves",
  "rand_core 0.10.1",
 ]
@@ -1314,6 +1360,16 @@ dependencies = [
  "reddsa",
  "thiserror",
  "zeroize",
+]
+
+[[package]]
+name = "risc0-bigint2"
+version = "1.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43d497a20f29fafe5c188025761a05a62b3903a6b62e2f3fa20d77d0ab387ad0"
+dependencies = [
+ "include_bytes_aligned",
+ "stability",
 ]
 
 [[package]]
@@ -1555,15 +1611,15 @@ dependencies = [
  "bitvec",
  "blake2b_simd",
  "blake2s_simd",
- "bls12_381",
+ "bls12_381 0.9.0",
  "corez",
- "ff",
+ "ff 0.14.0",
  "fpe",
  "getset",
- "group",
+ "group 0.14.0",
  "hex",
  "incrementalmerkletree",
- "jubjub",
+ "jubjub 0.11.1",
  "lazy_static",
  "memuse",
  "rand 0.10.3",
@@ -1949,8 +2005,10 @@ dependencies = [
 name = "zutti-tree-profile"
 version = "0.1.0"
 dependencies = [
- "group",
- "jubjub",
+ "group 0.13.0",
+ "group 0.14.0",
+ "jubjub 0.10.0",
+ "jubjub 0.11.1",
  "risc0-zkvm",
  "sapling-crypto",
 ]

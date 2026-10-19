@@ -13,6 +13,8 @@ struct Args {
     count: u16,
     #[arg(long)]
     windowed: bool,
+    #[arg(long, requires = "windowed")]
+    accelerated: bool,
 }
 
 fn main() -> Result<()> {
@@ -23,7 +25,9 @@ fn main() -> Result<()> {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let target = risc0_build::get_target_dir(root.join("Cargo.toml"))
         .join("tree-profile")
-        .join(if args.windowed {
+        .join(if args.accelerated {
+            "accelerated"
+        } else if args.windowed {
             "windowed"
         } else {
             "reference"
@@ -39,7 +43,9 @@ fn main() -> Result<()> {
         .arg("--target-dir")
         .arg(&target)
         .arg("--release");
-    if args.windowed {
+    if args.accelerated {
+        build.args(["--features", "accelerated-trees"]);
+    } else if args.windowed {
         build.args(["--features", "windowed-trees"]);
     }
     if !build.status()?.success() {
@@ -77,7 +83,8 @@ fn main() -> Result<()> {
     }
     fs::write(args.out.join("journal.bin"), &session.journal.bytes)?;
     let report = serde_json::json!({
-        "hash_count":args.count,"windowed_trees":args.windowed,"public_data":true,
+        "hash_count":args.count,"windowed_trees":args.windowed,
+        "accelerated_trees":args.accelerated,"public_data":true,
         "cycles":session.cycles(),"segments":session.segments.len(),
         "padded_cycles":session.segments.iter().map(|s|1_u64 << s.po2).sum::<u64>(),
         "seconds":started.elapsed().as_secs_f64(),
