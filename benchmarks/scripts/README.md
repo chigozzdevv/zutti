@@ -30,3 +30,9 @@ cargo test --locked -p zutti-source \
 ```
 
 The [measurements](../source-scripts-2026-10-19.json) separate component work from complete block execution. Full source comparisons retain the old statement's expected journal and identify the candidate's different image. Matching that journal does not produce a receipt for the old image. The new policy requires its own proved ancestry before source admission.
+
+A separate local run generated a genuine succinct receipt for the one-signature accelerated program in 428.79 seconds. Its [public fixture descriptor](../../tests/fixtures/script-accelerated-receipt.json) binds the receipt, exact input and image hashes. The regression test verifies it with development receipts disabled and rejects a different image, changed journal and altered seal. This proves the diagnostic signature program's execution; it does not validate a block or establish source-history ancestry. No paid request or Ethereum wrapper was used.
+
+```sh
+cargo test --locked -p zutti-prover --test accelerators
+```
