@@ -45,6 +45,20 @@ fn source_jobs_resume_from_archived_coherent_programs_and_detect_elf_substitutio
         input: SourceInput::Genesis(genesis),
     };
     let job = SourceJob::transition_with(&witness, None, &programs).unwrap();
+    for cycles in [0, zutti_prover::source::MAX_DIAGNOSTIC_CYCLES + 1] {
+        let error = zutti_prover::query::LocalProver::new("must-not-run")
+            .compare_source_execution_with_limit(
+                &job,
+                std::path::Path::new("missing-candidate"),
+                None,
+                cycles,
+            )
+            .unwrap_err();
+        assert_eq!(
+            error.downcast_ref::<zutti_prover::Error>(),
+            Some(&zutti_prover::Error::Binding)
+        );
+    }
     for cycles in [0, MAX_SOURCE_CYCLES + 1] {
         let path = directory.path().join(format!("rejected-{cycles}"));
         assert!(job.export_public(&path, cycles).is_err());

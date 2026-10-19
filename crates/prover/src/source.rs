@@ -23,6 +23,7 @@ use zutti_source::{
 };
 
 pub const MAX_SOURCE_CYCLES: u64 = 2_147_483_648;
+pub const MAX_DIAGNOSTIC_CYCLES: u64 = 1 << 38;
 const MAX_SOURCE_STDIN: usize = MAX_WITNESS + 4 + MAX_RANGE_INPUTS * 260;
 
 #[derive(Debug, serde::Serialize)]
@@ -32,6 +33,7 @@ pub struct SourceExecutionComparison {
     pub expected_program: String,
     pub executed_program: String,
     pub program_matches_statement: bool,
+    pub cycle_limit: u64,
 }
 
 pub fn source_image_id() -> Digest {
@@ -451,7 +453,7 @@ impl LocalProver {
         job: &SourceJob,
         profile: Option<&Path>,
     ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
-        self.execute_source_program(job, job.program(), profile)
+        self.execute_source_program(job, job.program(), profile, MAX_SOURCE_CYCLES)
     }
     pub fn compare_source_execution(
         &self,
@@ -459,7 +461,19 @@ impl LocalProver {
         candidate: &Path,
         profile: &Path,
     ) -> Result<SourceExecutionComparison, Box<dyn std::error::Error>> {
+        self.compare_source_execution_with_limit(job, candidate, Some(profile), MAX_SOURCE_CYCLES)
+    }
+    pub fn compare_source_execution_with_limit(
+        &self,
+        job: &SourceJob,
+        candidate: &Path,
+        profile: Option<&Path>,
+        cycle_limit: u64,
+    ) -> Result<SourceExecutionComparison, Box<dyn std::error::Error>> {
         use std::io::Read;
+        if !(1..=MAX_DIAGNOSTIC_CYCLES).contains(&cycle_limit) {
+            return Err(Error::Binding.into());
+        }
         let file = std::fs::File::open(candidate)?;
         if !file.metadata()?.is_file() {
             return Err("candidate program must be a regular file".into());
@@ -472,10 +486,11 @@ impl LocalProver {
         }
         let executed = Digest(risc0_zkvm::compute_image_id(&bytes)?.into());
         Ok(SourceExecutionComparison {
-            execution: self.execute_source_program(job, &bytes, Some(profile))?,
+            execution: self.execute_source_program(job, &bytes, profile, cycle_limit)?,
             expected_program: job.statement.program().to_string(),
             executed_program: executed.to_string(),
             program_matches_statement: executed == job.statement.program(),
+            cycle_limit,
         })
     }
     fn execute_source_program(
@@ -483,11 +498,12 @@ impl LocalProver {
         job: &SourceJob,
         program: &[u8],
         profile: Option<&Path>,
+        cycle_limit: u64,
     ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
         let mut builder = ExecutorEnv::builder();
         builder
             .write_slice(job.stdin.as_slice())
-            .session_limit(Some(MAX_SOURCE_CYCLES))
+            .session_limit(Some(cycle_limit))
             .segment_limit_po2(20);
         if let Some(path) = profile {
             builder.enable_profiler(path);

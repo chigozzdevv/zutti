@@ -239,6 +239,19 @@ enum Command {
         #[arg(long, requires = "profile")]
         candidate: Option<PathBuf>,
     },
+    #[command(about = "Measure a candidate locally without generating a proof")]
+    Compare {
+        #[arg(long)]
+        job: PathBuf,
+        #[arg(long)]
+        candidate: PathBuf,
+        #[arg(long, default_value = "r0vm")]
+        prover: PathBuf,
+        #[arg(long)]
+        profile: Option<PathBuf>,
+        #[arg(long, default_value_t = MAX_SOURCE_CYCLES, value_parser = clap::value_parser!(u64).range(1..=zutti_prover::source::MAX_DIAGNOSTIC_CYCLES))]
+        cycle_limit: u64,
+    },
     Prove {
         #[arg(long)]
         job: PathBuf,
@@ -620,6 +633,22 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                     serde_json::to_value(prover.execute_source_profiled(&job, profile.as_deref())?)?
                 }
             };
+            println!("{}", serde_json::to_string(&metrics)?);
+        }
+        Command::Compare {
+            job,
+            candidate,
+            prover,
+            profile,
+            cycle_limit,
+        } => {
+            let job = SourceJob::read_public(&job)?;
+            let metrics = LocalProver::new(prover).compare_source_execution_with_limit(
+                &job,
+                &candidate,
+                profile.as_deref(),
+                cycle_limit,
+            )?;
             println!("{}", serde_json::to_string(&metrics)?);
         }
         Command::Prove { job, out, prover } => {
