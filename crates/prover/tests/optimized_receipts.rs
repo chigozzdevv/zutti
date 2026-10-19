@@ -131,6 +131,33 @@ fn optimized_full_prefix_receipt_matches_the_proved_range_end() {
 }
 
 #[test]
+fn direct_prefix_receipt_matches_the_range_fold_result_and_rejects_tampering() {
+    let (_, initial, _) = genesis();
+    let value: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/source-optimized-direct-prefix-128-proof.json"
+    ))
+    .unwrap();
+    let direct = import(&value, ProofKind::SourceTransition, initial.policy);
+    let folded = serde_json::from_str(include_str!(
+        "../../../tests/fixtures/source-optimized-prefix-128-proof.json"
+    ))
+    .unwrap();
+    let folded = import(&folded, ProofKind::SourceTransition, initial.policy);
+    assert_eq!(direct.statement(), folded.statement());
+    let claim = SourceReceiptClaim::from_bytes(direct.statement().payload()).unwrap();
+    assert_eq!(claim.height, 128);
+    assert_eq!(claim.genesis, initial.genesis);
+    let mut changed = value;
+    let mut seal = hex::decode(changed["seal"].as_str().unwrap()).unwrap();
+    seal[259] ^= 1;
+    changed["seal"] = hex::encode(seal).into();
+    let directory = tempfile::tempdir().unwrap();
+    let path = directory.path().join("result.json");
+    zutti_wallet::backup::persist_new(&path, &serde_json::to_vec(&changed).unwrap()).unwrap();
+    assert!(import_groth16(&path, direct.statement()).is_err());
+}
+
+#[test]
 #[ignore = "requires retained optimized ELFs, public Testnet blocks and the genuine prefix artifact"]
 fn optimized_prefix_completes_and_reopens_the_128_block_native_queue() {
     use std::path::PathBuf;
@@ -174,9 +201,8 @@ fn optimized_prefix_completes_and_reopens_the_128_block_native_queue() {
         bootstrap.range_job(batch).unwrap().statement(),
         range.statement()
     );
-    bootstrap.accept_range(batch, &range).unwrap();
     assert_eq!(
-        bootstrap.fold_job(batch).unwrap().statement(),
+        bootstrap.continue_job(batch).unwrap().statement(),
         prefix.statement()
     );
     bootstrap.accept_prefix(&prefix).unwrap();
