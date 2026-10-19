@@ -11,7 +11,7 @@ This repository implements Rust protocol components, native Zcash transaction va
 | `wallet/ethereum` | Pinned Helios beacon light-client verification, committee transitions, finalized execution-header binding and EIP-1186 account/storage proofs for reserved escrows | Trusted Ethereum bootstrap profile, live reservation evidence and wallet signing integration |
 | `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, current-chain bootstrap evidence, deployed fork/stability admission and current-chain storage/throughput measurements |
 | `prover` | RISC Zero history-query, preparation, private-pool, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, cross-chain reservation/settlement integration and independent recovery |
-| `boundless` | Capped Base proof requests, public demo transport, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
+| `boundless` | Capped Base and Sepolia proof requests, public inputs, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
 | `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Current-chain bootstrap, cross-chain composition, finality and network deployment |
 | `recovery` | Local archive authentication/inspection with private key-file input | Validated swap-record restoration and independent on-chain claim/refund execution |
 
@@ -164,6 +164,8 @@ cargo run --locked -p zutti-prover --bin private-prover -- import-boundless \
 
 Testnet requests submit directly onchain and do not depend on an order-stream service. `deposit --amount-wei <amount>` is restricted to testnets and refuses an amount above the configured proof-price cap. Automatic deposits remain disabled. Exported jobs supply the expected journal and measured cycle budget, so submission does not execute or prove the guest locally. Request records retain the submission block to bound event queries during collection. Returned raw Groth16 proofs are checked against the exact expected statement; a testnet transport label does not replace cryptographic verification. Listed testnet deployments do not guarantee active provers or capacity for a full source bootstrap.
 
+The [20 October 2026 Sepolia probe](benchmarks/source-sepolia-2026-10-20.json) submitted one real Zcash Testnet genesis job with a 64-million-cycle budget and a 0.001 test-ETH price ceiling. The contract accepted the request, but it expired after 30 minutes without a lock or fulfillment. Anonymous program/input downloads succeeded, and the Sepolia verifier accepted an existing genuine receipt while rejecting altered seals and image IDs. No new proof was returned or verified. The deposited proving balance remained unchanged. This attempt did not demonstrate testnet proving capacity or establish why no prover took the request.
+
 This transport publishes program/input data through Pinata/IPFS and accepts only jobs explicitly marked `public`. **Use generated demo witnesses only.** It does not implement restricted S3 delivery or confidential computation. Encrypting a note does not conceal its opening when that opening is included in a proving witness.
 
 The generated two-action preparation benchmark on 17 October 2026 produced a genuine 260-byte raw Groth16 seal. Rust and the upstream Solidity verifier accepted it; changed order, domain and seal checks rejected it.
@@ -278,7 +280,7 @@ crates/wallet/         local Zcash inspection and encrypted archive primitives
 crates/source/         public block parsing and candidate history/index processing
 crates/prover/         local/remote private component proofs and strict receipt verification
 crates/prover/methods/ compiled RISC Zero guest and generated program identity
-crates/boundless/      isolated native paid proof transport and public demo evidence
+crates/boundless/      isolated native proof transport and public demo evidence
 crates/recovery/       independent native archive inspection CLI
 tests/fixtures/       cross-language vectors and attributed public Zcash blocks
 tests/support/        shared integration-test constructors, never production defaults
