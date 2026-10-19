@@ -2,27 +2,42 @@ use group::Curve;
 use jubjub::{AffineNielsPoint, ExtendedPoint};
 use std::sync::OnceLock;
 
-const CHUNKS: usize = 172;
-const CHUNKS_PER_GENERATOR: usize = 63;
+const GENERATOR_CHUNKS: [usize; 3] = [63, 63, 46];
 static TABLE: OnceLock<Vec<AffineNielsPoint>> = OnceLock::new();
 
 fn table() -> &'static [AffineNielsPoint] {
     TABLE.get_or_init(|| {
-        let mut points = Vec::with_capacity(CHUNKS * 4);
-        for (index, generator) in ::sapling::constants::PEDERSEN_HASH_GENERATORS
+        let capacity = GENERATOR_CHUNKS
             .iter()
-            .take(3)
-            .enumerate()
+            .map(|n| n / 2 * 32 + n % 2 * 4)
+            .sum();
+        let mut points = Vec::with_capacity(capacity);
+        for (generator, chunks) in ::sapling::constants::PEDERSEN_HASH_GENERATORS
+            .iter()
+            .zip(GENERATOR_CHUNKS)
         {
-            let chunks = (CHUNKS - index * CHUNKS_PER_GENERATOR).min(CHUNKS_PER_GENERATOR);
             let mut base = ExtendedPoint::from(*generator);
-            for _ in 0..chunks {
-                let mut multiple = base;
-                for _ in 0..4 {
-                    points.push(multiple);
-                    multiple += base;
+            for chunk in (0..chunks).step_by(2) {
+                if chunk + 1 == chunks {
+                    let mut multiple = base;
+                    for _ in 0..4 {
+                        points.push(multiple);
+                        multiple += base;
+                    }
+                } else {
+                    let high_base = base.double().double().double().double();
+                    let mut high = high_base;
+                    for _ in 0..4 {
+                        let mut low = base;
+                        for _ in 0..4 {
+                            points.push(high + low);
+                            points.push(high - low);
+                            low += base;
+                        }
+                        high += high_base;
+                    }
+                    base = high_base.double().double().double().double();
                 }
-                base = base.double().double().double().double();
             }
         }
         jubjub::batch_normalize(&mut points)
@@ -38,14 +53,29 @@ pub(super) fn merkle_hash(depth: usize, left: &[u8; 32], right: &[u8; 32]) -> [u
         6..261 => usize::from((left[(index - 6) / 8] >> ((index - 6) % 8)) & 1),
         _ => usize::from((right[(index - 261) / 8] >> ((index - 261) % 8)) & 1),
     };
+    let points = table();
     let mut result = ExtendedPoint::identity();
-    for (chunk, multiples) in table().chunks_exact(4).enumerate() {
-        let start = chunk * 3;
-        let point = &multiples[bit(start) + 2 * bit(start + 1)];
-        if bit(start + 2) == 0 {
-            result += point;
-        } else {
-            result -= point;
+    let mut start = 0;
+    let mut offset = 0;
+    for chunks in GENERATOR_CHUNKS {
+        for chunk in (0..chunks).step_by(2) {
+            let low = bit(start) + 2 * bit(start + 1);
+            let (index, sign) = if chunk + 1 == chunks {
+                offset += 4;
+                (offset - 4 + low, bit(start + 2))
+            } else {
+                let high = bit(start + 3) + 2 * bit(start + 4);
+                let sign = bit(start + 5);
+                let index = offset + high * 8 + low * 2 + (bit(start + 2) ^ sign);
+                offset += 32;
+                (index, sign)
+            };
+            if sign == 0 {
+                result += &points[index];
+            } else {
+                result -= &points[index];
+            }
+            start += if chunk + 1 == chunks { 3 } else { 6 };
         }
     }
     result.to_affine().get_u().to_bytes()
@@ -54,6 +84,29 @@ pub(super) fn merkle_hash(depth: usize, left: &[u8; 32], right: &[u8; 32]) -> [u
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn paired_windows_match_all_signs_and_generator_boundaries() {
+        for start in [6, 186, 189, 375, 378, 510] {
+            for pattern in 0_u8..64 {
+                let mut left = [0; 32];
+                let mut right = [0; 32];
+                for bit in 0..6 {
+                    let index = start + bit - 6;
+                    let (child, position) = if index < 255 {
+                        (&mut left, index)
+                    } else {
+                        (&mut right, index - 255)
+                    };
+                    child[position / 8] |= ((pattern >> bit) & 1) << (position % 8);
+                }
+                assert_eq!(
+                    merkle_hash(17, &left, &right),
+                    ::sapling::merkle_hash(17, &left, &right)
+                );
+            }
+        }
+    }
 
     #[test]
     fn signed_chunks_match_upstream_at_every_tree_depth() {
