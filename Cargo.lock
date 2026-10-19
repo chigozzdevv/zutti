@@ -448,6 +448,22 @@ checksum = "32637268377fc7b10a8c6d51de3e7fba1ce5dd371a96e342b34e6078db558e7f"
 
 [[package]]
 name = "bellman"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9afceed28bac7f9f5a508bca8aeeff51cdfa4770c0b967ac55c621e2ddfd6171"
+dependencies = [
+ "bitvec",
+ "blake2s_simd",
+ "byteorder",
+ "ff 0.13.1",
+ "group 0.13.0",
+ "pairing 0.23.0",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "bellman"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "973b16549796a1274a63e00159a03250e66e8263e2ac6344b1c9fdfe9b7a8325"
@@ -612,13 +628,26 @@ dependencies = [
 
 [[package]]
 name = "bls12_381"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7bc6d6292be3a19e6379786dac800f551e5865a5bb51ebbe3064ab80433f403"
+dependencies = [
+ "ff 0.13.1",
+ "group 0.13.0",
+ "pairing 0.23.0",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "bls12_381"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18f887f26229478dcd0e0d063566b51c68fb55a38fba21799c5f3371a74ec61f"
 dependencies = [
  "ff 0.14.0",
  "group 0.14.0",
- "pairing",
+ "pairing 0.24.0",
  "rand_core 0.10.1",
  "subtle",
  "zeroize",
@@ -1794,6 +1823,7 @@ version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0b50bfb653653f9ca9095b427bed08ab8d75a137839d9ad64eb11810d5b6393"
 dependencies = [
+ "bitvec",
  "rand_core 0.6.4",
  "subtle",
 ]
@@ -2090,11 +2120,11 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8bb1e0bde2dbacd81474ae216c5dd4901307bd1c75fd26ed49590e88048c8442"
 dependencies = [
- "bellman",
+ "bellman 0.15.0",
  "byteorder",
  "ff 0.14.0",
  "group 0.14.0",
- "pairing",
+ "pairing 0.24.0",
  "rand 0.10.3",
  "rand_core 0.10.1",
  "rayon",
@@ -2802,7 +2832,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95fdd9a071f72385ed8b17d819f273d73c3887a93d34d2ac1419fca5b25dbbd2"
 dependencies = [
  "bitvec",
- "bls12_381",
+ "bls12_381 0.9.0",
  "ff 0.14.0",
  "group 0.14.0",
  "rand_core 0.10.1",
@@ -3414,6 +3444,15 @@ checksum = "13c45bb4a6ae1280ec0803b1ef9d3455eb50f01efbbe1447ab020f1d54fba9d8"
 
 [[package]]
 name = "pairing"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
+dependencies = [
+ "group 0.13.0",
+]
+
+[[package]]
+name = "pairing"
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33f6413397336802d16a342e69a5bd9c8b8cc2fa9fc9298044cd3443f77f1010"
@@ -3510,7 +3549,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4875346691fe8d61ee4995e0be580530893f5aacf08d8fae14bfd2c0733ecb9"
 dependencies = [
  "blake2b_simd",
- "bls12_381",
+ "bls12_381 0.9.0",
  "document-features",
  "ff 0.14.0",
  "getset",
@@ -4492,11 +4531,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a2cbdcfeef20006adf72699cd466f21fe349674277cc05d3fc9b7302db7b182"
 dependencies = [
  "aes",
- "bellman",
+ "bellman 0.15.0",
  "bitvec",
  "blake2b_simd",
  "blake2s_simd",
- "bls12_381",
+ "bls12_381 0.9.0",
  "corez",
  "document-features",
  "ff 0.14.0",
@@ -6391,6 +6430,8 @@ dependencies = [
  "orchard",
  "pczt",
  "rand 0.10.3",
+ "risc0-binfmt",
+ "risc0-build",
  "risc0-zkvm",
  "serde",
  "serde_json",
@@ -6425,9 +6466,11 @@ dependencies = [
  "ark-bn254",
  "ark-ec",
  "ark-ff",
- "bellman",
+ "bellman 0.14.0",
+ "bellman 0.15.0",
  "blake2b_simd",
- "bls12_381",
+ "bls12_381 0.8.0",
+ "bls12_381 0.9.0",
  "clap",
  "ed25519-zebra",
  "groth16",

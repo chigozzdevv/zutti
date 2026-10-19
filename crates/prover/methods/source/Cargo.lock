@@ -319,6 +319,22 @@ checksum = "32637268377fc7b10a8c6d51de3e7fba1ce5dd371a96e342b34e6078db558e7f"
 
 [[package]]
 name = "bellman"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9afceed28bac7f9f5a508bca8aeeff51cdfa4770c0b967ac55c621e2ddfd6171"
+dependencies = [
+ "bitvec",
+ "blake2s_simd",
+ "byteorder",
+ "ff 0.13.1",
+ "group 0.13.0",
+ "pairing 0.23.0",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "bellman"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "973b16549796a1274a63e00159a03250e66e8263e2ac6344b1c9fdfe9b7a8325"
@@ -327,8 +343,8 @@ dependencies = [
  "blake2s_simd",
  "byteorder",
  "crossbeam-channel",
- "ff",
- "group",
+ "ff 0.14.0",
+ "group 0.14.0",
  "log",
  "num_cpus",
  "rand_core 0.10.1",
@@ -455,13 +471,27 @@ dependencies = [
 
 [[package]]
 name = "bls12_381"
+version = "0.8.0"
+source = "git+https://github.com/risc0/zkcrypto-bls12_381?rev=a3192e1bc58921d42d03d99957abf3be55f9d435#a3192e1bc58921d42d03d99957abf3be55f9d435"
+dependencies = [
+ "bytemuck",
+ "ff 0.13.1",
+ "group 0.13.0",
+ "pairing 0.23.0",
+ "rand_core 0.6.4",
+ "risc0-bigint2",
+ "subtle",
+]
+
+[[package]]
+name = "bls12_381"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18f887f26229478dcd0e0d063566b51c68fb55a38fba21799c5f3371a74ec61f"
 dependencies = [
- "ff",
- "group",
- "pairing",
+ "ff 0.14.0",
+ "group 0.14.0",
+ "pairing 0.24.0",
  "rand_core 0.10.1",
  "subtle",
  "zeroize",
@@ -1159,6 +1189,17 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "ff"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c0b50bfb653653f9ca9095b427bed08ab8d75a137839d9ad64eb11810d5b6393"
+dependencies = [
+ "bitvec",
+ "rand_core 0.6.4",
+ "subtle",
+]
+
+[[package]]
+name = "ff"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1f686ab92a9fb0eaf188f6c6c87b89490baa6fdb0db4544ba4dc47f7942489f"
@@ -1417,14 +1458,25 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8bb1e0bde2dbacd81474ae216c5dd4901307bd1c75fd26ed49590e88048c8442"
 dependencies = [
- "bellman",
+ "bellman 0.15.0",
  "byteorder",
- "ff",
- "group",
- "pairing",
+ "ff 0.14.0",
+ "group 0.14.0",
+ "pairing 0.24.0",
  "rand 0.10.3",
  "rand_core 0.10.1",
  "rayon",
+]
+
+[[package]]
+name = "group"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0f9ef7462f7c099f518d754361858f86d8a07af53ba9af0fe635bbccb151a63"
+dependencies = [
+ "ff 0.13.1",
+ "rand_core 0.6.4",
+ "subtle",
 ]
 
 [[package]]
@@ -1433,7 +1485,7 @@ version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fd1a1c7a5206c5b7a3f5a0d7ccd3ff85d0c8f5133d62a02680255b0004af5f4"
 dependencies = [
- "ff",
+ "ff 0.14.0",
  "memuse",
  "rand_core 0.10.1",
  "subtle",
@@ -1447,8 +1499,8 @@ checksum = "8862c7f2d99964760016516103fcc621352e77a505b22b0fc25140f09e4b8bb0"
 dependencies = [
  "arrayvec",
  "bitvec",
- "ff",
- "group",
+ "ff 0.14.0",
+ "group 0.14.0",
  "halo2_poseidon",
  "halo2_proofs",
  "pasta_curves",
@@ -1471,8 +1523,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "800f76fa421515e2729192e3863bb0a58f30fe17a9a165ea5e778a157adeb579"
 dependencies = [
  "bitvec",
- "ff",
- "group",
+ "ff 0.14.0",
+ "group 0.14.0",
  "pasta_curves",
 ]
 
@@ -1483,8 +1535,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5af2a9457f494f862cd07b81c2e98a19f50b06a2057b7569450d7c26b167d1c"
 dependencies = [
  "blake2b_simd",
- "ff",
- "group",
+ "ff 0.14.0",
+ "group 0.14.0",
  "halo2_legacy_pdqsort",
  "indexmap 2.14.2",
  "maybe-rayon",
@@ -1784,9 +1836,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95fdd9a071f72385ed8b17d819f273d73c3887a93d34d2ac1419fca5b25dbbd2"
 dependencies = [
  "bitvec",
- "bls12_381",
- "ff",
- "group",
+ "bls12_381 0.9.0",
+ "ff 0.14.0",
+ "group 0.14.0",
  "rand_core 0.10.1",
  "subtle",
  "zeroize",
@@ -2047,10 +2099,10 @@ dependencies = [
  "bitvec",
  "blake2b_simd",
  "corez",
- "ff",
+ "ff 0.14.0",
  "fpe",
  "getset",
- "group",
+ "group 0.14.0",
  "halo2_gadgets",
  "halo2_poseidon",
  "halo2_proofs",
@@ -2076,11 +2128,20 @@ dependencies = [
 
 [[package]]
 name = "pairing"
+version = "0.23.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
+dependencies = [
+ "group 0.13.0",
+]
+
+[[package]]
+name = "pairing"
 version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33f6413397336802d16a342e69a5bd9c8b8cc2fa9fc9298044cd3443f77f1010"
 dependencies = [
- "group",
+ "group 0.14.0",
 ]
 
 [[package]]
@@ -2118,8 +2179,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a0ed53ba43531a06e1f82020907cf192fc3c25d7c0baf5c49c547b74e7103b62"
 dependencies = [
  "blake2b_simd",
- "ff",
- "group",
+ "ff 0.14.0",
+ "group 0.14.0",
  "lazy_static",
  "rand 0.10.3",
  "static_assertions",
@@ -2402,7 +2463,7 @@ checksum = "4a70b6dbd7b3277cbd4d89ee750a30bebab3b9951ee4e166ce15c00975fe410f"
 dependencies = [
  "blake2b_simd",
  "byteorder",
- "group",
+ "group 0.14.0",
  "hex",
  "jubjub",
  "pasta_curves",
@@ -2471,6 +2532,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4dd4211456b4172d7e44261920c25acf07367c4f04bb5f5d54fc21b090d9b159"
 dependencies = [
  "digest 0.11.3",
+]
+
+[[package]]
+name = "risc0-bigint2"
+version = "1.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43d497a20f29fafe5c188025761a05a62b3903a6b62e2f3fa20d77d0ab387ad0"
+dependencies = [
+ "include_bytes_aligned",
+ "stability",
 ]
 
 [[package]]
@@ -2728,18 +2799,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a2cbdcfeef20006adf72699cd466f21fe349674277cc05d3fc9b7302db7b182"
 dependencies = [
  "aes",
- "bellman",
+ "bellman 0.15.0",
  "bitvec",
  "blake2b_simd",
  "blake2s_simd",
- "bls12_381",
+ "bls12_381 0.9.0",
  "corez",
  "document-features",
- "ff",
+ "ff 0.14.0",
  "fpe",
  "getset",
  "groth16",
- "group",
+ "group 0.14.0",
  "hex",
  "incrementalmerkletree",
  "jubjub",
@@ -2980,7 +3051,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72744738b764bb3bb7bb5dcf71b62d19c2de8a09f850a7388f6088f244037299"
 dependencies = [
- "group",
+ "group 0.14.0",
  "pasta_curves",
  "subtle",
 ]
@@ -3550,7 +3621,7 @@ dependencies = [
  "corez",
  "document-features",
  "equihash",
- "ff",
+ "ff 0.14.0",
  "hex",
  "incrementalmerkletree",
  "jubjub",
@@ -3654,7 +3725,7 @@ dependencies = [
  "ed25519-zebra",
  "equihash",
  "futures",
- "group",
+ "group 0.14.0",
  "halo2_proofs",
  "hex",
  "humantime",
@@ -3774,12 +3845,14 @@ dependencies = [
  "ark-bn254",
  "ark-ec",
  "ark-ff",
- "bellman",
+ "bellman 0.14.0",
+ "bellman 0.15.0",
  "blake2b_simd",
- "bls12_381",
+ "bls12_381 0.8.0",
+ "bls12_381 0.9.0",
  "ed25519-zebra",
  "groth16",
- "group",
+ "group 0.14.0",
  "im",
  "incrementalmerkletree",
  "jubjub",

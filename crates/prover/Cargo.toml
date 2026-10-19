@@ -26,6 +26,8 @@ base64 = "=0.23.1"
 ureq = { version = "=3.4.2", default-features = false, features = ["rustls", "json"] }
 
 [dev-dependencies]
+risc0-build.workspace = true
+risc0-binfmt.workspace = true
 zebra-test = "=4.0.0"
 zutti-source = { workspace = true, features = ["blocks"] }
 pczt = { workspace = true, features = ["signer"] }

@@ -1,11 +1,14 @@
 use bellman::gadgets::multipack;
-use bls12_381::{Bls12, Scalar};
+use bls12_381::Scalar;
 use group::{Curve, GroupEncoding, ff::PrimeField};
 use orchard::circuit::{OrchardCircuitVersion, VerifyingKey};
 use std::sync::OnceLock;
 use transparent::bundle::TxOut;
 use zcash_primitives::transaction::Transaction;
 use zcash_script::script::Code;
+
+mod groth;
+use groth::{PreparedKey, check_proof, read_key};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
@@ -25,7 +28,6 @@ pub enum Error {
     Orchard,
 }
 type Result<T> = core::result::Result<T, Error>;
-type PreparedKey = groth16::PreparedVerifyingKey<Bls12>;
 
 pub fn verify(tx: &Transaction, prevouts: &[TxOut]) -> Result<()> {
     if tx.sprout_bundle().is_none()
@@ -151,14 +153,6 @@ pub fn verify(tx: &Transaction, prevouts: &[TxOut]) -> Result<()> {
     Ok(())
 }
 
-fn read_key(bytes: &[u8]) -> Result<PreparedKey> {
-    let mut remaining = bytes;
-    let key = groth16::VerifyingKey::read(&mut remaining).map_err(|_| Error::Key)?;
-    if !remaining.is_empty() {
-        return Err(Error::Key);
-    }
-    Ok(groth16::prepare_verifying_key(&key))
-}
 fn sapling_spend_key() -> Result<&'static PreparedKey> {
     static KEY: OnceLock<Result<PreparedKey>> = OnceLock::new();
     KEY.get_or_init(|| read_key(include_bytes!("../parameters/sapling-spend.vk")))
@@ -176,10 +170,6 @@ fn sprout_key() -> Result<&'static PreparedKey> {
     KEY.get_or_init(|| read_key(include_bytes!("../parameters/sprout-groth16.vk")))
         .as_ref()
         .map_err(|_| Error::Key)
-}
-fn check_proof(key: &PreparedKey, bytes: &[u8; 192], inputs: &[Scalar]) -> Result<()> {
-    let proof = groth16::Proof::read(bytes.as_slice()).map_err(|_| Error::Key)?;
-    groth16::verify_proof(key, &proof, inputs).map_err(|_| Error::Key)
 }
 fn orchard_key(version: OrchardCircuitVersion) -> &'static VerifyingKey {
     static ORIGINAL: OnceLock<VerifyingKey> = OnceLock::new();

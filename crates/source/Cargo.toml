@@ -8,6 +8,8 @@ publish.workspace = true
 [features]
 default = ["blocks", "cli"]
 authenticated = ["dep:im"]
+accelerated-proofs = ["blocks", "dep:bellman-legacy", "dep:bls12-381-legacy"]
+windowed-inputs = ["accelerated-proofs"]
 blocks = ["authenticated", "zutti-protocol/pool", "dep:zcash_primitives", "dep:zcash_protocol", "dep:sha2", "dep:blake2b_simd", "dep:zcash_encoding", "dep:zcash_script", "zcash_script/signature-validation", "dep:transparent", "dep:num-bigint", "dep:zcash_history", "dep:primitive-types", "dep:incrementalmerkletree", "dep:sapling", "dep:orchard", "orchard/circuit", "dep:bellman", "dep:groth16", "dep:bls12_381", "dep:group", "dep:jubjub", "dep:ed25519-zebra", "dep:zebra-chain", "dep:ark-bn254", "dep:ark-ec", "dep:ark-ff"]
 storage = ["blocks", "dep:rusqlite", "dep:tempfile"]
 cli = ["blocks", "dep:clap", "dep:serde_json", "dep:hex"]
@@ -44,6 +46,8 @@ transparent = { package = "zcash_transparent", version = "=0.11.0-pre.0", defaul
 groth16 = { version = "=0.2.0", default-features = false, optional = true }
 bellman = { version = "=0.15.0", default-features = false, optional = true }
 bls12_381 = { version = "=0.9.0", optional = true }
+bellman-legacy = { package = "bellman", version = "=0.14.0", default-features = false, features = ["groth16"], optional = true }
+bls12-381-legacy = { package = "bls12_381", version = "=0.8.0", optional = true }
 group = { version = "=0.14.0", optional = true }
 jubjub = { version = "=0.11.1", optional = true }
 ed25519-zebra = { version = "=5.0.0", optional = true }
@@ -58,6 +62,8 @@ rusqlite = { version = "=0.40.2", features = ["bundled"], optional = true }
 im = { version = "=15.1.0", optional = true }
 
 [dev-dependencies]
+hex.workspace = true
+serde_json.workspace = true
 tempfile.workspace = true
 zebra-chain = { version = "=14.0.0", default-features = false }
 zebra-test = "=4.0.0"
