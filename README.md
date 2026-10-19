@@ -138,7 +138,7 @@ Guest image IDs can change when dependencies or crate layouts are rebuilt. The v
 
 ## Boundless public demonstration
 
-`crates/boundless` is a separate native workspace pinned to `boundless-market` 2.0.1 and Alloy 1.8.3. This keeps transport dependencies out of the Zcash guest dependency graph. It uses the Base mainnet Boundless market for proving payments; this does not deploy a Zutti pool or execute a mainnet swap.
+`crates/boundless` is a separate native workspace pinned to `boundless-market` 2.0.1 and Alloy 1.8.3. This keeps transport dependencies out of the Zcash guest dependency graph. Select `--network ethereum-sepolia` or `--network base-sepolia` for faucet-funded requests. Existing commands default to the paid Base mainnet market; this does not deploy a Zutti pool or execute a mainnet swap. The selected network and RPC chain ID must agree, and fallback RPC URLs stay on that network.
 
 Configure an owner-only `.data/boundless.env` using the fields in [the configuration example](crates/boundless/.env.example). The price cap is a fixed wei amount, not a floating dollar limit. The client verifies the signer/address and chain, disables automatic funding, refuses to overwrite request records and caps each request before submission. A failed or interrupted submission retains its request ID; inspect or collect that request before attempting another paid job.
 
@@ -148,6 +148,21 @@ pnpm run test:boundless
 ```
 
 The second command **spends the configured proving balance**. It generates a synthetic preparation witness, exports the pinned program/input/expected statement, submits one job, collects the raw Groth16 seal and timing evidence, cryptographically imports it against the locally retained statement, and runs the actual Solidity verifier and tampering checks. Routine `pnpm test` never purchases a proof. The Solidity real-proof test is explicitly skipped unless `ZUTTI_PUBLIC_JOB_DIR` points to retained evidence.
+
+For a Testnet source job, use a separate owner-only configuration whose RPC points to the selected testnet:
+
+```sh
+bash scripts/boundless.sh --network ethereum-sepolia --config /absolute/sepolia.env balance
+bash scripts/boundless.sh --network ethereum-sepolia --config /absolute/sepolia.env \
+  submit --job /absolute/source-job/job.json --request /absolute/source-job/request.json
+bash scripts/boundless.sh --network ethereum-sepolia --config /absolute/sepolia.env \
+  collect --request /absolute/source-job/request.json --out /absolute/source-job/result.json
+cargo run --locked -p zutti-prover --bin private-prover -- import-boundless \
+  --result /absolute/source-job/result.json --statement /absolute/source-job/statement.bin \
+  --out /absolute/source-job/source.proof
+```
+
+Testnet requests submit directly onchain and do not depend on an order-stream service. `deposit --amount-wei <amount>` is restricted to testnets and refuses an amount above the configured proof-price cap. Automatic deposits remain disabled. Exported jobs supply the expected journal and measured cycle budget, so submission does not execute or prove the guest locally. Request records retain the submission block to bound event queries during collection. Returned raw Groth16 proofs are checked against the exact expected statement; a testnet transport label does not replace cryptographic verification. Listed testnet deployments do not guarantee active provers or capacity for a full source bootstrap.
 
 This transport publishes program/input data through Pinata/IPFS and accepts only jobs explicitly marked `public`. **Use generated demo witnesses only.** It does not implement restricted S3 delivery or confidential computation. Encrypting a note does not conceal its opening when that opening is included in a proving witness.
 

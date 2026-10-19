@@ -3,11 +3,12 @@ use anyhow::{Context, Result, ensure};
 use boundless_market::{
     Client, Deployment, StorageUploaderConfig,
     client::FundingMode,
+    contracts::RequestStatus,
     price_oracle::{Amount, Asset},
     request_builder::OfferParams,
     storage::StorageUploaderType,
 };
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use risc0_zkvm::{Journal, compute_image_id, sha::Digest};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -23,15 +24,62 @@ use zeroize::{Zeroize, Zeroizing};
 #[derive(Parser)]
 #[command(name = "zutti-boundless")]
 struct Args {
+    #[arg(long, global = true, value_enum, default_value = "base")]
+    network: Network,
     #[arg(long, default_value = ".data/boundless.env")]
     config: PathBuf,
     #[command(subcommand)]
     command: Command,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+enum Network {
+    Base,
+    EthereumSepolia,
+    BaseSepolia,
+}
+impl Network {
+    const fn chain_id(self) -> u64 {
+        match self {
+            Self::Base => 8453,
+            Self::EthereumSepolia => 11155111,
+            Self::BaseSepolia => 84532,
+        }
+    }
+    const fn fallback(self) -> &'static str {
+        match self {
+            Self::Base => "https://mainnet.base.org",
+            Self::EthereumSepolia => "https://ethereum-sepolia-rpc.publicnode.com",
+            Self::BaseSepolia => "https://sepolia.base.org",
+        }
+    }
+    fn require_chain(self, actual: u64) -> Result<()> {
+        ensure!(
+            actual == self.chain_id(),
+            "RPC chain does not match selected network"
+        );
+        Ok(())
+    }
+    fn require_deposit(self, amount: u64, cap: u64) -> Result<()> {
+        ensure!(
+            self != Self::Base,
+            "deposits through this command are restricted to testnets"
+        );
+        ensure!(
+            amount > 0 && cap > 0 && amount <= cap,
+            "deposit exceeds configured testnet price cap"
+        );
+        Ok(())
+    }
+}
+
 #[derive(Subcommand)]
 enum Command {
     Balance,
+    Deposit {
+        #[arg(long, value_parser = clap::value_parser!(u64).range(1..))]
+        amount_wei: u64,
+    },
     Status {
         #[arg(long)]
         request: PathBuf,
@@ -141,6 +189,8 @@ struct Request {
     max_price_wei: String,
     input_visibility: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    submitted_block: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     proof_request: Option<serde_json::Value>,
 }
 
@@ -223,6 +273,7 @@ async fn run(args: Args, config: &Config) -> Result<()> {
         !risc0_zkvm::ProverOpts::default().dev_mode(),
         "development mode is not allowed"
     );
+    let network = args.network;
     let signer: PrivateKeySigner = config
         .get("BOUNDLESS_PRIVATE_KEY")?
         .parse()
@@ -237,22 +288,39 @@ async fn run(args: Args, config: &Config) -> Result<()> {
     storage.pinata_jwt = Some(config.get("PINATA_JWT")?.to_owned());
     let client = Client::builder()
         .with_rpc_url(config.get("BOUNDLESS_RPC_URL")?.parse()?)
-        .with_rpc_urls(vec!["https://mainnet.base.org".parse()?])
+        .with_rpc_urls(vec![network.fallback().parse()?])
         .with_deployment(Some(
-            Deployment::from_chain_id(8453_u64).context("Base deployment unavailable")?,
+            Deployment::from_chain_id(network.chain_id())
+                .context("selected deployment unavailable")?,
         ))
         .with_uploader_config(&storage)
         .await?
         .config_storage_layer(|c| c.inline_input_max_bytes(0))
+        .with_skip_preflight(true)
         .with_funding_mode(FundingMode::Never)
         .with_private_key(signer)
         .build()
         .await
         .context("Boundless client initialization failed")?;
     let chain_id = client.provider().get_chain_id().await?;
-    ensure!(chain_id == 8453, "RPC chain does not match Base");
+    network.require_chain(chain_id)?;
     let account = client.caller();
     match args.command {
+        Command::Deposit { amount_wei } => {
+            network.require_deposit(amount_wei, config.number("BOUNDLESS_MAX_PRICE_WEI")?)?;
+            client
+                .boundless_market
+                .deposit(U256::from(amount_wei))
+                .await?;
+            let balance = client.boundless_market.balance_of(account).await?;
+            println!(
+                "{}",
+                serde_json::json!({
+                    "chain_id":chain_id,"account":format!("{account:#x}"),
+                    "deposited_wei":amount_wei.to_string(),"market_wei":balance.to_string(),
+                })
+            );
+        }
         Command::Balance => {
             let balance = client.boundless_market.balance_of(account).await?;
             let wallet = client.provider().get_balance(account).await?;
@@ -296,11 +364,11 @@ async fn run(args: Args, config: &Config) -> Result<()> {
             let id: U256 = record.request_id.parse()?;
             let locked = client
                 .boundless_market
-                .query_request_locked_event(id, None, None)
+                .query_request_locked_event(id, record.submitted_block, None)
                 .await?;
             let fulfilled = client
                 .boundless_market
-                .query_request_fulfilled_event(id, None, None)
+                .query_request_fulfilled_event(id, record.submitted_block, None)
                 .await?;
             let provider = client.provider();
             let locked_block = provider
@@ -392,12 +460,16 @@ async fn run(args: Args, config: &Config) -> Result<()> {
                 journal: hex::encode(&journal),
                 max_price_wei: cap.to_string(),
                 input_visibility: "public".into(),
+                submitted_block: Some(client.provider().get_block_number().await?),
                 proof_request: Some(serde_json::to_value(&proof_request)?),
             };
             save_new(&request, &record)?;
-            let (id, _) = client
-                .submit_request(&proof_request)
-                .await
+            let submitted = if network == Network::Base {
+                client.submit_request(&proof_request).await
+            } else {
+                client.submit_request_onchain(&proof_request).await
+            };
+            let (id, _) = submitted
                 .context("submission failed; inspect the retained request before retrying")?;
             ensure!(
                 format!("{id:#x}") == record.request_id,
@@ -418,8 +490,20 @@ async fn run(args: Args, config: &Config) -> Result<()> {
             );
             let started = Instant::now();
             let id: U256 = record.request_id.parse()?;
+            loop {
+                let status = client
+                    .boundless_market
+                    .get_status(id, Some(record.expires_at))
+                    .await?;
+                match status {
+                    RequestStatus::Fulfilled => break,
+                    RequestStatus::Expired => anyhow::bail!("request expired without fulfillment"),
+                    _ => tokio::time::sleep(Duration::from_secs(15)).await,
+                }
+            }
             let fulfillment = client
-                .wait_for_request_fulfillment(id, Duration::from_secs(5), record.expires_at)
+                .boundless_market
+                .get_request_fulfillment(id, record.submitted_block, None)
                 .await?;
             let data = fulfillment.data()?;
             let image = data.image_id().context("missing proof image")?;
@@ -474,6 +558,35 @@ async fn main() -> std::process::ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn selected_network_rejects_other_chains_and_mainnet_deposits() -> Result<()> {
+        for network in [
+            Network::Base,
+            Network::EthereumSepolia,
+            Network::BaseSepolia,
+        ] {
+            network.require_chain(network.chain_id())?;
+            for chain in [8453, 11155111, 84532, 1] {
+                ensure!(network.require_chain(chain).is_ok() == (chain == network.chain_id()));
+            }
+        }
+        ensure!(Network::Base.require_deposit(1, 10).is_err());
+        for network in [Network::EthereumSepolia, Network::BaseSepolia] {
+            network.require_deposit(10, 10)?;
+            for (amount, cap) in [(0, 10), (11, 10), (1, 0)] {
+                ensure!(network.require_deposit(amount, cap).is_err());
+            }
+        }
+        let args = Args::try_parse_from([
+            "zutti-boundless",
+            "--network",
+            "ethereum-sepolia",
+            "balance",
+        ])?;
+        ensure!(args.network == Network::EthereumSepolia);
+        Ok(())
+    }
 
     #[test]
     fn large_jobs_receive_a_bounded_proving_window() -> Result<()> {

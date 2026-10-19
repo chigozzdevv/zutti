@@ -144,6 +144,22 @@ fn retained_genesis_groth16_receipt_verifies_and_rejects_tampering() {
     zutti_wallet::backup::persist_new(&path, &serde_json::to_vec(&value).unwrap()).unwrap();
     let artifact = zutti_prover::remote::import_groth16(&path, &expected).unwrap();
     artifact.verify(&expected).unwrap();
+    for chain in [11155111_u64, 84532] {
+        let mut testnet_result = value.clone();
+        testnet_result["chain_id"] = chain.into();
+        let path = directory.path().join(format!("result-{chain}.json"));
+        zutti_wallet::backup::persist_new(&path, &serde_json::to_vec(&testnet_result).unwrap())
+            .unwrap();
+        zutti_prover::remote::import_groth16(&path, &expected)
+            .unwrap()
+            .verify(&expected)
+            .unwrap();
+        testnet_result["seal"] = "00".repeat(260).into();
+        let tampered = directory.path().join(format!("tampered-{chain}.json"));
+        zutti_wallet::backup::persist_new(&tampered, &serde_json::to_vec(&testnet_result).unwrap())
+            .unwrap();
+        assert!(zutti_prover::remote::import_groth16(&tampered, &expected).is_err());
+    }
     let seal = zutti_prover::source::groth16_seal(&artifact, &expected).unwrap();
     assert_eq!(hex::encode(seal), value["seal"].as_str().unwrap());
     let proof_path = directory.path().join("source.proof");

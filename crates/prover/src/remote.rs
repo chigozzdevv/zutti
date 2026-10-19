@@ -59,7 +59,7 @@ pub fn import_groth16(
     let bytes = backup::read_private(result, 200_000)?;
     let value: serde_json::Value = serde_json::from_slice(&bytes)?;
     if value["version"] != 1
-        || value["chain_id"] != 8453
+        || !matches!(value["chain_id"].as_u64(), Some(8453 | 11155111 | 84532))
         || value["image_id"].as_str() != Some(&expected.program().to_string())
         || value["journal"].as_str() != Some(&hex::encode(expected.payload()))
     {
