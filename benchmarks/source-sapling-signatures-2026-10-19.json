@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "date": "2026-10-19",
+  "implementation_commit": "b113231",
+  "scope": "Individual public Sapling signature verification and conditional source execution. No private swap witnesses or paid requests.",
+  "runtime": {
+    "risc0_zkvm": "3.0.5",
+    "risc0_rust_toolchain": "1.94.1",
+    "host": "macos_aarch64",
+    "session_limit": 2147483648,
+    "segment_limit_po2": 20
+  },
+  "backend": {
+    "reference": "redjubjub 0.9.0 / reddsa 0.6.1 / jubjub 0.11.1",
+    "accelerated": "redjubjub 0.8.0 / reddsa 0.5.2 / jubjub 0.10.0",
+    "bls12_381_revision": "a3192e1bc58921d42d03d99957abf3be55f9d435",
+    "compatibility_patch": "crates/prover/methods/source/vendor/jubjub/provenance.json",
+    "message_unchanged": true,
+    "individual_equations": true,
+    "randomized_batching": false,
+    "spend_small_order_rejection_preserved": true,
+    "binding_key_construction_accelerated": false
+  },
+  "fixture": "benchmarks/sapling-signatures/bindings.json",
+  "cases": [
+    {
+      "count": 4,
+      "accelerated": false,
+      "public_data": true,
+      "distinct_signatures": true,
+      "cycles": 66503115,
+      "segments": 67,
+      "seconds": 1.852709417,
+      "padded_cycles": 69730304,
+      "image_id": "31eac881c23153b6c5839be00a94fb817ad8e8484c7c07db6eb7bc20da7d593a",
+      "program_sha256": "80bc8a5958caad4e768ee3ecc21f9737ba467e24b0fad7b548b9f2a460d82cd5",
+      "stdin_sha256": "fe6a2aac5b3d6635f3b5267acf7a47ccd226a0f9d87678a3e9bcd7b25160c2de",
+      "journal_sha256": "dc09aa17b975d92ff4daa4ecf9bd0b178b9e4db2b3fff0360a23bb9817cde374",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false
+    },
+    {
+      "count": 4,
+      "accelerated": true,
+      "public_data": true,
+      "distinct_signatures": true,
+      "cycles": 12049510,
+      "segments": 13,
+      "seconds": 0.521172458,
+      "padded_cycles": 12713984,
+      "image_id": "634f874b3ce814789eade8907a678566b930a69b317a38823bf342d20f8b0593",
+      "program_sha256": "71252727a294d7a0817bbc0ccfa0e9cb1b0f6a1a875402b6e88000922878649e",
+      "stdin_sha256": "fe6a2aac5b3d6635f3b5267acf7a47ccd226a0f9d87678a3e9bcd7b25160c2de",
+      "journal_sha256": "dc09aa17b975d92ff4daa4ecf9bd0b178b9e4db2b3fff0360a23bb9817cde374",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false
+    }
+  ],
+  "comparison": {
+    "reference_cycles": 66503115,
+    "accelerated_cycles": 12049510,
+    "cycle_speedup": 5.519155135769006,
+    "cycle_reduction_percent": 81.88128480898978,
+    "same_exact_stdin_and_journal": true,
+    "fee_savings_measured": false
+  },
+  "actual_guest_negative_checks": {
+    "reference": [
+      {
+        "case": "changed_message",
+        "guest_rejected": true,
+        "stdin_sha256": "5beba1d4ab46d49a4ea9abbeaafe65dae5c32fc7cac17d1c9d987afce04fabe0",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "noncanonical_key",
+        "guest_rejected": true,
+        "stdin_sha256": "0f06a1f7823765ddf2ea08c83d04b9d35ac5a0a2f2f2ec8674afd9cb758b967e",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "noncanonical_r",
+        "guest_rejected": true,
+        "stdin_sha256": "ac2300f545851f58b61f2b186b9a2139ca48b64581194e5c9706201885ea5d3a",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "noncanonical_scalar",
+        "guest_rejected": true,
+        "stdin_sha256": "3ea757e8a4e4a4254b6e77103eecb09c92f3c07359a7e21f7f659d2911ed07ca",
+        "error": "Guest panicked: invalid signature"
+      }
+    ],
+    "accelerated": [
+      {
+        "case": "changed_message",
+        "guest_rejected": true,
+        "stdin_sha256": "5beba1d4ab46d49a4ea9abbeaafe65dae5c32fc7cac17d1c9d987afce04fabe0",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "noncanonical_key",
+        "guest_rejected": true,
+        "stdin_sha256": "0f06a1f7823765ddf2ea08c83d04b9d35ac5a0a2f2f2ec8674afd9cb758b967e",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "noncanonical_r",
+        "guest_rejected": true,
+        "stdin_sha256": "ac2300f545851f58b61f2b186b9a2139ca48b64581194e5c9706201885ea5d3a",
+        "error": "Guest panicked: invalid signature"
+      },
+      {
+        "case": "noncanonical_scalar",
+        "guest_rejected": true,
+        "stdin_sha256": "3ea757e8a4e4a4254b6e77103eecb09c92f3c07359a7e21f7f659d2911ed07ca",
+        "error": "Guest panicked: invalid signature"
+      }
+    ]
+  },
+  "measured_programs": {
+    "source": "c5c7a4772063f24836d237ce8505826f2c05d4b916b8ae1b88136d2a2bf24b95",
+    "source-update": "77ad2b040b4d15980936ee2c87cbc4baa4c5361287be899828bc72a619fe272c",
+    "pool": "94a152919ef0549e1547226094249f7b201f07981a8bdc3df086ac164c6bcd52",
+    "preparation": "69727497d3ff6259dd59268d97ee4395774ea484e59ab50a7e20eb129cd39cef",
+    "history-query": "9a598f8a0c6c6141fecc83993eb9477d3f2e51a770717af98775cd6b5d21db7a"
+  },
+  "source_coinbase_control": {
+    "network": "zcash_testnet",
+    "height": 584000,
+    "shielded_authorization_proofs": 0,
+    "prior_state_genesis_proof_available": false,
+    "execution": {
+      "cycles": 91899147,
+      "segments": 99,
+      "seconds": 7.454380583,
+      "journal_matches": true,
+      "proof_generated": false,
+      "expected_program": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+      "executed_program": "c5c7a4772063f24836d237ce8505826f2c05d4b916b8ae1b88136d2a2bf24b95",
+      "program_matches_statement": false,
+      "cycle_limit": 2147483648
+    }
+  },
+  "full_source_workload": {
+    "network": "zcash_testnet",
+    "height": 282757,
+    "block_bytes": 1999172,
+    "transactions": 1635,
+    "sapling_outputs": 1634,
+    "prior_state_genesis_proof_available": false,
+    "candidate_execution": {
+      "status": "running",
+      "image_id": "c5c7a4772063f24836d237ce8505826f2c05d4b916b8ae1b88136d2a2bf24b95",
+      "cycle_limit": 137438953472,
+      "proof_generated": false
+    }
+  },
+  "validation": {
+    "new_signature_unit_tests": 2,
+    "encoding_scalar_cofactor_differential_comparisons": 1512,
+    "historical_spend_and_binding_positive_and_changed_message_cases": "passed",
+    "source_integration_tests": 15,
+    "source_clippy": "passed",
+    "prover_tools_and_receipt_test_clippy": "passed",
+    "older_genuine_receipt_fixture_tests": 4,
+    "archived_program_tests": 2,
+    "expensive_native_queue_restart_test": "not rerun; explicitly ignored",
+    "guest_builds_locked": true
+  },
+  "proofs_generated": 0,
+  "paid_jobs_submitted": 0,
+  "new_policy_ancestry_proved": false,
+  "current_chain_admitted": false,
+  "whole_bootstrap_budget_measured": false,
+  "wall_times_are_not_proving_latency": true,
+  "interpretation": "The component reduces observed four-signature execution work by 81.88 percent. The complete busy-block comparison is still running. New source-program ancestry, provider pricing and a full-bootstrap budget remain unproved or unmeasured."
+}
