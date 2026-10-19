@@ -12,6 +12,7 @@ accelerated-proofs = ["blocks", "dep:bellman-legacy", "dep:bls12-381-legacy"]
 windowed-inputs = ["accelerated-proofs"]
 windowed-trees = ["blocks"]
 accelerated-trees = ["windowed-trees", "dep:jubjub-legacy", "dep:group-legacy"]
+accelerated-scripts = ["blocks", "dep:k256", "dep:secp256k1"]
 blocks = ["authenticated", "zutti-protocol/pool", "dep:zcash_primitives", "dep:zcash_protocol", "dep:sha2", "dep:blake2b_simd", "dep:zcash_encoding", "dep:zcash_script", "zcash_script/signature-validation", "dep:transparent", "dep:num-bigint", "dep:zcash_history", "dep:primitive-types", "dep:incrementalmerkletree", "dep:sapling", "dep:orchard", "orchard/circuit", "dep:bellman", "dep:groth16", "dep:bls12_381", "dep:group", "dep:jubjub", "dep:ed25519-zebra", "dep:zebra-chain", "dep:ark-bn254", "dep:ark-ec", "dep:ark-ff"]
 storage = ["blocks", "dep:rusqlite", "dep:tempfile"]
 cli = ["blocks", "dep:clap", "dep:serde_json", "dep:hex"]
@@ -54,6 +55,8 @@ group = { version = "=0.14.0", optional = true }
 jubjub = { version = "=0.11.1", optional = true }
 jubjub-legacy = { package = "jubjub", version = "=0.10.0", optional = true }
 group-legacy = { package = "group", version = "=0.13.0", optional = true }
+k256 = { version = "=0.13.4", default-features = false, features = ["ecdsa"], optional = true }
+secp256k1 = { version = "=0.33.1", default-features = false, features = ["alloc"], optional = true }
 ed25519-zebra = { version = "=5.0.0", optional = true }
 zebra-chain = { version = "=14.0.0", default-features = false, optional = true }
 ark-bn254 = { version = "=0.5.0", optional = true }

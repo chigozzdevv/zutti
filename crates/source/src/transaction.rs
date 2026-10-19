@@ -24,6 +24,9 @@ use zutti_protocol::{
     encoding::{Canonical, Reader, Writer},
 };
 
+#[cfg(feature = "accelerated-scripts")]
+mod signatures;
+
 pub const MAX_MONEY: u64 = 21_000_000 * 100_000_000;
 pub const COINBASE_MATURITY: u32 = 100;
 pub const MAX_BLOCK_SIGOPS: u32 = 20_000;
@@ -262,6 +265,8 @@ impl CandidateLedger {
                         lock_time: i64::from(tx.lock_time()),
                         is_final: input.sequence() == u32::MAX,
                     };
+                    #[cfg(feature = "accelerated-scripts")]
+                    let checker = signatures::Checker(checker);
                     if !scripts
                         .eval(Flags::P2SH | Flags::CHECKLOCKTIMEVERIFY, &checker)
                         .map_err(|_| Error::Script)?

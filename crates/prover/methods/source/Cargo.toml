@@ -16,7 +16,7 @@ name = "source_update"
 path = "src/update.rs"
 
 [dependencies]
-zutti-source = { path = "../../../source", default-features = false, features = ["blocks", "windowed-inputs", "accelerated-trees"] }
+zutti-source = { path = "../../../source", default-features = false, features = ["blocks", "windowed-inputs", "accelerated-trees", "accelerated-scripts"] }
 zutti-protocol = { path = "../../../protocol", default-features = false }
 risc0-zkvm = { version = "=3.0.5", default-features = false, features = ["std", "getrandom"] }
 
@@ -32,3 +32,5 @@ unsafe_code = "forbid"
 dirs = { path = "vendor/dirs" }
 jubjub = { path = "vendor/jubjub" }
 bls12_381 = { git = "https://github.com/risc0/zkcrypto-bls12_381", rev = "a3192e1bc58921d42d03d99957abf3be55f9d435" }
+k256 = { git = "https://github.com/risc0/RustCrypto-elliptic-curves", rev = "7d4a8d6477e258ce4169ee4669cf92aee0582c39" }
+crypto-bigint = { git = "https://github.com/risc0/RustCrypto-crypto-bigint", rev = "3ab63a6f1048833f7047d5a50532e4a4cc789384" }

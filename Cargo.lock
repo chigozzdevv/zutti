@@ -6496,6 +6496,7 @@ dependencies = [
  "incrementalmerkletree",
  "jubjub 0.10.0",
  "jubjub 0.11.1",
+ "k256",
  "num-bigint 0.4.6",
  "orchard",
  "primitive-types",
