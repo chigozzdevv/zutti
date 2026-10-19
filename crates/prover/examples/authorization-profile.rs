@@ -92,6 +92,9 @@ fn main() -> Result<()> {
             "reference"
         });
     let mut build = risc0_build::cargo_command("build", &[]);
+    if let Some(home) = std::env::var_os("CARGO_HOME") {
+        build.env("CARGO_HOME", home);
+    }
     build
         .arg("--locked")
         .arg("--manifest-path")

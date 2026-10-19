@@ -6433,6 +6433,7 @@ dependencies = [
  "risc0-binfmt",
  "risc0-build",
  "risc0-zkvm",
+ "sapling-crypto",
  "serde",
  "serde_json",
  "sha2 0.10.9",
