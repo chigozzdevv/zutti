@@ -1,5 +1,7 @@
 use crate::chain_history::CommitmentTreeRoots;
 mod empty;
+#[cfg(feature = "windowed-trees")]
+mod sapling_hash;
 use incrementalmerkletree::{Hashable, Level, Position, frontier::Frontier};
 use orchard::tree::MerkleHashOrchard;
 use sapling::Node as SaplingNode;
@@ -83,6 +85,9 @@ impl CommitmentUpdates {
 trait TreeNode: Hashable + Clone {
     fn encode_node(&self) -> [u8; 32];
     fn decode_node(bytes: [u8; 32]) -> Option<Self>;
+    fn parent(level: Level, left: &Self, right: &Self) -> Self {
+        Self::combine(level, left, right)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -150,6 +155,18 @@ impl TreeNode for SaplingNode {
     fn decode_node(bytes: [u8; 32]) -> Option<Self> {
         Self::from_bytes(bytes).into_option()
     }
+    #[cfg(feature = "windowed-trees")]
+    fn parent(level: Level, left: &Self, right: &Self) -> Self {
+        let bytes = sapling_hash::merkle_hash(
+            usize::from(u8::from(level)),
+            &left.to_bytes(),
+            &right.to_bytes(),
+        );
+        match Self::from_bytes(bytes).into_option() {
+            Some(node) => node,
+            None => panic!("invalid Sapling hash field encoding"),
+        }
+    }
 }
 
 impl TreeNode for MerkleHashOrchard {
@@ -168,7 +185,7 @@ impl<H: TreeNode, const PROFILE: u8> Hashable for CachedNode<H, PROFILE> {
         Self(H::empty_leaf())
     }
     fn combine(level: Level, left: &Self, right: &Self) -> Self {
-        Self(H::combine(level, &left.0, &right.0))
+        Self(H::parent(level, &left.0, &right.0))
     }
     fn empty_root(level: Level) -> Self {
         let values = match PROFILE {
