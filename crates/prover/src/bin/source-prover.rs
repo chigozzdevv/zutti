@@ -113,6 +113,14 @@ enum Command {
     Status,
     Sync(sync::Options),
     Bootstrap(bootstrap::Options),
+    ExportRange {
+        #[arg(long)]
+        witness: PathBuf,
+        #[arg(long)]
+        programs: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+    },
     Genesis {
         #[command(flatten)]
         chain: Chain,
@@ -306,6 +314,26 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
     match args.command {
         Command::Sync(options) => sync::run(options)?,
         Command::Bootstrap(options) => bootstrap::run(options)?,
+        Command::ExportRange {
+            witness,
+            programs,
+            out,
+        } => {
+            let programs = SourcePrograms::read(&programs)?;
+            let witness = SourceRangeWitness::from_bytes(&zutti_wallet::backup::read_private(
+                &witness,
+                zutti_source::transition::MAX_WITNESS,
+            )?)?;
+            if !matches!(witness, SourceRangeWitness::Transition(_)) {
+                return Err("a complete public source transition witness is required".into());
+            }
+            SourceJob::range(&witness, &[], &programs)?.export_public(&out, MAX_SOURCE_CYCLES)?;
+            println!(
+                "{}",
+                serde_json::json!({"job":out,"range_only":true,
+                "proof_generated":false,"current_chain_admitted":false,"settlement_authority":false})
+            );
+        }
         Command::Status => println!(
             "{}",
             serde_json::json!({"source_image":source_image_id().to_string(),"update_image":update_image_id().to_string(),"recursive_receipts":"groth16","pool_settlement":"unavailable","durable_source":"implemented","supported_through":"NU7","testnet_nu7":"implemented","current_chain_bootstrap":"unavailable"})

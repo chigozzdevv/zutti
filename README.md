@@ -356,6 +356,33 @@ source-prover bootstrap --network testnet --confirmations 100 \
 
 These commands require an initialized queue. Keep exact job/request/result files and matching program ELFs for recovery. A bounded run is not an installed daemon, a demonstrated full-history catch-up or canonical-chain admission. Modern block cost and sustained proving throughput remain measurements to establish.
 
+## Historical workload profiling
+
+`source-replay` validates a length-framed stream of public blocks from the exact genesis and saves native progress in a separate replay database. Selected intervals retain authenticated transition witnesses atomically with that progress. This database has a distinct schema and cannot be opened as a proved prefix or bootstrap queue. It contains no source receipts and never advances source admission.
+
+```sh
+cargo build --locked --release -p zutti-source --features storage --bin source-replay
+python3 scripts/profile-source-history.py \
+  --network testnet --rpc http://127.0.0.1:18232 --rpc-cookie /path/to/.cookie \
+  --replay target/release/source-replay --programs /path/to/pinned-programs \
+  --database /path/to/native-replay.sqlite --out /path/to/profile \
+  --through-height 2000 --sample-start 1000 --sample-size 16
+```
+
+The driver checks the node network and retained parent hash, streams bounded blocks with backpressure and resumes from the last committed batch. A failed batch leaves earlier progress intact. The replay database and sample witnesses are profiling artifacts; they do not replace the runtime store or a genesis-anchored proof.
+
+`--index-start` selects the benchmark's payment-lookup boundary and changes its policy. Deferring that index still validates every preceding block and transaction; it does not substitute a trusted state snapshot for replay.
+
+Export a retained sample under the exact source/update program pair, then measure its guest execution:
+
+```sh
+source-prover export-range --programs /path/to/pinned-programs \
+  --witness /path/to/profile/samples/1000-1016/witness.bin --out /path/to/range-job
+source-prover execute --job /path/to/range-job
+```
+
+This measures a conditional range transition. Its starting state has native replay evidence, not a proved prefix. The range cannot substitute for a full-prefix receipt. Neither command purchases proofs; any paid range test still uses the separately capped Boundless client.
+
 ## Source upgrade support
 
 The source program implements NU7 using `zebra-chain` 14.0.0 and the matching Zcash transaction libraries. Public Testnet activates NU7 at height `4_465_026`, branch `0x77190ad9`. Difficulty validation retains 113 ancestor headers, applies the 102-block averaging window and 25-second spacing at activation, and uses the new Testnet minimum-difficulty threshold. Parsing enforces per-pool and combined shielded action limits. Transaction checks reject v4 at NU7, retain valid v5/v6 formats, enforce Orchard freezing, and bind authorization signatures to the active branch.

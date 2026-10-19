@@ -1,5 +1,6 @@
 pub mod durable;
 mod ranges;
+mod replay;
 use crate::{
     CandidateIndex, IndexSnapshot, Observation,
     access_index::HistoryIndex,
@@ -12,6 +13,7 @@ use crate::{
     transition::{MAX_WITNESS, StateSnapshot, TransitionWitness},
 };
 pub use ranges::{RangeBatch, RangeLimits, RangeStore};
+pub use replay::ReplayStore;
 use rusqlite::{Connection, OpenFlags, TransactionBehavior, params};
 use std::{collections::BTreeSet, path::Path, time::Duration};
 use zutti_protocol::{Digest, encoding::Canonical};
