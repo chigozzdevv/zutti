@@ -16,7 +16,7 @@ name = "source_update"
 path = "src/update.rs"
 
 [dependencies]
-zutti-source = { path = "../../../source", default-features = false, features = ["blocks", "windowed-inputs", "accelerated-trees", "accelerated-scripts"] }
+zutti-source = { path = "../../../source", default-features = false, features = ["blocks", "windowed-inputs", "accelerated-trees", "accelerated-scripts", "accelerated-sapling-signatures"] }
 zutti-protocol = { path = "../../../protocol", default-features = false }
 risc0-zkvm = { version = "=3.0.5", default-features = false, features = ["std", "getrandom"] }
 

@@ -10,6 +10,9 @@ use zcash_script::script::Code;
 mod groth;
 use groth::{PreparedKey, check_proof, read_key};
 
+#[cfg(feature = "accelerated-sapling-signatures")]
+mod signatures;
+
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 pub enum Error {
     #[error("invalid embedded consensus verifying key")]
@@ -87,9 +90,18 @@ pub fn verify(tx: &Transaction, prevouts: &[TxOut]) -> Result<()> {
                 (*spend.rk()).into(),
             ))
             .ok_or(Error::SaplingSpend)?;
-            if bool::from(rk.is_small_order())
-                || spend.rk().verify(&sighash, spend.spend_auth_sig()).is_err()
-            {
+            if bool::from(rk.is_small_order()) {
+                return Err(Error::SaplingSpend);
+            }
+            #[cfg(not(feature = "accelerated-sapling-signatures"))]
+            let valid = spend.rk().verify(&sighash, spend.spend_auth_sig()).is_ok();
+            #[cfg(feature = "accelerated-sapling-signatures")]
+            let valid = signatures::spend(
+                (*spend.rk()).into(),
+                (*spend.spend_auth_sig()).into(),
+                &sighash,
+            );
+            if !valid {
                 return Err(Error::SaplingSpend);
             }
             let cv = spend.cv().as_inner().to_affine();
@@ -128,9 +140,20 @@ pub fn verify(tx: &Transaction, prevouts: &[TxOut]) -> Result<()> {
             .map_err(|_| Error::SaplingOutput)?;
             sum -= output.cv();
         }
-        sum.into_bvk(*bundle.value_balance())
+        let key = sum.into_bvk(*bundle.value_balance());
+        #[cfg(not(feature = "accelerated-sapling-signatures"))]
+        let valid = key
             .verify(&sighash, &bundle.authorization().binding_sig)
-            .map_err(|_| Error::SaplingBinding)?;
+            .is_ok();
+        #[cfg(feature = "accelerated-sapling-signatures")]
+        let valid = signatures::binding(
+            key.into(),
+            bundle.authorization().binding_sig.into(),
+            &sighash,
+        );
+        if !valid {
+            return Err(Error::SaplingBinding);
+        }
     }
     for bundle in [tx.orchard_bundle(), tx.ironwood_bundle()]
         .into_iter()
