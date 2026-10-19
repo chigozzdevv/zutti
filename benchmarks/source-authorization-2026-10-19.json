@@ -451,11 +451,12 @@
     "development_mode": false,
     "paid_jobs": 0
   },
-  "interpretation": "The optimized four-output component uses 86.98% fewer user cycles. The complete stress block still requires 108.667 billion user cycles. A larger local ceiling enabled measurement; normal source proving and paid-request limits remain unchanged. Request sizing and provider capacity need measurement before pricing the full bootstrap.",
+  "interpretation": "The optimized four-output component uses 86.98% fewer user cycles. The complete stress block used 108.667 billion user cycles with the earlier windowed-Groth16 source image, before the root cache and paired tree optimization. It has not been rerun with the newer source image. A larger local ceiling enabled measurement; normal source proving and paid-request limits remain unchanged. Request sizing and provider capacity need measurement before pricing the full bootstrap.",
   "existing_continuation_stack": {
     "risc0_documentation": "https://dev.risczero.com/proof-system/",
     "bento_documentation": "https://docs.boundless.network/provers/bento",
     "broker_documentation": "https://docs.boundless.network/provers/broker",
     "scope": "RISC Zero already proves segments and recursively joins sessions; Bento schedules prove/lift/join work. Market fulfillment of this 108.667-billion-cycle job has not been demonstrated."
-  }
+  },
+  "later_tree_optimization_record": "source-trees-2026-10-19.json"
 }
