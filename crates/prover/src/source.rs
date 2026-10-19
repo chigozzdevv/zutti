@@ -23,8 +23,36 @@ use zutti_source::{
 };
 
 pub const MAX_SOURCE_CYCLES: u64 = 2_147_483_648;
-pub const MAX_DIAGNOSTIC_CYCLES: u64 = 1 << 38;
+pub const MAX_SELF_HOSTED_SOURCE_CYCLES: u64 = 1 << 38;
+pub const MAX_DIAGNOSTIC_CYCLES: u64 = MAX_SELF_HOSTED_SOURCE_CYCLES;
 const MAX_SOURCE_STDIN: usize = MAX_WITNESS + 4 + MAX_RANGE_INPUTS * 260;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SourceLimits {
+    cycles: u64,
+    segment_po2: u32,
+}
+impl SourceLimits {
+    pub fn new(cycles: u64, segment_po2: u32) -> Result<Self, Error> {
+        if !(1..=MAX_SELF_HOSTED_SOURCE_CYCLES).contains(&cycles)
+            || !(20..=22).contains(&segment_po2)
+        {
+            return Err(Error::Binding);
+        }
+        Ok(Self {
+            cycles,
+            segment_po2,
+        })
+    }
+}
+impl Default for SourceLimits {
+    fn default() -> Self {
+        Self {
+            cycles: MAX_SOURCE_CYCLES,
+            segment_po2: 20,
+        }
+    }
+}
 
 #[derive(Debug, serde::Serialize)]
 pub struct SourceExecutionComparison {
@@ -401,7 +429,7 @@ impl SourceJob {
         directory: &Path,
         cycles: u64,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        if cycles == 0 || cycles > MAX_SOURCE_CYCLES {
+        if cycles == 0 || cycles > MAX_SELF_HOSTED_SOURCE_CYCLES {
             return Err("public source job exceeds the configured cycle bound".into());
         }
         std::fs::create_dir(directory)?;
@@ -453,7 +481,15 @@ impl LocalProver {
         job: &SourceJob,
         profile: Option<&Path>,
     ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
-        self.execute_source_program(job, job.program(), profile, MAX_SOURCE_CYCLES)
+        self.execute_source_with_limits(job, profile, SourceLimits::default())
+    }
+    pub fn execute_source_with_limits(
+        &self,
+        job: &SourceJob,
+        profile: Option<&Path>,
+        limits: SourceLimits,
+    ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
+        self.execute_source_program(job, job.program(), profile, limits)
     }
     pub fn compare_source_execution(
         &self,
@@ -486,7 +522,12 @@ impl LocalProver {
         }
         let executed = Digest(risc0_zkvm::compute_image_id(&bytes)?.into());
         Ok(SourceExecutionComparison {
-            execution: self.execute_source_program(job, &bytes, profile, cycle_limit)?,
+            execution: self.execute_source_program(
+                job,
+                &bytes,
+                profile,
+                SourceLimits::new(cycle_limit, 20)?,
+            )?,
             expected_program: job.statement.program().to_string(),
             executed_program: executed.to_string(),
             program_matches_statement: executed == job.statement.program(),
@@ -498,13 +539,13 @@ impl LocalProver {
         job: &SourceJob,
         program: &[u8],
         profile: Option<&Path>,
-        cycle_limit: u64,
+        limits: SourceLimits,
     ) -> Result<crate::local::ExecutionMetrics, Box<dyn std::error::Error>> {
         let mut builder = ExecutorEnv::builder();
         builder
             .write_slice(job.stdin.as_slice())
-            .session_limit(Some(cycle_limit))
-            .segment_limit_po2(20);
+            .session_limit(Some(limits.cycles))
+            .segment_limit_po2(limits.segment_po2);
         if let Some(path) = profile {
             builder.enable_profiler(path);
         }
@@ -539,12 +580,26 @@ impl LocalProver {
         })
     }
     pub fn prove_source(&self, job: &SourceJob) -> Result<(Statement, ProofEnvelope), Error> {
-        self.prove_stdin(
+        self.prove_source_with_limits(job, SourceLimits::default(), false)
+    }
+    pub fn prove_source_with_limits(
+        &self,
+        job: &SourceJob,
+        limits: SourceLimits,
+        groth16: bool,
+    ) -> Result<(Statement, ProofEnvelope), Error> {
+        let options = if groth16 {
+            risc0_zkvm::ProverOpts::groth16()
+        } else {
+            risc0_zkvm::ProverOpts::succinct()
+        };
+        self.prove_stdin_with_options(
             Zeroizing::new(job.stdin.to_vec()),
             job.statement.clone(),
             job.program(),
-            MAX_SOURCE_CYCLES,
-            20,
+            limits.cycles,
+            limits.segment_po2,
+            options,
         )
     }
 }

@@ -39,6 +39,24 @@ impl LocalProver {
         session_cycles: u64,
         segment_po2: u32,
     ) -> Result<(Statement, ProofEnvelope), Error> {
+        self.prove_stdin_with_options(
+            stdin,
+            statement,
+            program,
+            session_cycles,
+            segment_po2,
+            ProverOpts::succinct(),
+        )
+    }
+    pub(crate) fn prove_stdin_with_options(
+        &self,
+        stdin: Zeroizing<Vec<u8>>,
+        statement: Statement,
+        program: &[u8],
+        session_cycles: u64,
+        segment_po2: u32,
+        options: ProverOpts,
+    ) -> Result<(Statement, ProofEnvelope), Error> {
         let env = ExecutorEnv::builder()
             .write_slice(stdin.as_slice())
             .session_limit(Some(session_cycles))
@@ -50,7 +68,7 @@ impl LocalProver {
                 env,
                 &VerifierContext::default().with_dev_mode(false),
                 program,
-                &ProverOpts::succinct().with_dev_mode(false),
+                &options.with_dev_mode(false),
             )
             .map_err(|_| Error::Proving)?;
         let receipt = receipt_codec()

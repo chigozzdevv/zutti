@@ -7,7 +7,10 @@ use zutti_protocol::{encoding::Canonical, statement::ProofKind};
 use zutti_prover::{
     Error, ProofEnvelope, ProofVerifier,
     artifact::ProofArtifact,
-    source::{SourceJob, policy, source_image_id},
+    source::{
+        MAX_SELF_HOSTED_SOURCE_CYCLES, MAX_SOURCE_CYCLES, SourceJob, SourceLimits, policy,
+        source_image_id,
+    },
 };
 use zutti_source::{
     bootstrap::GenesisBlock,
@@ -23,6 +26,32 @@ fn witness() -> SourceWitness {
         policy: policy(NetworkType::Main, 0, 3),
         input: SourceInput::Genesis(genesis()),
     }
+}
+
+#[test]
+fn self_hosted_limits_preserve_defaults_and_reject_unbounded_work() {
+    assert_eq!(
+        SourceLimits::default(),
+        SourceLimits::new(MAX_SOURCE_CYCLES, 20).unwrap()
+    );
+    assert!(SourceLimits::new(100_000_000_000, 22).is_ok());
+    for cycles in [0, MAX_SELF_HOSTED_SOURCE_CYCLES + 1, u64::MAX] {
+        assert!(SourceLimits::new(cycles, 20).is_err());
+    }
+    for segment in [0, 19, 23, u32::MAX] {
+        assert!(SourceLimits::new(MAX_SOURCE_CYCLES, segment).is_err());
+    }
+    let job = SourceJob::transition(&witness(), None).unwrap();
+    let directory = tempfile::tempdir().unwrap();
+    let large = directory.path().join("large");
+    job.export_public(&large, 100_000_000_000).unwrap();
+    assert!(job.matches(&SourceJob::read_public(&large).unwrap()));
+    let rejected = directory.path().join("rejected");
+    assert!(
+        job.export_public(&rejected, MAX_SELF_HOSTED_SOURCE_CYCLES + 1)
+            .is_err()
+    );
+    assert!(!rejected.exists());
 }
 
 #[test]
@@ -117,6 +146,40 @@ fn retained_genesis_groth16_receipt_verifies_and_rejects_tampering() {
     artifact.verify(&expected).unwrap();
     let seal = zutti_prover::source::groth16_seal(&artifact, &expected).unwrap();
     assert_eq!(hex::encode(seal), value["seal"].as_str().unwrap());
+    let proof_path = directory.path().join("source.proof");
+    artifact.persist_new(&proof_path).unwrap();
+    let binary = env!("CARGO_BIN_EXE_source-prover");
+    assert!(
+        std::process::Command::new(binary)
+            .arg("verify")
+            .arg("--proof")
+            .arg(&proof_path)
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
+    let different_job = directory.path().join("different-job");
+    SourceJob::transition(&witness(), None)
+        .unwrap()
+        .export_public(&different_job, MAX_SOURCE_CYCLES)
+        .unwrap();
+    let rejected_seal = directory.path().join("rejected-seal.bin");
+    assert!(
+        !std::process::Command::new(binary)
+            .arg("verify")
+            .arg("--proof")
+            .arg(&proof_path)
+            .arg("--job")
+            .arg(&different_job)
+            .arg("--seal")
+            .arg(&rejected_seal)
+            .output()
+            .unwrap()
+            .status
+            .success()
+    );
+    assert!(!rejected_seal.exists());
     let mut value = value;
     let mut seal = hex::decode(value["seal"].as_str().unwrap()).unwrap();
     seal[259] ^= 1;

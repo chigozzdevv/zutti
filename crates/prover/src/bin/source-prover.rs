@@ -19,7 +19,10 @@ use zutti_prover::{
     artifact::ProofArtifact,
     local::LocalProver,
     pipeline::SourcePipeline,
-    source::{MAX_SOURCE_CYCLES, SourceJob, SourcePrograms, source_image_id, update_image_id},
+    source::{
+        MAX_SELF_HOSTED_SOURCE_CYCLES, MAX_SOURCE_CYCLES, SourceJob, SourceLimits, SourcePrograms,
+        source_image_id, update_image_id,
+    },
 };
 use zutti_source::{
     block::ParsedBlock,
@@ -31,6 +34,19 @@ use zutti_source::{
     transition::StateSnapshot,
     update::{PreviousUpdate, SourceUpdateWitness},
 };
+
+#[derive(Debug, clap::Args)]
+struct Limits {
+    #[arg(long, default_value_t = MAX_SOURCE_CYCLES, value_parser = clap::value_parser!(u64).range(1..=MAX_SELF_HOSTED_SOURCE_CYCLES))]
+    cycle_limit: u64,
+    #[arg(long, default_value_t = 20, value_parser = clap::value_parser!(u32).range(20..=22))]
+    segment_po2: u32,
+}
+impl Limits {
+    fn source(&self) -> Result<SourceLimits, zutti_prover::Error> {
+        SourceLimits::new(self.cycle_limit, self.segment_po2)
+    }
+}
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 enum Network {
@@ -122,6 +138,8 @@ enum Command {
         programs: PathBuf,
         #[arg(long)]
         out: PathBuf,
+        #[arg(long, default_value_t = MAX_SOURCE_CYCLES, value_parser = clap::value_parser!(u64).range(1..=MAX_SELF_HOSTED_SOURCE_CYCLES))]
+        cycle_limit: u64,
     },
     Genesis {
         #[command(flatten)]
@@ -230,6 +248,8 @@ enum Command {
         out: PathBuf,
     },
     Execute {
+        #[command(flatten)]
+        limits: Limits,
         #[arg(long)]
         job: PathBuf,
         #[arg(long, default_value = "r0vm")]
@@ -253,6 +273,10 @@ enum Command {
         cycle_limit: u64,
     },
     Prove {
+        #[command(flatten)]
+        limits: Limits,
+        #[arg(long)]
+        groth16: bool,
         #[arg(long)]
         job: PathBuf,
         #[arg(long)]
@@ -260,9 +284,17 @@ enum Command {
         #[arg(long, default_value = "r0vm")]
         prover: PathBuf,
     },
+    InspectJob {
+        #[arg(long)]
+        job: PathBuf,
+    },
     Verify {
         #[arg(long)]
         proof: PathBuf,
+        #[arg(long)]
+        job: Option<PathBuf>,
+        #[arg(long, requires = "job")]
+        seal: Option<PathBuf>,
     },
     Admit {
         #[arg(long)]
@@ -333,6 +365,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             witness,
             programs,
             out,
+            cycle_limit,
         } => {
             let programs = SourcePrograms::read(&programs)?;
             let witness = SourceRangeWitness::from_bytes(&zutti_wallet::backup::read_private(
@@ -342,7 +375,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             if !matches!(witness, SourceRangeWitness::Transition(_)) {
                 return Err("a complete public source transition witness is required".into());
             }
-            SourceJob::range(&witness, &[], &programs)?.export_public(&out, MAX_SOURCE_CYCLES)?;
+            SourceJob::range(&witness, &[], &programs)?.export_public(&out, cycle_limit)?;
             zutti_wallet::backup::persist_new(
                 &out.join("workload.json"),
                 &serde_json::to_vec_pretty(&workload::describe(&witness)?)?,
@@ -616,22 +649,27 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             prover,
             profile,
             candidate,
+            limits,
         } => {
             let job = SourceJob::read_public(&job)?;
             let prover = LocalProver::new(prover);
             let metrics = match candidate {
-                Some(candidate) => serde_json::to_value(
-                    prover.compare_source_execution(
+                Some(candidate) => {
+                    if limits.segment_po2 != 20 {
+                        return Err("candidate comparisons require segment-po2 20".into());
+                    }
+                    serde_json::to_value(prover.compare_source_execution_with_limit(
                         &job,
                         &candidate,
-                        profile
-                            .as_deref()
-                            .ok_or("candidate execution requires a profile")?,
-                    )?,
-                )?,
-                None => {
-                    serde_json::to_value(prover.execute_source_profiled(&job, profile.as_deref())?)?
+                        profile.as_deref(),
+                        limits.cycle_limit,
+                    )?)?
                 }
+                None => serde_json::to_value(prover.execute_source_with_limits(
+                    &job,
+                    profile.as_deref(),
+                    limits.source()?,
+                )?)?,
             };
             println!("{}", serde_json::to_string(&metrics)?);
         }
@@ -651,13 +689,61 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             )?;
             println!("{}", serde_json::to_string(&metrics)?);
         }
-        Command::Prove { job, out, prover } => {
+        Command::Prove {
+            job,
+            out,
+            prover,
+            limits,
+            groth16,
+        } => {
             let job = SourceJob::read_public(&job)?;
-            let (statement, proof) = LocalProver::new(prover).prove_source(&job)?;
+            let started = std::time::Instant::now();
+            let (statement, proof) = LocalProver::new(prover).prove_source_with_limits(
+                &job,
+                limits.source()?,
+                groth16,
+            )?;
             ProofArtifact::new(statement, proof)?.persist_new(&out)?;
             println!(
                 "{}",
-                serde_json::json!({"proof":out,"proof_verified":true,"swap_executed":false})
+                serde_json::json!({"proof":out,"proof_verified":true,"swap_executed":false,
+                    "seconds":started.elapsed().as_secs_f64(),"cycle_limit":limits.cycle_limit,
+                    "segment_po2":limits.segment_po2,"groth16":groth16,"job_id":job.id()?.to_string()})
+            );
+        }
+        Command::InspectJob { job } => {
+            let job = SourceJob::read_public(&job)?;
+            let genesis = match job.statement().kind() {
+                ProofKind::Source => {
+                    SourceUpdateClaim::from_bytes(job.statement().payload())?.genesis
+                }
+                ProofKind::SourceTransition => {
+                    SourceReceiptClaim::from_bytes(job.statement().payload())?.genesis
+                }
+                ProofKind::SourceRange => {
+                    SourceRangeClaim::from_bytes(job.statement().payload())?
+                        .start
+                        .genesis
+                }
+                _ => return Err("expected source evidence".into()),
+            };
+            let network = if genesis == zutti_source::bootstrap::genesis_hash(NetworkType::Test)? {
+                "testnet"
+            } else if genesis == zutti_source::bootstrap::genesis_hash(NetworkType::Main)? {
+                "mainnet"
+            } else {
+                return Err("unknown source genesis".into());
+            };
+            println!(
+                "{}",
+                serde_json::json!({
+                    "job_id":job.id()?.to_string(),
+                    "image_id":job.statement().program().to_string(),
+                    "visibility":"public",
+                    "source_only":true,
+                    "network":network,
+                    "proof_generated":false,
+                })
             );
         }
         Command::Admit {
@@ -685,7 +771,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
                 serde_json::json!({"source_admitted":true,"height":verified.height(),"stable_height":checkpoint.stable.height,"timestamp":verified.timestamp(),"checkpoint":checkpoint.id()?.to_string(),"swap_executed":false})
             );
         }
-        Command::Verify { proof } => {
+        Command::Verify { proof, job, seal } => {
             let artifact = ProofArtifact::read(&proof)?;
             if !matches!(
                 artifact.statement().kind(),
@@ -693,7 +779,17 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             ) {
                 return Err("expected source evidence".into());
             }
-            artifact.verify(artifact.statement())?;
+            let job = job.map(|path| SourceJob::read_public(&path)).transpose()?;
+            let expected = job
+                .as_ref()
+                .map_or(artifact.statement(), SourceJob::statement);
+            artifact.verify(expected)?;
+            if let Some(path) = seal {
+                zutti_wallet::backup::persist_new(
+                    &path,
+                    &zutti_prover::source::groth16_seal(&artifact, expected)?,
+                )?;
+            }
             println!(
                 "{}",
                 serde_json::json!({"proof_verified":true,"range_only":artifact.statement().kind() == ProofKind::SourceRange,"program":artifact.statement().program().to_string(),"policy":artifact.statement().domain().to_string(),"current_chain_admitted":false,"swap_executed":false})
@@ -709,5 +805,69 @@ fn main() -> std::process::ExitCode {
             eprintln!("{error}");
             std::process::ExitCode::FAILURE
         }
+    }
+}
+
+#[cfg(test)]
+mod cli_tests {
+    use super::*;
+
+    #[test]
+    fn large_proofs_require_explicit_limits_and_seals_require_a_job()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let args =
+            Args::try_parse_from(["source-prover", "prove", "--job", "job", "--out", "proof"])?;
+        let Command::Prove {
+            limits, groth16, ..
+        } = args.command
+        else {
+            panic!("expected prove command");
+        };
+        assert_eq!(limits.cycle_limit, MAX_SOURCE_CYCLES);
+        assert_eq!(limits.segment_po2, 20);
+        assert!(!groth16);
+        assert!(
+            Args::try_parse_from([
+                "source-prover",
+                "prove",
+                "--job",
+                "job",
+                "--out",
+                "proof",
+                "--cycle-limit",
+                "100000000000",
+                "--segment-po2",
+                "22",
+                "--groth16",
+            ])
+            .is_ok()
+        );
+        for limit in ["0", "274877906945"] {
+            assert!(
+                Args::try_parse_from([
+                    "source-prover",
+                    "prove",
+                    "--job",
+                    "job",
+                    "--out",
+                    "proof",
+                    "--cycle-limit",
+                    limit,
+                ])
+                .is_err()
+            );
+        }
+        assert!(
+            Args::try_parse_from([
+                "source-prover",
+                "verify",
+                "--proof",
+                "proof",
+                "--seal",
+                "seal",
+            ])
+            .is_err()
+        );
+        Ok(())
     }
 }
