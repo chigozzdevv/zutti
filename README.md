@@ -389,7 +389,11 @@ Exported jobs include `workload.json` with transaction versions and shielded-act
 
 [Later-history measurements](benchmarks/source-workloads-2026-10-19.json) include 11 completed public Testnet range executions and one cycle-limit failure. Under the same deferred-index policy, 16 blocks after height 1,000 used 259.6 million cycles; 16 after height 10,000 used 1.582 billion and contained four legacy Sprout JoinSplits. Reusing pairing preparation reduced the latter workload's cycles by 5.7% in a diagnostic candidate execution with the same journal.
 
-Block 282,757 contains 1,634 Sapling outputs and passed native validation, but its single-block guest execution exceeded the current 2^31-cycle session budget. Smaller block batches alone do not address this case. Cryptographic acceleration, larger measured jobs or validation split within blocks still need evaluation. These results measure execution work, not proof latency or fees; current-chain workloads and a whole-bootstrap budget remain unmeasured.
+Block 282,757 contains 1,634 Sapling outputs and passed native validation, but the baseline single-block guest execution exceeded the 2^31-cycle session budget. Smaller block batches alone do not address this case. These baseline results measure execution work, not proof latency or fees; current-chain workloads and a whole-bootstrap budget remain unmeasured.
+
+[Authorization measurements](benchmarks/source-authorization-2026-10-19.json) record the accelerated Groth16 backend. The source guest uses RISC Zero's pinned BLS12-381 0.8 accelerator through canonical public-input encodings; the Zcash libraries and default native verifier retain version 0.9. Shared four-bit windows preserve each proof's separate pairing equation. Four genuine Sapling output proofs fell from 1.091 billion to 142.1 million user cycles. A 64-distinct-output workload completed in 1.823 billion cycles; genuine Sapling spend and Sprout Groth16 cases also passed.
+
+The complete 1,634-output block then completed conditional source execution in 108.667 billion cycles with an exact journal match, using an explicit 2^37 local diagnostic ceiling. This produced no source receipt or admission. Exported proof jobs and Boundless requests retain their 2^31-cycle limit. [Reproduction commands and scope](benchmarks/authorization/README.md) distinguish component work, local execution, cryptographic receipts and current-chain admission.
 
 ## Source upgrade support
 
