@@ -6,11 +6,13 @@
     "root_cache": "21bce22345304efd6b1f8b3d41fadf67785f7f07",
     "single_signed_chunk": "327b418894bfccfe85aef94431fc7b42c21c282a",
     "paired_signed_chunks": "49e26bc94aae1f6b1f3541ea630e4b955bf461b1",
-    "tooling": "9f6db1ef813c476e0f70b6da94c7cf47e3d66bb0"
+    "tooling": "9f6db1ef813c476e0f70b6da94c7cf47e3d66bb0",
+    "accelerated_field": "40293cfc202419ca1e5f827632c8edd481a8a255",
+    "accelerated_tooling": "28863f487a2b96157a67a13c10da1d1db709e6d9"
   },
   "current_programs": {
-    "source": "0f2f778b48bea2460602151086fdb10158b3a0b9623358bb2b11e242b776d79b",
-    "source-update": "a74fe4202b0781d17922e36e6d507f360b1953258438cb5e329268b513beb41a",
+    "source": "3f3be9ab7c9fd68699be651483fa591e04e9073e663730742e5f3095a9c892a8",
+    "source-update": "ccd2ea4cd2cbd8353933294b548338977bcfb9be00d700999593c755037e90ac",
     "pool": "94a152919ef0549e1547226094249f7b201f07981a8bdc3df086ac164c6bcd52",
     "preparation": "69727497d3ff6259dd59268d97ee4395774ea484e59ab50a7e20eb129cd39cef",
     "history-query": "9a598f8a0c6c6141fecc83993eb9477d3f2e51a770717af98775cd6b5d21db7a"
@@ -21,7 +23,8 @@
     "host": "macos_aarch64",
     "session_limit": 2147483648,
     "segment_limit_po2": 20,
-    "tree_curve": "jubjub 0.11.1 over bls12_381 0.9.0"
+    "tree_curve": "Software: jubjub 0.11.1 over bls12_381 0.9.0; accelerated guest: canonical bridge to jubjub 0.10.0 over pinned RISC Zero bls12_381 0.8.0.",
+    "risc0_bigint2": "1.4.14"
   },
   "algorithm": {
     "input_bits": 516,
@@ -155,21 +158,61 @@
       "name": "paired-256",
       "algorithm": "paired_signed_chunks",
       "superseded": false
+    },
+    {
+      "hash_count": 32,
+      "windowed_trees": true,
+      "accelerated_trees": true,
+      "public_data": true,
+      "cycles": 32732722,
+      "segments": 35,
+      "padded_cycles": 36175872,
+      "seconds": 0.846684708,
+      "image_id": "1226de26ca65ab7100f787c7294a72a710ac155ba4b6e298bf022b90281b5789",
+      "program_sha256": "b4fc2aedce13a11e8801e3a88f41dd0612b2b1d3af6161cc359249effdeb5cc1",
+      "stdin_sha256": "b2b84fd717e10f32a0a92b14bb5cbf75492ae585c6d110ef798736583700dc5a",
+      "journal_sha256": "f4a1fa4aca47e7678dc2d922d74165b7678e8a43d3f263b9438afcf4632a2afc",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false,
+      "name": "accelerated-32",
+      "algorithm": "accelerated_paired_signed_chunks",
+      "superseded": false
+    },
+    {
+      "hash_count": 256,
+      "windowed_trees": true,
+      "accelerated_trees": true,
+      "public_data": true,
+      "cycles": 76613778,
+      "segments": 81,
+      "padded_cycles": 84410368,
+      "seconds": 2.013388667,
+      "image_id": "1226de26ca65ab7100f787c7294a72a710ac155ba4b6e298bf022b90281b5789",
+      "program_sha256": "b4fc2aedce13a11e8801e3a88f41dd0612b2b1d3af6161cc359249effdeb5cc1",
+      "stdin_sha256": "26410e3775f2edb0cdd83d9f505177cbbf3a3f19c7898d9a4c02e97d35615970",
+      "journal_sha256": "662c535f080f32bf4857931d4b1e558660e8808049dbbce9518c4c76d49216a8",
+      "journal_matches": true,
+      "proof_generated": false,
+      "source_state_admitted": false,
+      "settlement_authority": false,
+      "name": "accelerated-256",
+      "algorithm": "accelerated_paired_signed_chunks",
+      "superseded": false
     }
   ],
   "comparison": {
     "count": 256,
     "upstream_cycles": 1350306415,
-    "paired_cycles": 450979491,
-    "cycle_speedup": 2.9941636858160363,
-    "cycle_reduction_percent": 66.60169232773734,
+    "accelerated_paired_cycles": 76613778,
+    "cycle_speedup": 17.624850911281257,
+    "cycle_reduction_percent": 94.32619314039177,
     "additional_hashes": 224,
     "upstream_additional_cycles": 486943703,
-    "single_chunk_additional_cycles": 510757852,
-    "paired_additional_cycles": 300795044,
-    "single_chunk_additional_cycle_increase_percent": 4.890534337600827,
-    "paired_additional_cycle_reduction_percent": 38.227963079337734,
-    "paired_additional_cycle_speedup": 1.618855472233113,
+    "accelerated_paired_additional_cycles": 43881056,
+    "additional_cycle_reduction_percent": 90.98847449311816,
+    "additional_cycle_speedup": 11.096900288817116,
     "additional_work_is_a_difference_of_two_measurements": true,
     "fee_savings_measured": false
   },
@@ -246,6 +289,17 @@
           "executed_program": "0f2f778b48bea2460602151086fdb10158b3a0b9623358bb2b11e242b776d79b",
           "program_matches_statement": false,
           "cycle_limit": 2147483648
+        },
+        "accelerated_paired_signed_chunks": {
+          "cycles": 91896499,
+          "segments": 99,
+          "seconds": 2.729482791,
+          "journal_matches": true,
+          "proof_generated": false,
+          "expected_program": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+          "executed_program": "3f3be9ab7c9fd68699be651483fa591e04e9073e663730742e5f3095a9c892a8",
+          "program_matches_statement": false,
+          "cycle_limit": 2147483648
         }
       }
     },
@@ -318,12 +372,51 @@
           "cycle_limit": 2147483648
         }
       }
+    },
+    {
+      "network": "zcash_testnet",
+      "height": 282757,
+      "workload": {
+        "blocks": 1,
+        "block_bytes": 1999172,
+        "transactions": 1635,
+        "sapling_outputs": 1634
+      },
+      "stdin_sha256": "8f16bbd599246b914d7a46fb200e72a3e54a9a36868dc9e111997b70c3195746",
+      "expected_journal_sha256": "ef564fac88ac6407941f3076089fe35c5433b594ed7eba0668fc29ee7910952e",
+      "prior_state_genesis_proof_available": false,
+      "source_state_admitted": false,
+      "executions": {
+        "groth_windowed_only": {
+          "cycles": 108667191925,
+          "segments": 110030,
+          "seconds": 2145.428629375,
+          "journal_matches": true,
+          "proof_generated": false,
+          "expected_program": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+          "executed_program": "06514c209cf3d788bab3ea1a56db4fcf65554ba2a9ab98e4a10f7bee6154029c",
+          "program_matches_statement": false,
+          "cycle_limit": 137438953472
+        },
+        "accelerated_paired_signed_chunks": {
+          "cycles": 104557044301,
+          "segments": 105838,
+          "seconds": 1984.7019975,
+          "journal_matches": true,
+          "proof_generated": false,
+          "expected_program": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+          "executed_program": "3f3be9ab7c9fd68699be651483fa591e04e9073e663730742e5f3095a9c892a8",
+          "program_matches_statement": false,
+          "cycle_limit": 137438953472
+        }
+      }
     }
   ],
   "blossom_comparison": {
     "original_cycles": 991639926,
-    "paired_cycles": 209343440,
-    "cycle_reduction_percent": 78.88916788128597,
+    "accelerated_paired_cycles": 91896499,
+    "cycle_speedup": 10.790834654103634,
+    "cycle_reduction_percent": 90.73287625976447,
     "same_expected_journal": true,
     "shielded_authorization_proofs_in_block": 0
   },
@@ -340,7 +433,12 @@
     "prover_examples_clippy": "passed",
     "archived_program_tests": 2,
     "genuine_old_receipt_fixture_tests": 4,
-    "expensive_queue_restart_fixture": "not rerun; remains explicitly ignored"
+    "expensive_queue_restart_fixture": "not rerun; remains explicitly ignored",
+    "accelerated_tree_unit_tests": 11,
+    "accelerated_source_integration_tests": 21,
+    "accelerated_source_clippy": "passed",
+    "accelerated_prover_examples_clippy": "passed",
+    "vendor_integrity": "Every retained upstream file is identical except the recorded const qualifier deletion."
   },
   "frontier_encoding_unchanged": true,
   "root_caches_serialized": false,
@@ -350,5 +448,55 @@
   "current_chain_admitted": false,
   "whole_bootstrap_budget_measured": false,
   "wall_times_are_not_proving_latency": true,
-  "interpretation": "The paired hash reduces initialization and measured repeated work. The single-chunk prototype had lower startup but 4.89 percent more additional-hash cycles; the paired implementation supersedes it. The real Sapling stress block at height 282757 has not been remeasured with paired trees, so its earlier 108.667-billion-cycle result must not be attributed to this program. Complete bootstrap costs and provider fulfillment remain unmeasured."
+  "interpretation": "Accelerated paired hashing reduces initialization and repeated work. The superseded single-chunk prototype increased additional-hash cycles. The full busy block fell from 108.667 billion cycles with windowed Groth16 to 104.557 billion cycles after the tree optimizations, a 3.78 percent reduction. Component gains do not predict whole-block gains. Complete bootstrap costs, genuine proving latency and provider fulfillment remain unmeasured.",
+  "compatibility_patch": "crates/prover/methods/source/vendor/jubjub/provenance.json",
+  "software_comparison": {
+    "count": 256,
+    "upstream_cycles": 1350306415,
+    "paired_cycles": 450979491,
+    "cycle_speedup": 2.9941636858160363,
+    "cycle_reduction_percent": 66.60169232773734,
+    "additional_hashes": 224,
+    "upstream_additional_cycles": 486943703,
+    "single_chunk_additional_cycles": 510757852,
+    "paired_additional_cycles": 300795044,
+    "single_chunk_additional_cycle_increase_percent": 4.890534337600827,
+    "paired_additional_cycle_reduction_percent": 38.227963079337734,
+    "paired_additional_cycle_speedup": 1.618855472233113,
+    "additional_work_is_a_difference_of_two_measurements": true,
+    "fee_savings_measured": false
+  },
+  "software_blossom_comparison": {
+    "original_cycles": 991639926,
+    "paired_cycles": 209343440,
+    "cycle_reduction_percent": 78.88916788128597,
+    "same_expected_journal": true,
+    "shielded_authorization_proofs_in_block": 0
+  },
+  "current_stress_block_execution": {
+    "status": "completed",
+    "height": 282757,
+    "image_id": "3f3be9ab7c9fd68699be651483fa591e04e9073e663730742e5f3095a9c892a8",
+    "cycles": 104557044301,
+    "segments": 105838,
+    "seconds": 1984.7019975,
+    "journal_matches": true,
+    "proof_generated": false,
+    "expected_program": "8ebae834d6c83a7501c4f9645c5442ebba81566a24dd6705817b8a80eaec2a5a",
+    "executed_program": "3f3be9ab7c9fd68699be651483fa591e04e9073e663730742e5f3095a9c892a8",
+    "program_matches_statement": false,
+    "cycle_limit": 137438953472,
+    "source_state_admitted": false,
+    "paid_jobs": 0
+  },
+  "stress_block_comparison": {
+    "groth_windowed_only_cycles": 108667191925,
+    "accelerated_tree_cycles": 104557044301,
+    "cycle_reduction_percent": 3.7823261567638045,
+    "same_expected_journal": true,
+    "normal_job_cycle_bound": 2147483648,
+    "fits_normal_job_bound": false,
+    "whole_bootstrap_projection": false,
+    "fee_savings_measured": false
+  }
 }
