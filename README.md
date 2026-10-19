@@ -371,6 +371,8 @@ python3 scripts/profile-source-history.py \
 
 The driver checks the node network and retained parent hash, streams bounded blocks with backpressure and resumes from the last committed batch. A failed batch leaves earlier progress intact. The replay database and sample witnesses are profiling artifacts; they do not replace the runtime store or a genesis-anchored proof.
 
+Ordinary replay batches split when their authenticated transition exceeds the 64 MiB witness bound. Each smaller batch still validates all its blocks before committing. A single oversized block or a selected sample that exceeds the bound stops with its height interval; samples are never silently shortened.
+
 `--index-start` selects the benchmark's payment-lookup boundary and changes its policy. Deferring that index still validates every preceding block and transaction; it does not substitute a trusted state snapshot for replay.
 
 Export a retained sample under the exact source/update program pair, then measure its guest execution:
@@ -384,6 +386,10 @@ source-prover execute --job /path/to/range-job
 This measures a conditional range transition. Its starting state has native replay evidence, not a proved prefix. The range cannot substitute for a full-prefix receipt. Neither command purchases proofs; any paid range test still uses the separately capped Boundless client.
 
 Exported jobs include `workload.json` with transaction versions and shielded-action counts, so execution costs can be compared against the work each range actually contains.
+
+[Later-history measurements](benchmarks/source-workloads-2026-10-19.json) include 11 completed public Testnet range executions and one cycle-limit failure. Under the same deferred-index policy, 16 blocks after height 1,000 used 259.6 million cycles; 16 after height 10,000 used 1.582 billion and contained four legacy Sprout JoinSplits. Reusing pairing preparation reduced the latter workload's cycles by 5.7% in a diagnostic candidate execution with the same journal.
+
+Block 282,757 contains 1,634 Sapling outputs and passed native validation, but its single-block guest execution exceeded the current 2^31-cycle session budget. Smaller block batches alone do not address this case. Cryptographic acceleration, larger measured jobs or validation split within blocks still need evaluation. These results measure execution work, not proof latency or fees; current-chain workloads and a whole-bootstrap budget remain unmeasured.
 
 ## Source upgrade support
 
