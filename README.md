@@ -302,6 +302,23 @@ Tests cover published signature vectors, historical PHGR/Groth16 transactions, m
 
 Rust and Solidity agree on the 295-byte pool journal, source-update journal and deployment-domain vectors. Contract tests cover claim binding, replay, duplicate commitments, token failures, reentrancy and atomic rollback. State-machine tests use `JournalVerifierMock` to isolate contract behavior. Separate tests verify genuine Groth16 preparation, source-update and pool deposit/transfer/withdrawal evidence. Source and pool proof programs exist, but current-chain Zcash evidence has not been composed with a real funded reservation and its paid/refund settlement. The contracts are not deployed or ready for funding.
 
+### Verified operation export
+
+`PoolOperation::from_witness` derives the public nullifiers, encrypted outputs and exact contract journal from an evaluated pool witness. `PoolExecution::verify` requires a genuine Groth16 receipt against an independently expected statement. Reservations additionally require a matching preparation receipt and pinned preparation program. Other operation kinds reject an unexpected preparation proof. Fake receipts, changed ciphertexts, altered nullifiers and wrong program identities cannot produce a verified execution bundle.
+
+With an existing proof, export the contract operation without generating another proof or submitting a transaction:
+
+```sh
+cargo run --locked -p zutti-prover --bin private-prover -- export-execution \
+  --backup /absolute/path/settlement.backup \
+  --key-file /absolute/path/recovery.key --domain DEPLOYMENT_DOMAIN_HEX \
+  --proof /absolute/path/settlement.proof --out /absolute/path/execution.json
+```
+
+For a reservation witness, add `--preparation-proof /absolute/path/preparation.proof`. The selected programs default to the current embedded profiles; use `--program` and `--preparation-program` only with retained, admitted programs matching the intended deployment. The public JSON contains the operation fields and EVM seals, without transaction IDs, note openings or spending secrets. It is an operation bundle, not a signed transaction. It reports proof verification separately from chain admission and submission. The destination still requires the correct configured contract, accepted source checkpoint, known pool root and unused nullifiers. Wallet source authorization remains gated.
+
+Export tests use retained genuine deposit/transfer/withdrawal receipts and compare every operation field with the Solidity lifecycle fixture. Cross-chain claim/refund export still needs its own genuine receipts and live chain evidence.
+
 ## Ownership
 
 ```text

@@ -12,4 +12,5 @@ pub mod query;
 pub mod remote;
 pub mod rpc;
 pub mod source;
+pub mod submission;
 pub use backend::{Error, ProofEnvelope, ProofVerifier, VerifiedProof};

@@ -49,6 +49,7 @@ enum Command {
         #[arg(long, default_value = "r0vm")]
         prover: PathBuf,
     },
+    ExportExecution(ExecutionArgs),
     VerifyPool {
         #[arg(long)]
         proof: PathBuf,
@@ -86,6 +87,26 @@ struct ProveArgs {
     program: Option<PathBuf>,
     #[arg(long, hide = true)]
     worker: bool,
+}
+
+#[derive(Debug, ClapArgs)]
+struct ExecutionArgs {
+    #[arg(long)]
+    backup: PathBuf,
+    #[arg(long)]
+    key_file: PathBuf,
+    #[arg(long)]
+    domain: String,
+    #[arg(long)]
+    proof: PathBuf,
+    #[arg(long)]
+    out: PathBuf,
+    #[arg(long)]
+    program: Option<PathBuf>,
+    #[arg(long)]
+    preparation_proof: Option<PathBuf>,
+    #[arg(long, requires = "preparation_proof")]
+    preparation_program: Option<PathBuf>,
 }
 
 fn run_worker() -> Result<(), Box<dyn std::error::Error>> {
@@ -196,6 +217,7 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             }
             report(&artifact, kind)?;
         }
+        Command::ExportExecution(args) => export_execution(args)?,
         Command::ProvePool(args) => prove(args, ProofKind::Note)?,
         Command::ProveQuery(args) => prove(args, ProofKind::HistoryQuery)?,
         Command::ProvePreparation(args) => prove(args, ProofKind::Preparation)?,
@@ -212,6 +234,58 @@ fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
             report(&artifact, expected.kind())?;
         }
     }
+    Ok(())
+}
+
+fn export_execution(args: ExecutionArgs) -> Result<(), Box<dyn std::error::Error>> {
+    use zutti_prover::submission::{PoolExecution, PoolOperation};
+    let domain = Digest::from_hex(&args.domain)?;
+    let key = backup::read_private(&args.key_file, 32)?;
+    let key = Secret32::from_bytes(
+        key.as_slice()
+            .try_into()
+            .map_err(|_| "key file must contain exactly 32 raw bytes")?,
+    )?;
+    let archive = backup::read_private(&args.backup, zutti_wallet::pool::MAX_POOL_WITNESS + 128)?;
+    let plaintext = backup::open(domain, &archive, &key)?;
+    let witness = zutti_wallet::pool::PoolWitness::from_bytes(&plaintext)?;
+    let operation = PoolOperation::from_witness(&witness)?;
+    if operation.claim().domain != domain {
+        return Err("pool operation domain mismatch".into());
+    }
+    let program = match args.program {
+        Some(path) => Program::read(ProgramKind::Pool, &path)?,
+        None => Program::current(ProgramKind::Pool),
+    };
+    let artifact = ProofArtifact::read(&args.proof)?;
+    let preparation = match args.preparation_proof {
+        Some(path) => Some((
+            match args.preparation_program {
+                Some(path) => Program::read(ProgramKind::Preparation, &path)?,
+                None => Program::current(ProgramKind::Preparation),
+            },
+            ProofArtifact::read(&path)?,
+        )),
+        None => None,
+    };
+    let expected = zutti_prover::pool::pool_statement_with(operation.claim(), &program)?;
+    let preparation = preparation
+        .map(|(program, artifact)| {
+            let claim = zutti_wallet::preparation::PreparationClaim::from_bytes(
+                artifact.statement().payload(),
+            )?;
+            let expected = zutti_prover::preparation::preparation_statement_with(&claim, &program)?;
+            Ok::<_, zutti_prover::Error>((expected, artifact))
+        })
+        .transpose()?;
+    let execution = PoolExecution::verify(
+        operation,
+        &expected,
+        &artifact,
+        preparation.as_ref().map(|(s, a)| (s, a)),
+    )?;
+    execution.persist_new(&args.out)?;
+    println!("proof_verified=true chain_admission_verified=false transaction_submitted=false");
     Ok(())
 }
 
