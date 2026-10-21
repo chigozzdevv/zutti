@@ -9,9 +9,13 @@ publish.workspace = true
 zutti-protocol.workspace = true
 zutti-wallet.workspace = true
 clap.workspace = true
+zeroize.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true
+zcash_protocol.workspace = true
+zutti-source = { workspace = true, features = ["blocks"] }
+zebra-test = "=4.0.0"
 
 [lints]
 workspace = true

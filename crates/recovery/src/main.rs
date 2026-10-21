@@ -1,23 +1,37 @@
+mod archive;
 mod args;
-use args::{Args, Command};
+mod prepare;
+mod restore;
+
+use args::{ArchiveArgs, Args, Command};
 use clap::Parser;
 use std::process::ExitCode;
-use zutti_protocol::{Digest, Secret32};
-use zutti_wallet::backup;
+use zutti_wallet::{backup, swap::SettlementAction};
 
-fn run(args: Args) -> Result<(), Box<dyn std::error::Error>> {
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
+fn run(args: Args) -> Result<()> {
     match args.command {
-        Command::Status => println!("encrypted_archives=implemented claim=unavailable refund=unavailable"),
-        Command::Inspect { backup: path, key_file, domain } => {
-            let domain = Digest::from_hex(&domain)?;
-            let key = backup::read_private(&key_file,32)?;
-            let key_bytes: [u8;32] = key.as_slice().try_into().map_err(|_| "key file must contain exactly 32 raw bytes")?;
-            let key = Secret32::from_bytes(key_bytes)?;
-            let archive = backup::read_private(&path,backup::MAX_ARCHIVE)?;
-            let plaintext = backup::open(domain,&archive,&key)?;
-            println!("archive_authenticated=true payload_bytes={} settlement_authority=false",plaintext.len());
-        },
-        Command::Claim | Command::Refund => return Err("settlement unavailable: source consensus, pool/settlement proofs, Ethereum finality and contracts have not been admitted; no transaction submitted".into()),
+        Command::Status => println!(
+            "encrypted_archives=implemented swap_restore=implemented settlement_witness=implemented claim=unavailable refund=unavailable"
+        ),
+        Command::Inspect { backup, key_file, domain } => {
+            let (_, _, plaintext) = archive::open(
+                &ArchiveArgs { backup, key_file, domain },
+                backup::MAX_PLAINTEXT,
+            )?;
+            println!(
+                "archive_authenticated=true payload_bytes={} settlement_authority=false",
+                plaintext.len()
+            );
+        }
+        Command::Export(args) => restore::export(args)?,
+        Command::Restore(args) => restore::restore(args)?,
+        Command::PrepareClaim(args) => prepare::prepare(args, SettlementAction::Claim)?,
+        Command::PrepareRefund(args) => prepare::prepare(args, SettlementAction::Refund)?,
+        Command::Claim | Command::Refund => return Err(
+            "settlement submission requires admitted chain evidence, a verified settlement proof and a configured deployment; no transaction submitted".into(),
+        ),
     }
     Ok(())
 }

@@ -6512,7 +6512,11 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "tempfile",
+ "zcash_protocol",
+ "zebra-test",
+ "zeroize",
  "zutti-protocol",
+ "zutti-source",
  "zutti-wallet",
 ]
 

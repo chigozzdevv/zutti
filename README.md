@@ -13,7 +13,7 @@ This repository implements Rust protocol components, native Zcash transaction va
 | `prover` | RISC Zero history-query, preparation, private-pool, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, cross-chain reservation/settlement integration and independent recovery |
 | `boundless` | Capped Base and Sepolia proof requests, public inputs, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
 | `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Current-chain bootstrap, cross-chain composition, finality and network deployment |
-| `recovery` | Local archive authentication/inspection with private key-file input | Validated swap-record restoration and independent on-chain claim/refund execution |
+| `recovery` | Encrypted swap-record export/restoration and private claim/refund witness preparation with exact domain/swap binding | Accepted current-chain evidence, settlement proving and independent on-chain submission |
 
 The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source and pool evidence under its pinned programs. Current-chain source bootstrap, cross-chain composition and verified Ethereum finality remain unfinished.
 
@@ -58,6 +58,36 @@ cargo run --locked -p zutti-recovery -- inspect \
 ```
 
 The key file contains exactly 32 raw bytes, independently generated for recovery encryption. Archive and key files must be regular, owner-only files within trusted parent directories. Secret key bytes are never command-line arguments. Inspection prints authentication status and payload size, not plaintext or transaction IDs. It does not validate an economic claim. `claim` and `refund` return a nonzero unavailable result. `source-prover` implements prefix proving, registry updates and profile-bound source admission. The private prover implements the history-query and payment-effects preparation components described below; neither authorizes settlement.
+
+### Swap recovery records
+
+`SwapRecord::from_reservation` evaluates a reservation witness and retains the fixed terms, commitment openings, escrow and output recovery material. It excludes the funding notes and their spending/nullifier secrets. The encrypted record is bound to its deployment and stable swap identifier. Restoration checks that identifier, authenticates and validates the record, and writes a fresh encrypted copy without replacing an existing file. Wallet receiving/spending keys remain separate; this record does not replace a complete wallet backup or prove that a reservation was finalized.
+
+Export a record from an encrypted reservation `PoolWitness` archive. The command prints the `swap_id` needed for restoration:
+
+```sh
+cargo run --locked -p zutti-recovery -- export \
+  --backup /absolute/path/reservation.backup \
+  --key-file /absolute/path/recovery.key --domain DEPLOYMENT_DOMAIN_HEX \
+  --out /absolute/path/swap.backup
+
+cargo run --locked -p zutti-recovery -- restore \
+  --backup /absolute/path/swap.backup \
+  --key-file /absolute/path/recovery.key --domain DEPLOYMENT_DOMAIN_HEX \
+  --swap SWAP_ID_HEX --out /absolute/path/restored.backup
+```
+
+`SettlementEvidence` contains a swap-bound pool membership path, source checkpoint, order-anchor ancestry and payment inclusion/absence path. Supply it in an encrypted archive under the same domain/key. `prepare-claim` reconstructs only the agreed payout; `prepare-refund` reconstructs only the agreed refund. Both evaluate the existing pool predicate, including inclusive expiry, ancestry, output ciphertext and conservation checks. Missing evidence and an unexpired absence cannot prepare a refund. A paid claim remains available after expiry.
+
+```sh
+cargo run --locked -p zutti-recovery -- prepare-claim \
+  --backup /absolute/path/restored.backup \
+  --key-file /absolute/path/recovery.key --domain DEPLOYMENT_DOMAIN_HEX \
+  --swap SWAP_ID_HEX --evidence /absolute/path/evidence.backup \
+  --out /absolute/path/settlement.backup
+```
+
+Use `prepare-refund` with the same arguments for expired nonpayment. The output is an encrypted `PoolWitness` archive accepted by `private-prover prove-pool`. Preparation performs no proving or network submission. Supplied checkpoint and pool roots still require independent chain admission; a successful local predicate is not accepted settlement evidence. Tests reconstruct both outcomes from historical-prefix witnesses and run the recovery CLI with no external commands available. They do not establish a mined swap payment, current-chain bootstrap or live recovery.
 
 ## Authenticated source storage
 
