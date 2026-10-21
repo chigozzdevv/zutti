@@ -1,0 +1,23 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/schema"
+    },
+    {
+      "path": "packages/bindings"
+    },
+    {
+      "path": "packages/runtime"
+    },
+    {
+      "path": "packages/sdk"
+    },
+    {
+      "path": "packages/maker-sdk"
+    },
+    {
+      "path": "server"
+    }
+  ]
+}

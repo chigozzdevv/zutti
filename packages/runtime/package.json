@@ -1,0 +1,26 @@
+{
+  "name": "@zutti/runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./native": {
+      "types": "./dist/native.d.ts",
+      "import": "./dist/native.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@zutti/schema": "workspace:*",
+    "@zutti/bindings": "workspace:*",
+    "@hpke/core": "1.9.0",
+    "zod": "4.6.7"
+  }
+}

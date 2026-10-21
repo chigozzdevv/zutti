@@ -8,3 +8,4 @@ forge test --root contracts
 node --test tests/vectors.mjs
 cargo test --locked --manifest-path crates/wallet/ethereum/Cargo.toml --features fulfillment
 python3 scripts/check-ethereum-layout.py
+bash scripts/test-typescript.sh

@@ -15,11 +15,19 @@
     "test": "bash scripts/test.sh",
     "test:proofs": "bash scripts/test-proofs.sh",
     "boundless": "bash scripts/boundless.sh",
-    "test:boundless": "bash scripts/test-boundless.sh"
+    "test:boundless": "bash scripts/test-boundless.sh",
+    "build:ts": "tsc -b",
+    "typecheck:ts": "tsc -b --pretty false",
+    "test:ts": "bash scripts/test-typescript.sh",
+    "lint:ts": "eslint packages server --max-warnings=0",
+    "codegen": "node --experimental-strip-types packages/bindings/codegen.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "eslint": "10.0.1",
-    "prettier": "3.9.10"
+    "prettier": "3.9.10",
+    "typescript": "5.9.3",
+    "@types/node": "22.20.5",
+    "typescript-eslint": "8.72.0"
   }
 }

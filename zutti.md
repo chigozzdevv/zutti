@@ -14,7 +14,7 @@ An earned payout has no claim deadline. A delayed proof, disconnected wallet, un
 
 Zutti consists of a headless client SDK, a maker SDK, a shared protocol core, a private USDC pool, and source-verification infrastructure. Applications own their interface and use the public SDK to request offers, accept a trade and manage its outcome. The Zutti application uses that same SDK.
 
-This document specifies intended behavior. The workspace implements protocol encodings and amounts, Ironwood preparation, native note ownership/encryption, authenticated source replay with transaction authorization and spend/monetary checks, and recursive source, history-query, preparation and private-pool proof programs. Genuine proofs cover early genesis-anchored source prefixes and basic pool deposit/transfer/withdrawal operations; Ethereum contract tests verify genuine component evidence and matching Rust journals. Native authorization now composes preparation receipt verification, Ethereum finalized reservation evidence and source admission before invoking a local signer. Encrypted swap/payment records support restart reconciliation, exact-byte broadcast retries and settlement witness reconstruction. Current-chain bootstrap, a matching live authorization run, Zcash-backed reservation and paid/refund settlement proofs, complete independent on-chain recovery, SDKs and deployed contracts remain unfinished. See `README.md` for evidence and commands.
+This document specifies intended behavior. The workspace implements protocol encodings and amounts, Ironwood preparation, native note ownership/encryption, authenticated source replay with transaction authorization and spend/monetary checks, and recursive source, history-query, preparation and private-pool proof programs. Genuine proofs cover early genesis-anchored source prefixes and basic pool deposit/transfer/withdrawal operations; Ethereum contract tests verify genuine component evidence and matching Rust journals. Native authorization now composes preparation receipt verification, Ethereum finalized reservation evidence and source admission before invoking a local signer. Encrypted swap/payment records support restart reconciliation, exact-byte broadcast retries and settlement witness reconstruction. The TypeScript RFQ subset now implements strict message schemas, native amount/fee bindings, authenticated encrypted requests/offers, encrypted owner journals, SDK quote collection, maker quote service controls and a bounded relay. Tests use generated profiles/providers; no live pricing or trading-wallet adapter is configured. Current-chain bootstrap, a matching live authorization run, Zcash-backed reservation and paid/refund settlement proofs, complete independent on-chain recovery, SDK account/fulfillment methods and deployed contracts remain unfinished. See `README.md` for evidence and commands.
 
 ### 1.1 Supported asset model
 
@@ -526,7 +526,7 @@ Source roots or cumulative successors usable for earned claims remain verifiable
 
 ### 12.1 Public shape and ownership
 
-Zutti has two headless public packages: `@zutti/sdk` for applications and `@zutti/maker-sdk` for maker services. They share the same protocol core, private-account engine, wallet bindings and settlement/recovery rules. Applications own their interface; the SDK owns protocol orchestration. These are intended APIs, not implemented package exports.
+Zutti has two headless public packages: `@zutti/sdk` for applications and `@zutti/maker-sdk` for maker services. They share the same protocol core, private-account engine, wallet bindings and settlement/recovery rules. Applications own their interface; the SDK owns protocol orchestration. The RFQ subset is implemented. The complete reference below remains the target contract; account, funded execution and independent on-chain recovery are not implemented package exports yet.
 
 The normal application flow is `intent()` -> `offers()` -> `accept()`. Acceptance coordinates the entire exchange through confirmed, recoverable receipt. Status updates use an optional `on_status` callback. There is no additional routine execution or resumption step.
 
@@ -1263,7 +1263,7 @@ An explicit source-upgrade handoff and historical verifier-retention strategy is
 
 ## 19. Repository ownership
 
-The repository follows this target layout. The Rust foundation, Boundless transport, root tooling, fixture tests and preparation-verifier contract now exist; application, server, SDK, pool and registry implementations follow their corresponding gates. A directory listed below is not evidence that its full responsibility has been implemented.
+The repository follows this target layout. Rust components, contracts, shared TypeScript packages, SDK RFQ subsets and the relay now exist. The client, full wallet adapters, SDK accounts and funded cross-chain execution follow their corresponding gates. A directory listed below is not evidence that its full responsibility has been implemented.
 
 ```text
 zutti.md                     protocol, architecture and SDK specification
