@@ -2,7 +2,7 @@
 
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 
-Specification draft · 17 October 2026
+Specification draft · 21 October 2026
 
 ## 1. Product and status
 
@@ -14,7 +14,7 @@ An earned payout has no claim deadline. A delayed proof, disconnected wallet, un
 
 Zutti consists of a headless client SDK, a maker SDK, a shared protocol core, a private USDC pool, and source-verification infrastructure. Applications own their interface and use the public SDK to request offers, accept a trade and manage its outcome. The Zutti application uses that same SDK.
 
-This document specifies intended behavior. The workspace implements protocol encodings and amounts, Ironwood preparation, native note ownership/encryption, authenticated source replay with transaction authorization and spend/monetary checks, and recursive source, history-query, preparation and private-pool proof programs. Genuine proofs cover early genesis-anchored source prefixes and basic pool deposit/transfer/withdrawal operations; Ethereum contract tests verify genuine component evidence and matching Rust journals. Current-chain bootstrap, live source/finality admission, Zcash-backed reservation and paid/refund settlement integration, independent recovery, SDKs and deployed contracts remain unfinished. See `README.md` for evidence and commands.
+This document specifies intended behavior. The workspace implements protocol encodings and amounts, Ironwood preparation, native note ownership/encryption, authenticated source replay with transaction authorization and spend/monetary checks, and recursive source, history-query, preparation and private-pool proof programs. Genuine proofs cover early genesis-anchored source prefixes and basic pool deposit/transfer/withdrawal operations; Ethereum contract tests verify genuine component evidence and matching Rust journals. Native authorization now composes preparation receipt verification, Ethereum finalized reservation evidence and source admission before invoking a local signer. Encrypted swap/payment records support restart reconciliation, exact-byte broadcast retries and settlement witness reconstruction. Current-chain bootstrap, a matching live authorization run, Zcash-backed reservation and paid/refund settlement proofs, complete independent on-chain recovery, SDKs and deployed contracts remain unfinished. See `README.md` for evidence and commands.
 
 ### 1.1 Supported asset model
 

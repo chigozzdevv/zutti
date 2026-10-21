@@ -38,9 +38,5 @@ pub enum Error {
     Permissions,
     #[error("recovery I/O failed: {0}")]
     Io(#[from] std::io::Error),
-    #[error(
-        "source authorization requires an admitted Ethereum finality verifier and preparation proof"
-    )]
-    AuthorizationUnavailable,
 }
 pub type Result<T> = core::result::Result<T, Error>;

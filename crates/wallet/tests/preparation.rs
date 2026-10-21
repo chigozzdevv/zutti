@@ -9,10 +9,7 @@ use pczt::{Pczt, roles::signer::Signer};
 use rand::{SeedableRng, rngs::StdRng};
 use zcash_primitives::transaction::txid::{TxIdDigester, to_txid};
 use zutti_protocol::{Digest, order::OrderTerms};
-use zutti_wallet::{
-    Error,
-    prepare::{authorize, inspect_ironwood},
-};
+use zutti_wallet::{Error, prepare::inspect_ironwood};
 
 #[test]
 fn prepared_source_fee_cannot_exceed_the_agreed_cap() {
@@ -94,10 +91,6 @@ fn ironwood_preparation_preserves_transaction_id_after_authorization() {
             &fixture.randomness
         ),
         Err(Error::AlreadyAuthorized)
-    ));
-    assert!(matches!(
-        authorize(&inspected),
-        Err(Error::AuthorizationUnavailable)
     ));
     assert!(!format!("{inspected:?}").contains(&inspected.txid().to_string()));
 }

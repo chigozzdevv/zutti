@@ -7,8 +7,8 @@ This repository implements Rust protocol components, native Zcash transaction va
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
 | `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings, operation-bound spending authorization, pool membership trees and settlement journals | Production profile review and circuit parameters |
-| `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted payment journals, exact-byte broadcast retries and private-note encryption/recovery | Chain scanning, production profile admission, live finality/reservation evidence and source authorization/broadcast integration |
-| `wallet/ethereum` | Pinned Helios beacon light-client verification, committee transitions, finalized execution-header binding and EIP-1186 account/storage proofs for reserved escrows | Trusted Ethereum bootstrap profile, live reservation evidence and wallet signing integration |
+| `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted payment journals, exact-byte broadcast retries and private-note encryption/recovery | Chain scanning, local signer/transport adapters, production profile admission and live reservation/settlement execution |
+| `wallet/ethereum` | Pinned Helios beacon light-client verification, committee transitions, finalized execution-header binding and EIP-1186 account/storage proofs for reserved escrows; native preparation/source/finality authorization coordinator | Trusted Ethereum bootstrap/deployment profile, fresh chain evidence and a complete live swap |
 | `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, current-chain bootstrap evidence, deployed fork/stability admission and current-chain storage/throughput measurements |
 | `prover` | RISC Zero history-query, preparation, private-pool, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, cross-chain reservation/settlement integration and independent recovery |
 | `boundless` | Capped Base and Sepolia proof requests, public inputs, durable request records, proof collection and on-chain timing/cost evidence | Confidential witness transport and representative source workloads |
@@ -147,7 +147,7 @@ Program image: `115e817a997cb003c29a150e77757b7f8a38daee10d9830211a6273e10174195
 
 The guest checks the pinned v6 Ironwood-only profile, enabled outputs, the agreed expiry, fee bound and exact transaction-ID digest. It derives the NU6.3 or NU7 branch from the source genesis and the inclusion window, rejecting unknown networks and windows crossing an upgrade. It reconstructs the designated V3 note commitment, ephemeral key and authenticated note ciphertext, including the order/anchor memo. The public journal is exactly 106 bytes: version, deployment domain, order commitment and reservation commitment. It exposes no transaction ID, receiver, amount, expiry or commitment openings.
 
-The wallet's full inspector additionally verifies the spend metadata, input/output value balance, randomized authorization keys and withheld real-spend signatures. These local signing checks are separate from the payment-effects statement. The preparation proof does not prove input existence, unspentness, source consensus, future inclusion, private USDC funding or destination finality. Authorization remains unavailable.
+The wallet's full inspector additionally verifies the spend metadata, input/output value balance, randomized authorization keys and withheld real-spend signatures. These local signing checks are separate from the payment-effects statement. The preparation proof does not prove input existence, unspentness, source consensus, future inclusion, private USDC funding or destination finality. The native authorization coordinator requires independently verified preparation, source and Ethereum evidence before calling a local signer.
 
 ```sh
 cargo run --locked -p zutti-prover --bin private-prover -- prove-preparation \
@@ -315,7 +315,7 @@ cargo run --locked -p zutti-prover --bin private-prover -- export-execution \
   --proof /absolute/path/settlement.proof --out /absolute/path/execution.json
 ```
 
-For a reservation witness, add `--preparation-proof /absolute/path/preparation.proof`. The selected programs default to the current embedded profiles; use `--program` and `--preparation-program` only with retained, admitted programs matching the intended deployment. The public JSON contains the operation fields and EVM seals, without transaction IDs, note openings or spending secrets. It is an operation bundle, not a signed transaction. It reports proof verification separately from chain admission and submission. The destination still requires the correct configured contract, accepted source checkpoint, known pool root and unused nullifiers. Wallet source authorization remains gated.
+For a reservation witness, add `--preparation-proof /absolute/path/preparation.proof`. The selected programs default to the current embedded profiles; use `--program` and `--preparation-program` only with retained, admitted programs matching the intended deployment. The public JSON contains the operation fields and EVM seals, without transaction IDs, note openings or spending secrets. It is an operation bundle, not a signed transaction. It reports proof verification separately from chain admission and submission. The destination still requires the correct configured contract, accepted source checkpoint, known pool root and unused nullifiers. Native wallet authorization checks those evidence gates in process; no live profile or funded reservation has been demonstrated.
 
 Export tests use retained genuine deposit/transfer/withdrawal receipts and compare every operation field with the Solidity lifecycle fixture. Cross-chain claim/refund export still needs its own genuine receipts and live chain evidence.
 
@@ -325,13 +325,31 @@ Export tests use retained genuine deposit/transfer/withdrawal receipts and compa
 
 The stages are `Prepared → Signing → Signed → Ready → Attempted → Acknowledged`. A durable `Signing` marker is written before a signer is called. After a crash in that state, the caller must reconcile signatures for the saved payment; automatic signing cannot restart. Signature import accepts only the missing Ironwood authorizations, verifies each against the original PCZT, and rejects missing, duplicated, invalid or foreign-pool signatures.
 
-`finalize()` uses the upstream transaction extractor to verify the actual Zcash transaction proofs and authorizations before saving broadcastable bytes. If proving is completed after signing, `finalize_with_proof()` accepts a PCZT differing only in its Ironwood proof; changed anchors, effects, signatures and metadata are rejected. It verifies the completed transaction before persisting it. Neither operation generates a proof.
+`finalize()` uses the upstream transaction extractor to verify the actual Zcash transaction proofs and authorizations before saving broadcastable bytes. If proving is completed after signing, `finalize_with_proof()` accepts a PCZT differing only in its Ironwood proof; changed anchors, effects, signatures and metadata are rejected. It verifies the completed transaction before persisting it. `signed_pczt()` exposes the validated signed input for a local prover; it contains private witness metadata and must stay local. Neither operation generates a proof.
 
 `submit()` writes an attempt marker before invoking the caller's transport. A timeout or mismatched returned transaction ID retains that attempt for reconciliation. Retries send the exact saved bytes without rebuilding or signing. `Acknowledged` means the transport returned the expected transaction ID; it does not mean the payment was mined or settled. Expired payments still require authenticated chain evidence for claim/refund decisions.
 
 The archive plaintext cap is 16 MiB so an 8 MiB PCZT and bounded swap record fit together. PCZT and swap-record limits remain independently enforced. Keys and decrypted serialized data remain local. Low-level journal methods validate local state, not chain evidence; applications must use the native authorization coordinator before invoking a signer or submitting payment.
 
 Wallet tests use generated PCZTs and synthetic reservation state. One private unit test seeds transaction bytes solely to exercise transport retry behavior; there is no production constructor for unchecked broadcastable bytes. Missing genuine transaction proofs block extraction and broadcast.
+
+## Native authorization coordinator
+
+Enable `fulfillment` in the isolated `crates/wallet/ethereum` workspace to use `AuthorizationProfile` and `AuthorizedPayment`. The optional dependency graph keeps Ethereum consensus libraries out of the Zcash proof guests.
+
+The locally reviewed profile pins the full deployment domain, pool runtime code hash, preparation program, source admission policy, Ethereum bootstrap/fork rules and minimum remaining source blocks. The coordinator derives the expected escrow commitment, order tag and terminal nullifier from the encrypted swap record. It does not accept these bindings or a successful verification flag from an evidence server.
+
+`AuthorizationProfile::verify()` checks the saved PCZT, verifies the preparation receipt against the exact domain/order/reservation, verifies Ethereum beacon finality and execution/storage evidence, and admits the source registry receipt and state under the pinned policy. It authenticates the order anchor and checks remaining inclusion time against the **proved head height**, not the older stable checkpoint. Only then does it construct `AuthorizedPayment`; that type has no public constructor or deserializer.
+
+`AuthorizedPayment::sign()` rechecks evidence age and the trusted local clock, persists the signing marker, calls the local signer and verifies its returned signatures. `reconcile_signatures()` handles an interrupted signature handoff without calling the signer again. `submit()` rechecks freshness before passing the saved transaction to a transport. The caller must obtain new evidence when those checks expire. A stale source does not grant a refund.
+
+The signer must independently control and review its inputs and change outputs. The coordinator is not a chain scanner or an implementation of a wallet's key store. Low-level journal helpers never grant chain authority by themselves. The legacy inspection-only `prepare::authorize` stub has been removed.
+
+```sh
+cargo test --manifest-path crates/wallet/ethereum/Cargo.toml --features fulfillment --lib
+```
+
+These tests verify retained genuine preparation/source receipts and Ethereum consensus vectors, plus generated reservation bindings and journal recovery. They do not compose one current-chain source receipt, matching preparation proof, live finalized reservation and mined payment. That complete acceptance test, current testnet bootstrap, genuine reservation/settlement proofs, reviewed deployment profiles and contract deployment remain required. No new proofs or paid requests are generated by these tests.
 
 ## Ownership
 

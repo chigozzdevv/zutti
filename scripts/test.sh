@@ -6,5 +6,5 @@ cargo test --locked --workspace --all-targets
 cargo test --locked --manifest-path crates/boundless/Cargo.toml
 forge test --root contracts
 node --test tests/vectors.mjs
-cargo test --locked --manifest-path crates/wallet/ethereum/Cargo.toml
+cargo test --locked --manifest-path crates/wallet/ethereum/Cargo.toml --features fulfillment
 python3 scripts/check-ethereum-layout.py

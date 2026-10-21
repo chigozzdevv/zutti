@@ -44,6 +44,7 @@ fn restart_retains_fixed_payment_and_does_not_repeat_signing() {
     )
     .unwrap();
     assert_eq!(journal.state().unwrap(), PaymentState::Prepared);
+    assert!(journal.signed_pczt().is_err());
     assert!(journal.record_signatures(&signatures(&fixture)).is_err());
     journal.begin_signing().unwrap();
     assert!(journal.begin_signing().is_err());
@@ -63,6 +64,11 @@ fn restart_retains_fixed_payment_and_does_not_repeat_signing() {
         fixture.pczt.clone().serialize().unwrap()
     );
     assert!(journal.record_signatures(&signatures(&fixture)).is_err());
+    let signed = journal.signed_pczt().unwrap();
+    assert!(matches!(
+        journal.finalize_with_proof(signed.to_vec()),
+        Err(Error::Transaction)
+    ));
     assert!(matches!(journal.finalize(), Err(Error::Transaction)));
     assert!(
         journal

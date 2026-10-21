@@ -226,7 +226,3 @@ fn inspect_bound_output(
         actions,
     })
 }
-
-pub fn authorize(_payment: &InspectedPayment) -> Result<()> {
-    Err(Error::AuthorizationUnavailable)
-}

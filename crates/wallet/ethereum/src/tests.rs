@@ -14,7 +14,7 @@ type TestConsensus = (
     FinalityUpdate<MinimalConsensusSpec>,
 );
 
-fn fixture(fork: &str) -> TestConsensus {
+pub(super) fn fixture(fork: &str) -> TestConsensus {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests/fixtures")
         .join(fork);

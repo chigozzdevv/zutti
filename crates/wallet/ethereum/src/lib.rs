@@ -1,3 +1,6 @@
+#[cfg(feature = "fulfillment")]
+pub mod authorization;
+
 use alloy::{
     consensus::{Header, TrieAccount},
     primitives::{Address, B256, U256, keccak256},

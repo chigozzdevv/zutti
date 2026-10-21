@@ -13,4 +13,4 @@ forge fmt --check contracts/src contracts/test
 pnpm exec eslint tests --max-warnings=0
 pnpm exec prettier --check package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.js prettier.config.js 'tests/**/*.mjs'
 cargo fmt --manifest-path crates/wallet/ethereum/Cargo.toml --check
-cargo clippy --locked --manifest-path crates/wallet/ethereum/Cargo.toml --all-targets -- -D warnings
+cargo clippy --locked --manifest-path crates/wallet/ethereum/Cargo.toml --features fulfillment --all-targets -- -D warnings

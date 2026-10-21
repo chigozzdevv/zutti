@@ -235,6 +235,15 @@ impl PaymentJournal {
         }
         Ok(())
     }
+    pub fn signed_pczt(&self) -> Result<Zeroizing<Vec<u8>>> {
+        match self.state()? {
+            PaymentState::Signed
+            | PaymentState::Ready
+            | PaymentState::Attempted
+            | PaymentState::Acknowledged => self.read_stage(1),
+            _ => Err(Error::PaymentState),
+        }
+    }
     pub fn finalize(&self) -> Result<Digest> {
         match self.state()? {
             PaymentState::Ready | PaymentState::Attempted | PaymentState::Acknowledged => {
