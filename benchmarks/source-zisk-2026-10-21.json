@@ -1,0 +1,208 @@
+{
+  "zisk": "1.3.2-alpha",
+  "rust_toolchain": "zisk-4.0.0",
+  "proof_generated": false,
+  "source_state_admitted": false,
+  "fixture_sha256": "9e723c5647a7ab78b48cab1636e26902f0ecfcec003ed9b1c1b1c5aa5aacb704",
+  "bindings": {
+    "reference_source_sha256": "8910f9a6bcf028dde0ad10532bef42920ae6fb04a8b42d98402ce49c267b94b6",
+    "key_sha256": "6503093db9803a076cba48a068c6adb3eb2c4b3e964951127ed020d0197bf562",
+    "accelerated_source_sha256": "6248b3899936421036c24045f7b30da8ac881d117cefa172be6a4aadbe2cad9f",
+    "linker_sha256": "a251fe2ea5cb24fb54e088bf9da5eedd484c83a164e2a19eb51bf3cc4e103b61"
+  },
+  "builds": [
+    {
+      "backend": "reference",
+      "wall_seconds": 111.19588966702577,
+      "elf_sha256": "76dd6df6f57e5431f9f9b17db3707d6ac885068b0c503d89c3c7aeb4ee327651"
+    },
+    {
+      "backend": "accelerated",
+      "wall_seconds": 3.1810864589642733,
+      "elf_sha256": "3f8c57fc9d05f0ca20c56263c456bac97ced233c00b7f06501f6afd2f78b58ed"
+    }
+  ],
+  "runs": [
+    {
+      "backend": "reference",
+      "case": "valid",
+      "trial": 0,
+      "wall_seconds": 1.7223424159456044,
+      "steps": 77310283,
+      "output_matches": true
+    },
+    {
+      "backend": "reference",
+      "case": "valid",
+      "trial": 1,
+      "wall_seconds": 1.797139124944806,
+      "steps": 77310283,
+      "output_matches": true
+    },
+    {
+      "backend": "reference",
+      "case": "valid",
+      "trial": 2,
+      "wall_seconds": 1.8200285830534995,
+      "steps": 77310283,
+      "output_matches": true
+    },
+    {
+      "backend": "reference",
+      "case": "changed-public",
+      "trial": 0,
+      "wall_seconds": 1.772058540955186,
+      "steps": 64226985,
+      "output_matches": true
+    },
+    {
+      "backend": "reference",
+      "case": "malformed-point",
+      "trial": 0,
+      "wall_seconds": 0.4539908750448376,
+      "steps": 8946210,
+      "output_matches": true
+    },
+    {
+      "backend": "accelerated",
+      "case": "valid",
+      "trial": 0,
+      "wall_seconds": 0.9046838750364259,
+      "steps": 23057710,
+      "output_matches": true
+    },
+    {
+      "backend": "accelerated",
+      "case": "valid",
+      "trial": 1,
+      "wall_seconds": 0.7740799580933526,
+      "steps": 23057710,
+      "output_matches": true
+    },
+    {
+      "backend": "accelerated",
+      "case": "valid",
+      "trial": 2,
+      "wall_seconds": 0.8323164170142263,
+      "steps": 23057710,
+      "output_matches": true
+    },
+    {
+      "backend": "accelerated",
+      "case": "changed-public",
+      "trial": 0,
+      "wall_seconds": 0.7577947090612724,
+      "steps": 22466610,
+      "output_matches": true
+    },
+    {
+      "backend": "accelerated",
+      "case": "malformed-point",
+      "trial": 0,
+      "wall_seconds": 0.45351266697980464,
+      "steps": 8946212,
+      "output_matches": true
+    }
+  ],
+  "median_wall_seconds": {
+    "reference": 1.797139124944806,
+    "accelerated": 0.8323164170142263
+  },
+  "date": "2026-10-21",
+  "scope": "Existing historical Sprout PHGR proof verification in the ZisK emulator; no block proof, chain bootstrap or on-chain source admission.",
+  "hardware": {
+    "model": "Apple M1 Pro",
+    "cpu_cores": 8,
+    "memory_bytes": 17179869184,
+    "macos": "26.3",
+    "architecture": "arm64"
+  },
+  "stats": {
+    "reference": {
+      "steps": 77310283,
+      "csv_cost": 8755526549
+    },
+    "accelerated": {
+      "steps": 23057710,
+      "csv_cost": 3326202189
+    }
+  },
+  "profiler_runs": [
+    {
+      "backend": "reference",
+      "wall_seconds": 6.586700584040955,
+      "completed": true
+    },
+    {
+      "backend": "accelerated",
+      "wall_seconds": 2.014324750052765,
+      "completed": true
+    }
+  ],
+  "comparison": {
+    "execution_speed_ratio": 2.1592018230178542,
+    "csv_cost_reduction_percent": 62.010255232680464,
+    "baseline": "The original PHGR verifier and the pairing adapter both execute under ZisK. This is not a RISC Zero versus ZisK timing comparison."
+  },
+  "downloads": {
+    "compiler": {
+      "release": "zisk-4.0.0",
+      "size": 286437256,
+      "digest": "sha256:6d9f248d098bd34016e8b39e3fa6d8a6dc25f7538d0d73b7ab219d6feaf397ae",
+      "published_digest": "sha256:6d9f248d098bd34016e8b39e3fa6d8a6dc25f7538d0d73b7ab219d6feaf397ae"
+    },
+    "runtime_libraries": [
+      {
+        "name": "gmp",
+        "bytes": 1037068,
+        "sha256": "fa46330de5d003bd9294ae042c8f4ae0a51bcb8c57de2c94c073ff4a7ffa10c3"
+      },
+      {
+        "name": "libomp",
+        "bytes": 597199,
+        "sha256": "b8060c0ffebc3393ea26e0b9e0b94bcc34ad1667e967aa2d60532759e54e250d"
+      },
+      {
+        "name": "open-mpi",
+        "bytes": 17884173,
+        "sha256": "d095a9ea0c14990e346727304518721a182e3303ec04d8f1768a0cc5f418748e"
+      },
+      {
+        "name": "hwloc",
+        "bytes": 4460129,
+        "sha256": "57c2792ce1624499ce1b5dabe5af80179ff6e722ed7d14ffa882835636bdd7c5"
+      },
+      {
+        "name": "pmix",
+        "bytes": 9478419,
+        "sha256": "e92ef10e3a830c714f77e437c8c0bc95a74e4e271c11a227bec04751f9e39e1e"
+      },
+      {
+        "name": "prrte",
+        "bytes": 8449113,
+        "sha256": "e113e688a868463e07a94372a25df0b23193286c74ed58349896b45e4dd4b0c1"
+      }
+    ],
+    "source_archive_bytes": 16157855,
+    "missing_rust_dependencies_tls_bytes": 1292737,
+    "accounted_additional_bytes": 345793949,
+    "previously_downloaded_tools_bytes": 49757958,
+    "metadata_and_headers_not_fully_metered": true,
+    "proving_keys_downloaded": false,
+    "paid_jobs_submitted": false,
+    "gpu_rented": false
+  },
+  "limits": {
+    "execution_timeout_seconds": 60,
+    "execution_step_ceiling": 250000000,
+    "compiler_workers": 2,
+    "build_timeout_seconds": 300
+  },
+  "limitations": [
+    "A single public historical Mainnet proof fixture, not Testnet history authentication.",
+    "Valid proof, changed-public-input and malformed-point cases are not a complete verifier audit.",
+    "No Sapling, Orchard/Ironwood or complete-block performance result is established here.",
+    "Profiler COST excludes padding and recursive aggregation and does not establish proof time or price.",
+    "Private preparation, pool proofs and settlement still use the existing backend."
+  ]
+}
