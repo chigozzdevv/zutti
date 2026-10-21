@@ -6464,6 +6464,7 @@ dependencies = [
  "hex",
  "k256",
  "risc0-zkvm",
+ "serde",
  "serde_json",
  "sha2 0.10.9",
  "thiserror",

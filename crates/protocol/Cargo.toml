@@ -10,8 +10,16 @@ default = ["entropy", "pool"]
 pool = []
 entropy = ["dep:getrandom"]
 notes = ["dep:k256"]
+native = ["dep:serde", "dep:serde_json"]
+
+[[bin]]
+name = "zutti-core"
+path = "src/bin/zutti-core.rs"
+required-features = ["native"]
 
 [dependencies]
+serde = { version = "=1.0.229", features = ["derive"], optional = true }
+serde_json = { workspace = true, optional = true }
 sha2.workspace = true
 zeroize.workspace = true
 getrandom = { workspace = true, optional = true }
