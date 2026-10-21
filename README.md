@@ -7,7 +7,7 @@ This repository implements Rust protocol components, native Zcash transaction va
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
 | `protocol` | Exact amounts and fee arithmetic, strict encodings, deployment domains, fixed order terms, private-note openings, operation-bound spending authorization, pool membership trees and settlement journals | Production profile review and circuit parameters |
-| `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted recovery archives and private-note encryption/recovery | Chain scanning, production profile admission, live finality/reservation evidence and source authorization/broadcast integration |
+| `wallet` | Pinned Ironwood PCZT inspection, output commitment/ciphertext/memo reconstruction, withheld authorization checks, encrypted payment journals, exact-byte broadcast retries and private-note encryption/recovery | Chain scanning, production profile admission, live finality/reservation evidence and source authorization/broadcast integration |
 | `wallet/ethereum` | Pinned Helios beacon light-client verification, committee transitions, finalized execution-header binding and EIP-1186 account/storage proofs for reserved escrows | Trusted Ethereum bootstrap profile, live reservation evidence and wallet signing integration |
 | `source` | Real-block parsing, transaction/authorizing-data roots, Equihash, expected difficulty, median-time rules, genesis identity, cumulative work, versioned chain history, shielded-tree frontiers, transaction signatures/proofs, UTXO/nullifier/anchor checks, monetary rules, authenticated state access transcripts, permanent header checkpoints, atomic candidate replay and private history-query predicates | Complete consensus-rule audit, current-chain bootstrap evidence, deployed fork/stability admission and current-chain storage/throughput measurements |
 | `prover` | RISC Zero history-query, preparation, private-pool, recursive source-prefix and source-registry guests, genuine succinct/Groth16 verification, pinned image/journal binding, bounded proof artifacts and witness CLIs | Production profile admission, current-chain bootstrap, cross-chain reservation/settlement integration and independent recovery |
@@ -319,6 +319,20 @@ For a reservation witness, add `--preparation-proof /absolute/path/preparation.p
 
 Export tests use retained genuine deposit/transfer/withdrawal receipts and compare every operation field with the Solidity lifecycle fixture. Cross-chain claim/refund export still needs its own genuine receipts and live chain evidence.
 
+## Payment signing and broadcast journal
+
+`zutti_wallet::payment::PaymentJournal` creates an owner-only directory containing authenticated, encrypted, immutable stage archives. Creation checks the unsigned Ironwood PCZT against the saved swap's terms and exact transaction ID. Existing directories are not overwritten.
+
+The stages are `Prepared → Signing → Signed → Ready → Attempted → Acknowledged`. A durable `Signing` marker is written before a signer is called. After a crash in that state, the caller must reconcile signatures for the saved payment; automatic signing cannot restart. Signature import accepts only the missing Ironwood authorizations, verifies each against the original PCZT, and rejects missing, duplicated, invalid or foreign-pool signatures.
+
+`finalize()` uses the upstream transaction extractor to verify the actual Zcash transaction proofs and authorizations before saving broadcastable bytes. If proving is completed after signing, `finalize_with_proof()` accepts a PCZT differing only in its Ironwood proof; changed anchors, effects, signatures and metadata are rejected. It verifies the completed transaction before persisting it. Neither operation generates a proof.
+
+`submit()` writes an attempt marker before invoking the caller's transport. A timeout or mismatched returned transaction ID retains that attempt for reconciliation. Retries send the exact saved bytes without rebuilding or signing. `Acknowledged` means the transport returned the expected transaction ID; it does not mean the payment was mined or settled. Expired payments still require authenticated chain evidence for claim/refund decisions.
+
+The archive plaintext cap is 16 MiB so an 8 MiB PCZT and bounded swap record fit together. PCZT and swap-record limits remain independently enforced. Keys and decrypted serialized data remain local. Low-level journal methods validate local state, not chain evidence; applications must use the native authorization coordinator before invoking a signer or submitting payment.
+
+Wallet tests use generated PCZTs and synthetic reservation state. One private unit test seeds transaction bytes solely to exercise transport retry behavior; there is no production constructor for unchecked broadcastable bytes. Missing genuine transaction proofs block extraction and broadcast.
+
 ## Ownership
 
 ```text
@@ -345,7 +359,7 @@ Root scripts coordinate tools. Package-owned generation stays in `packages/bindi
 - Ironwood fixtures use the real upstream PCZT builder, note encryption, commitment checks, transaction digest and signer. They are synthetic local-consensus notes, not mined payments. Tests show that signing preserves the bound transaction ID and that a wrong memo, receiver, authorization state or excessive source fee is rejected.
 - Historical public block fixtures cover both network genesis identities, pre-upgrade and post-NU5 transaction parsing, Equihash and claimed work targets. Their source revision, license and file hashes are retained in `tests/fixtures/provenance.json`. These fixtures are test input, not checkpoints accepted by the protocol.
 - Candidate index tests cover all 256 transaction-ID bits, first-inclusion retention, inclusive expiry, delayed paid observations, truncated/tampered paths and atomic batch rejection. Candidate absence is **not** a refund proof.
-- Recovery tests cover authenticated encryption, nonce freshness, altered ciphertext/header rejection, bounded reads, owner-only permissions, symlinks and refusal to overwrite existing recovery files. The archive format currently retains caller-provided private bytes; it does not yet define a complete recoverable swap transcript.
+- Recovery tests cover authenticated encryption, nonce freshness, altered ciphertext/header rejection, bounded reads, owner-only permissions, symlinks and refusal to overwrite existing recovery files. Swap records retain the fixed reservation and settlement outputs; payment journals retain the prepared PCZT, validated signatures and exact transaction bytes once extracted. These records do not establish chain admission or settlement.
 
 ## Durable source state
 

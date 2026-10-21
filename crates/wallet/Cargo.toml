@@ -7,7 +7,7 @@ publish.workspace = true
 
 [features]
 default = ["native"]
-native = ["zutti-protocol/entropy", "note-crypto", "pool", "dep:getrandom", "dep:tempfile", "dep:libc"]
+native = ["zutti-protocol/entropy", "note-crypto", "pool", "dep:getrandom", "dep:tempfile", "dep:libc", "dep:rand", "pczt/signer", "pczt/tx-extractor"]
 note-crypto = ["zutti-protocol/notes", "dep:chacha20poly1305", "dep:k256", "dep:x25519-dalek", "dep:hkdf", "dep:sha2"]
 pool = ["note-crypto", "zutti-protocol/pool", "dep:zutti-source", "zutti-source/authenticated"]
 
@@ -19,6 +19,7 @@ zeroize.workspace = true
 getrandom = { workspace = true, optional = true }
 chacha20poly1305 = { workspace = true, optional = true }
 tempfile = { workspace = true, optional = true }
+rand = { version = "=0.10.3", optional = true }
 pczt.workspace = true
 zcash_primitives.workspace = true
 zcash_protocol.workspace = true

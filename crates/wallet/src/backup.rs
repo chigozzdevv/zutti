@@ -14,7 +14,7 @@ use zutti_protocol::{
     encoding::{Reader, Writer},
 };
 
-pub const MAX_PLAINTEXT: usize = 4 * 1024 * 1024;
+pub const MAX_PLAINTEXT: usize = 16 * 1024 * 1024;
 pub const MAX_ARCHIVE: usize = MAX_PLAINTEXT + 128;
 
 pub fn seal(domain: Digest, plaintext: &[u8], key: &Secret32) -> Result<Vec<u8>> {

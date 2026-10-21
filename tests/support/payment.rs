@@ -1,3 +1,4 @@
+#![allow(dead_code, clippy::unwrap_used)]
 use super::support;
 use incrementalmerkletree::{Hashable, Level};
 use orchard::{
@@ -40,6 +41,14 @@ pub fn fixture_with_cap(wrong_memo: bool, fee_cap: &str) -> Fixture {
     fixture_at(wrong_memo, fee_cap, 4_465_101)
 }
 pub fn fixture_at(wrong_memo: bool, fee_cap: &str, height: u32) -> Fixture {
+    fixture_custom(wrong_memo, fee_cap, height, |_| {})
+}
+pub fn fixture_custom(
+    wrong_memo: bool,
+    fee_cap: &str,
+    height: u32,
+    customize: impl FnOnce(&mut zutti_protocol::order::OrderInput),
+) -> Fixture {
     let key = SpendingKey::from_bytes([7; 32]).unwrap();
     let fvk = FullViewingKey::from(&key);
     let payer_receiver = fvk.address_at(0_u32, Scope::External);
@@ -60,6 +69,7 @@ pub fn fixture_at(wrong_memo: bool, fee_cap: &str, height: u32) -> Fixture {
     input.window = PaymentWindow::new(0, height - 1, support::digest(13), height + 20).unwrap();
     input.fee_caps[0] =
         zutti_protocol::amount::Amount::parse(zutti_protocol::amount::Asset::Zec, fee_cap).unwrap();
+    customize(&mut input);
     let terms = OrderTerms::new(input).unwrap();
     let randomness = support::secret(21);
     let mut memo = terms.memo(terms.commitment(&randomness).unwrap()).unwrap();

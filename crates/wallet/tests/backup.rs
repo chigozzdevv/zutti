@@ -70,3 +70,16 @@ fn durable_creation_refuses_overwrite_and_insecure_permissions() {
         assert!(backup::read_private(&path, backup::MAX_ARCHIVE).is_err());
     }
 }
+
+#[test]
+fn payment_sized_archives_round_trip_with_a_hard_plaintext_limit() {
+    let key = Secret32::from_bytes([1; 32]).unwrap();
+    let domain = Digest([2; 32]);
+    let plaintext = zeroize::Zeroizing::new(vec![7; zutti_wallet::prepare::MAX_PCZT + 131_072]);
+    let archive = backup::seal(domain, &plaintext, &key).unwrap();
+    assert_eq!(
+        backup::open(domain, &archive, &key).unwrap().as_slice(),
+        plaintext.as_slice()
+    );
+    assert!(backup::seal(domain, &vec![0; backup::MAX_PLAINTEXT + 1], &key).is_err());
+}

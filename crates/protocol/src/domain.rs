@@ -60,6 +60,9 @@ impl Domain {
     pub const fn proof_profile(&self) -> Digest {
         self.proof_profile
     }
+    pub const fn pool(&self) -> [u8; 20] {
+        self.pool
+    }
     pub const fn destination_chain(&self) -> u64 {
         self.destination_chain
     }

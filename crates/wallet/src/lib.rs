@@ -1,5 +1,10 @@
+#[cfg(test)]
+extern crate self as zutti_wallet;
+
 #[cfg(feature = "native")]
 pub mod backup;
+#[cfg(feature = "native")]
+pub mod payment;
 #[cfg(feature = "pool")]
 pub mod pool;
 pub mod preparation;
@@ -19,6 +24,14 @@ pub enum Error {
     Payment,
     #[error("payment already contains a real spending authorization")]
     AlreadyAuthorized,
+    #[error("invalid, incomplete or mismatched payment signatures")]
+    Signatures,
+    #[error("payment journal is not in the required state")]
+    PaymentState,
+    #[error("Zcash transaction proofs or authorizations are missing or invalid")]
+    Transaction,
+    #[error("broadcast response does not match the saved transaction")]
+    Broadcast,
     #[error("invalid recovery archive or authentication failure")]
     Archive,
     #[error("recovery file permissions or type are unsafe")]

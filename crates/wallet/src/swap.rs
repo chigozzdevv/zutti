@@ -79,6 +79,30 @@ impl SwapRecord {
     pub const fn domain(&self) -> Digest {
         self.funding.domain
     }
+    pub fn terms(&self) -> &zutti_protocol::order::OrderTerms {
+        &self.reservation.terms
+    }
+    pub fn reservation_claim(&self) -> &PoolClaim {
+        &self.funding
+    }
+    pub fn escrow_commitment(&self) -> Result<Digest> {
+        Ok(self.reservation.escrow.commitment()?)
+    }
+    pub fn escrow_nullifier(&self) -> Result<Digest> {
+        Ok(self.reservation.escrow.nullifier()?)
+    }
+    pub fn inspect_payment(&self, pczt: &[u8]) -> Result<crate::prepare::InspectedPayment> {
+        self.validate()?;
+        let payment = crate::prepare::inspect_ironwood(
+            pczt,
+            &self.reservation.terms,
+            &self.reservation.order_randomness,
+        )?;
+        if payment.txid() != self.reservation.txid {
+            return Err(Error::Payment);
+        }
+        Ok(payment)
+    }
     pub fn save_new(&self, path: &Path, key: &Secret32) -> Result<()> {
         let plaintext = Zeroizing::new(self.to_bytes()?);
         let archive = backup::seal(self.domain(), &plaintext, key)?;
