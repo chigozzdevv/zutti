@@ -1,0 +1,159 @@
+{
+  "zisk": "v1.3.2-alpha",
+  "native": {
+    "exit_code": -6,
+    "wall_seconds": 0.6364054159494117,
+    "sampled_peak_group_rss_bytes": 21069824,
+    "maximum_child_rss_bytes": 20250624,
+    "user_cpu_seconds": 0.17,
+    "system_cpu_seconds": 0.09,
+    "stopped_for": null,
+    "timeout_seconds": 30,
+    "memory_limit_bytes": 536870912,
+    "macos_arithmetic_unimplemented": true,
+    "failure": "Fr_rawToMontgomery() not implemented for macOS; assertion abort in fr.hpp, line 235."
+  },
+  "proof_generated": false,
+  "source_state_admitted": false,
+  "proof_kind": "upstream wrapped PLONK fixture",
+  "downloads": {
+    "new_key_archives": [
+      {
+        "name": "zisk-verifykey-1.3.2-alpha.tar.gz",
+        "bytes": 295,
+        "sha256": "1b8131f492e42512ec08e3b04a98c4bba1b2dc2805d31687d4efc943e77ef69c"
+      },
+      {
+        "name": "zisk-verifykey-1.3.2-alpha-blake3.tar.gz",
+        "bytes": 212,
+        "sha256": "3281a45e584f34e3dfe758a7fee5557af89b7b3efa4972362cb27008dbdcbcf2"
+      }
+    ],
+    "key_archive_bytes": 507,
+    "checksum_and_metadata_traffic_not_fully_metered": true,
+    "proving_archives_downloaded": false,
+    "paid_proving_jobs_submitted": false,
+    "proof_size_bytes": 2950,
+    "proof_reused_from_local_source_archive": true,
+    "setup_archive_sizes": [
+      {
+        "url": "https://storage.googleapis.com/zisk-setup/zisk-provingkey-1.3.2-alpha.tar.gz",
+        "bytes": "5099213666",
+        "stored_bytes": "5099213666",
+        "etag": "\"-CMXU+/3bqpcDEAE=\""
+      },
+      {
+        "url": "https://storage.googleapis.com/zisk-setup/zisk-provingkey-1.3.2-alpha-blake3.tar.gz",
+        "bytes": "6462404934",
+        "stored_bytes": "6462404934",
+        "etag": "\"-CIfE7+/dqpcDEAE=\""
+      },
+      {
+        "url": "https://storage.googleapis.com/zisk-setup/zisk-verifykey-1.3.2-alpha.tar.gz",
+        "bytes": "295",
+        "stored_bytes": "295",
+        "etag": "\"33f0c6888eb95776d40ce18ceb9bd96a\""
+      },
+      {
+        "url": "https://storage.googleapis.com/zisk-setup/zisk-verifykey-1.3.2-alpha-blake3.tar.gz",
+        "bytes": "212",
+        "stored_bytes": "212",
+        "etag": "\"90c201eac92565be00042a2fb69ab3f8\""
+      },
+      {
+        "url": "https://storage.googleapis.com/zisk-setup/zisk-provingkey-plonk-1.3.2-alpha.tar.gz",
+        "bytes": "21910463017",
+        "stored_bytes": "21910463017",
+        "etag": "\"-COO80rbcqpcDEAE=\""
+      }
+    ]
+  },
+  "fixture_manifest_sha256": "1ef9f0ee50eb0fbe5216053373990963147641d6691d6065d8e66bd4f8ab6cef",
+  "export": {
+    "exit_code": 0,
+    "wall_seconds": 0.2994985419791192,
+    "sampled_peak_group_rss_bytes": 2637824,
+    "maximum_child_rss_bytes": 19791872,
+    "user_cpu_seconds": 0.17,
+    "system_cpu_seconds": 0.04,
+    "stopped_for": null,
+    "timeout_seconds": 15,
+    "memory_limit_bytes": 268435456
+  },
+  "evm": {
+    "exit_code": 0,
+    "wall_seconds": 0.6071059999521822,
+    "sampled_peak_group_rss_bytes": 49414144,
+    "maximum_child_rss_bytes": 35586048,
+    "user_cpu_seconds": 0.25,
+    "system_cpu_seconds": 0.12,
+    "stopped_for": null,
+    "timeout_seconds": 90,
+    "memory_limit_bytes": 805306368,
+    "passed_tests": 5,
+    "compiler": "Cached solc 0.8.30; Forge 1.5.1; offline local EVM"
+  },
+  "tests": [
+    {
+      "name": "testChangedProgramRejected",
+      "test_gas": 275882
+    },
+    {
+      "name": "testChangedProofRejected",
+      "test_gas": 14143
+    },
+    {
+      "name": "testChangedPublicValuesRejected",
+      "test_gas": 274344
+    },
+    {
+      "name": "testChangedSetupRejected",
+      "test_gas": 274590
+    },
+    {
+      "name": "testValidProof",
+      "test_gas": 273793
+    }
+  ],
+  "date": "2026-10-21",
+  "scope": "Verification of an existing upstream ZisK wrapped PLONK fixture on this Mac; no Zutti proof generation, no live deployment and no migration of the current RISC Zero backend.",
+  "hardware": {
+    "model": "Apple M1 Pro",
+    "physical_memory_bytes": 17179869184,
+    "macos": "26.3",
+    "cpu_cores": 8
+  },
+  "trusted_fixture": {
+    "zisk": "v1.3.2-alpha",
+    "commit": "1e22630bb7e143c30705a1603ed87cfd3da8c6ec",
+    "source_sha256": {
+      "zisk-contracts/test/plonk_proof.bin": "adfee0ba2767f0b4726c820d9389f9ba6b874e9383eb07fc75f7aba5b4dd667c",
+      "zisk-contracts/ZiskVerifier.sol": "4d4b8b001bf2acef936a3c352b3c3d24098c5118d4459e5dc044b3ba9c09100b",
+      "zisk-contracts/IZiskVerifier.sol": "e9f450847fd3d62534b8f0e3ba195e44d96e2876891b6a9229e57398380e8b44",
+      "zisk-contracts/PlonkVerifier.sol": "07001fef0200f422a0287fcef40b8fb040157e92b6cee9891b26f8a80c9c47b9"
+    },
+    "programVK": "0x84b6d32d5bdd2088a380334dd69169fbe3ad51a6523fb823453a2a0b58481833",
+    "rootCVadcopFinal": "0x6b2490fba336fb00f0c8719a961de309a8db6f43a9bfb7575ca5f014d609b265",
+    "setup_key_sha256": "8e4728de835422df2d2b29bcfa8b01e1e7207d41827baa2631723b990632818c",
+    "setup_key_archive_url": "https://storage.googleapis.com/zisk-setup/zisk-verifykey-1.3.2-alpha.tar.gz",
+    "scope": "Pinned upstream demonstration proof; not a Zutti source program or authenticated Zcash history."
+  },
+  "resources": {
+    "observed_test_artifact_bytes": 210536,
+    "initial_system_swap_used_MiB": 15578.88,
+    "final_system_swap_used_MiB": 16079.31,
+    "system_swap_change_not_attributed_to_this_test": true,
+    "sampled_RSS_can_miss_short_spikes": true,
+    "core_dumps_disabled_by_runner": true,
+    "existing_applications_not_stopped": true,
+    "all_test_subprocesses_exited": true
+  },
+  "limitations": [
+    "The fixture is an upstream demonstration proof with a pinned program ID, not a proof of the Zutti source guest.",
+    "The bundled native PLONK verifier aborts on this macOS build; local Solidity verification succeeds independently.",
+    "The corrected release setup root matches both the downloaded verification key and the fixed contract root.",
+    "No new ZisK proof was generated and full Testnet validation or history proving was not performed.",
+    "Proving archive sizes are compressed download sizes. Expanded storage and local proving RAM/latency remain unmeasured.",
+    "The 27 GB combined standard and PLONK setup download was not started."
+  ]
+}
