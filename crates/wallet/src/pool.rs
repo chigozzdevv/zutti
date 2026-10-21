@@ -131,7 +131,7 @@ impl ReservationWitness {
             Digest(sha2::Sha256::digest(self.escrow.encrypt(self.nonce)?).into()),
         ))
     }
-    fn verify(&self, claim: &PoolClaim) -> Result<()> {
+    pub(crate) fn verify(&self, claim: &PoolClaim) -> Result<()> {
         check_source(claim, &self.terms, &self.checkpoint, &self.anchor)?;
         let order = self.terms.commitment(&self.order_randomness)?;
         let reservation =

@@ -6,6 +6,8 @@ pub mod preparation;
 pub mod prepare;
 #[cfg(feature = "note-crypto")]
 pub mod private_note;
+#[cfg(feature = "native")]
+pub mod swap;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
