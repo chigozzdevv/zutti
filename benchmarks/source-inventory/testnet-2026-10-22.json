@@ -1,0 +1,1444 @@
+{
+  "schema": 1,
+  "implementation_commit": "a82e09b9a347d99350f3dc5c7ff207e8b72252f0",
+  "measured_utc": "2026-10-22T19:32:08.013041+00:00",
+  "network": "testnet",
+  "scope": "Native parsing workload inventory; no consensus proof or VM cycle measurement.",
+  "scanner_sha256": "e959127f8a11c55b7baacd64d30511e54f71e87beb41b240fe453f3a303aee0c",
+  "target": {
+    "network": "testnet",
+    "height": 4529880,
+    "hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+    "observed_node_height": 4529980,
+    "selected_utc": "2026-10-22T19:24:46.733537+00:00"
+  },
+  "tests": {
+    "rust": 4,
+    "python": 14,
+    "python_mongodb_integration": 4
+  },
+  "limits": {
+    "cpu_quota_percent": 50,
+    "memory_max_bytes": 536870912,
+    "rate_cap_blocks_per_second": 250
+  },
+  "pilot_distinct_blocks": 3600,
+  "sessions": [
+    {
+      "label": "history-initial",
+      "run_id": "testnet-history-20261022",
+      "session_blocks": 2000,
+      "session_seconds": 8.578125669970177,
+      "session_blocks_per_second": 233.15116576124413,
+      "process_seconds": 10.463093462050892,
+      "start_height": 0,
+      "end_height": 1999
+    },
+    {
+      "label": "history-resume",
+      "run_id": "testnet-history-20261022",
+      "session_blocks": 1000,
+      "session_seconds": 5.4814614380011335,
+      "session_blocks_per_second": 182.43309951381497,
+      "process_seconds": 6.985166505968664,
+      "start_height": 2000,
+      "end_height": 2999
+    },
+    {
+      "label": "sapling-heavy",
+      "run_id": "testnet-sprout-pilot-20261022",
+      "session_blocks": 200,
+      "session_seconds": 8.58200495003257,
+      "session_blocks_per_second": 23.304577562524127,
+      "process_seconds": 10.349042018002365,
+      "start_height": 282688,
+      "end_height": 282887
+    },
+    {
+      "label": "nu5",
+      "run_id": "testnet-nu5-pilot-20261022",
+      "session_blocks": 200,
+      "session_seconds": 0.8564614219940268,
+      "session_blocks_per_second": 233.51898271653252,
+      "process_seconds": 1.9511329809902236,
+      "start_height": 1842400,
+      "end_height": 1842599
+    },
+    {
+      "label": "recent",
+      "run_id": "testnet-recent-pilot-20261022",
+      "session_blocks": 200,
+      "session_seconds": 1.167646812973544,
+      "session_blocks_per_second": 171.28467082497104,
+      "process_seconds": 2.500685731996782,
+      "start_height": 4529681,
+      "end_height": 4529880
+    }
+  ],
+  "runs": {
+    "testnet-history-20261022": {
+      "binding": {
+        "schema": 1,
+        "network": "testnet",
+        "start_height": 0,
+        "target_height": 4529880,
+        "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+        "scanner_sha256": "e959127f8a11c55b7baacd64d30511e54f71e87beb41b240fe453f3a303aee0c"
+      },
+      "next_height": 3000,
+      "totals": {
+        "blocks": 3000,
+        "block_bytes": 4879538,
+        "transactions": 3009,
+        "non_coinbase_transactions": 9,
+        "transparent_inputs": 8,
+        "transparent_outputs": 6001,
+        "sprout_phgr_proofs": 9,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 9,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "groups_count": 2,
+      "groups_truncated": false,
+      "groups": {
+        "Sprout_phgr_0": {
+          "blocks": 9,
+          "block_bytes": 32781,
+          "counts": {
+            "transactions": 18,
+            "non_coinbase_transactions": 9,
+            "transparent_inputs": 8,
+            "transparent_outputs": 20,
+            "sprout_phgr_proofs": 9,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 9,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 2900,
+              "hash": "000039e7ee4a7112b076f9ad2f102c00c2a86af2978627f5f4a4473f585167a1",
+              "bytes": 3644,
+              "priority": "121299bc06bc6034c8bb2f067dc27badfac49b303d51213a4ee6d259489eba3d"
+            },
+            {
+              "height": 2893,
+              "hash": "0001b9e5f3c60271c8aa9fea6a5a3333718371a7e473c5768f8d0f7436357fb5",
+              "bytes": 3643,
+              "priority": "1960da1585beb91514590d49e3b5b750a2c394ac7fcf95f07a51dea422c8e101"
+            },
+            {
+              "height": 2927,
+              "hash": "00016e0950e6cd55a31ddd7d58cd1ecaff06be684026567f2f2075a40346ae10",
+              "bytes": 3712,
+              "priority": "214c9fef3c01f7877fad0d67536d42ea7b0e3fbf342f87f1fc2848cebb2e38e3"
+            }
+          ],
+          "largest": [
+            {
+              "height": 2927,
+              "hash": "00016e0950e6cd55a31ddd7d58cd1ecaff06be684026567f2f2075a40346ae10",
+              "bytes": 3712
+            },
+            {
+              "height": 2259,
+              "hash": "00002b2342c69ff269e4f9b0168424799e223b597b26ed9c9fa5d3faedb88d17",
+              "bytes": 3644
+            },
+            {
+              "height": 2866,
+              "hash": "0001266d3cb26d4ce1f172948423d0edf8a866a51de9736dea82de99f4db3208",
+              "bytes": 3644
+            }
+          ],
+          "first_height": 2259,
+          "last_height": 2927
+        },
+        "Sprout_transparent_0": {
+          "blocks": 2991,
+          "block_bytes": 4846757,
+          "counts": {
+            "transactions": 2991,
+            "non_coinbase_transactions": 0,
+            "transparent_inputs": 0,
+            "transparent_outputs": 5981,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 526,
+              "hash": "00035c55d427d4b72d189cfe95f07d5edee1f8f66d9bb7ff07945622fa6176b3",
+              "bytes": 1620,
+              "priority": "00314d0da5f02dbf4756986eae5dede54553db70edf3d72ad475eaf30b7e5ae6"
+            },
+            {
+              "height": 1012,
+              "hash": "000205964e815b91d3e9ea9bdfd01c5f43a2267165e80662651c1162d3fbf932",
+              "bytes": 1620,
+              "priority": "005fc46b7946edfd9a37a01030e696660389f811bf37694631bcc3f42f571a87"
+            },
+            {
+              "height": 1469,
+              "hash": "0001d4765713dca69be9e6c394f8e38f7378dc7bff524534d0f439b21b7468d6",
+              "bytes": 1620,
+              "priority": "008541a15f7ce53cbcce17c6b0a593e6536ccbf97374cd503dc64b634f2321f0"
+            }
+          ],
+          "largest": [
+            {
+              "height": 0,
+              "hash": "05a60a92d99d85997cce3b87616c089f6124d7342af37106edc76126334a2c38",
+              "bytes": 1692
+            },
+            {
+              "height": 2407,
+              "hash": "0000fef361628aeb4726898c3b9a01d4f461ac2804e343f29633e19cf0d27309",
+              "bytes": 1636
+            },
+            {
+              "height": 2684,
+              "hash": "00006d08bf066a8f992d750dddf08097ed76e9c83b0dd029d186a0f01fc083ab",
+              "bytes": 1636
+            }
+          ],
+          "first_height": 0,
+          "last_height": 2999
+        }
+      },
+      "total_cycle_estimate": null,
+      "consensus_verified": false,
+      "proof_generated": false
+    },
+    "testnet-sprout-pilot-20261022": {
+      "binding": {
+        "schema": 1,
+        "network": "testnet",
+        "start_height": 282688,
+        "target_height": 4529880,
+        "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+        "scanner_sha256": "e959127f8a11c55b7baacd64d30511e54f71e87beb41b240fe453f3a303aee0c"
+      },
+      "next_height": 282888,
+      "totals": {
+        "blocks": 200,
+        "block_bytes": 27662005,
+        "transactions": 22567,
+        "non_coinbase_transactions": 22367,
+        "transparent_inputs": 22369,
+        "transparent_outputs": 22776,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 22359,
+        "sapling_spends": 0,
+        "sapling_outputs": 22359,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "groups_count": 7,
+      "groups_truncated": false,
+      "groups": {
+        "Sapling_sapling_0": {
+          "blocks": 2,
+          "block_bytes": 5705,
+          "counts": {
+            "transactions": 4,
+            "non_coinbase_transactions": 2,
+            "transparent_inputs": 2,
+            "transparent_outputs": 6,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 2,
+            "sapling_spends": 0,
+            "sapling_outputs": 2,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 282694,
+              "hash": "000e51e5b2796e12ecf2ff2b58c9765c5c5aa8e69b20e410f6d2c34786375bb9",
+              "bytes": 2853,
+              "priority": "c49c9587560c9b4a9df8db098535310a454c5a6b78a951423e7b6f0774fa08c5"
+            },
+            {
+              "height": 282840,
+              "hash": "0001c082a55aa02c9b76a6079dc0cdc5034edd108bc1a0a2dcd73282a4cbb31f",
+              "bytes": 2852,
+              "priority": "e74ef14d1d92adf1e3445e901e720d45ac3e764911855982e80bd2660aeb6e9d"
+            }
+          ],
+          "largest": [
+            {
+              "height": 282694,
+              "hash": "000e51e5b2796e12ecf2ff2b58c9765c5c5aa8e69b20e410f6d2c34786375bb9",
+              "bytes": 2853
+            },
+            {
+              "height": 282840,
+              "hash": "0001c082a55aa02c9b76a6079dc0cdc5034edd108bc1a0a2dcd73282a4cbb31f",
+              "bytes": 2852
+            }
+          ],
+          "first_height": 282694,
+          "last_height": 282840
+        },
+        "Sapling_sapling_1": {
+          "blocks": 14,
+          "block_bytes": 93765,
+          "counts": {
+            "transactions": 72,
+            "non_coinbase_transactions": 58,
+            "transparent_inputs": 58,
+            "transparent_outputs": 87,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 58,
+            "sapling_spends": 0,
+            "sapling_outputs": 58,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 282822,
+              "hash": "000958d8a807274e1250cae7167b96136b59ca8828a7d9c35beaa557bf1b3ea5",
+              "bytes": 6519,
+              "priority": "020c89ea7b3c361174553907d76396c79c8ff44bf4d8be9faf38034535fd40b8"
+            },
+            {
+              "height": 282829,
+              "hash": "0008f695b39213b738ea8993df4732f3025c039fec31b08bab56e2b76cd3d7e3",
+              "bytes": 6520,
+              "priority": "300a9811aadb68c94c7426dc530b615f5b2efefb1d014293075643ba8b5c37b6"
+            },
+            {
+              "height": 282722,
+              "hash": "00106e6a76e99b5e4a52247c6a2170cc0ed9a7c92d04e4d1bc15e1de5a7ff9bb",
+              "bytes": 4109,
+              "priority": "40d378d12fa13690c01bbc8790f406e469e0310aa4cdb82348ed5dc915dba308"
+            }
+          ],
+          "largest": [
+            {
+              "height": 282866,
+              "hash": "000369c57a6c9800c218373d234774f1ed5463f7ce0a03996adb62355fc695ed",
+              "bytes": 8967
+            },
+            {
+              "height": 282839,
+              "hash": "00164c9ee6fb408878e761f1a05105507a4fe493d56eb364a357d77f5245b4be",
+              "bytes": 8966
+            },
+            {
+              "height": 282886,
+              "hash": "000dcafa7f409416fa5c6cbe2bfc78bb0294a9b0b37e07db88138e9dea690c1d",
+              "bytes": 8965
+            }
+          ],
+          "first_height": 282692,
+          "last_height": 282886
+        },
+        "Sapling_sapling_2": {
+          "blocks": 20,
+          "block_bytes": 435055,
+          "counts": {
+            "transactions": 350,
+            "non_coinbase_transactions": 330,
+            "transparent_inputs": 330,
+            "transparent_outputs": 371,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 329,
+            "sapling_spends": 0,
+            "sapling_outputs": 329,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 282791,
+              "hash": "00009be2f3c7b97361dcb35b655e123b100dbb2753b3bda3be0ffeb020cb6b16",
+              "bytes": 11412,
+              "priority": "083b86ed9175bbd67f135c7f828f73c5e98349165bf57233d736ee3589e8821e"
+            },
+            {
+              "height": 282707,
+              "hash": "00074bd5fd746e4c1b795166e5b1511a12fad2d046ce75c7cf1d75d925389fb6",
+              "bytes": 17524,
+              "priority": "0c55eb14e4bdf4cc1a8779142856dbc37de665a5a526e43cd632ff1d0415243b"
+            },
+            {
+              "height": 282728,
+              "hash": "00163a37fb9a26120d08bd825b4e690b7b766c8ac07f60852c1e73692f804c8c",
+              "bytes": 24857,
+              "priority": "16ea8b03272f15b6fe0de98c43796ed8c0f1e5d0e420bd4bcaf3ca59cc1dcc61"
+            }
+          ],
+          "largest": [
+            {
+              "height": 282736,
+              "hash": "000cf2d443261788f125282515329aec7ad72b2c60d8c6e7b122dbe7c2453558",
+              "bytes": 37085
+            },
+            {
+              "height": 282717,
+              "hash": "000dbf83189a855c82a1201d8d0c325d3c56f7ab62e76b3ea6e219331e3caa92",
+              "bytes": 35863
+            },
+            {
+              "height": 282708,
+              "hash": "0007097117d16b46863e52af504f6766bc044dd52c981e76bfad720fa9083788",
+              "bytes": 34636
+            }
+          ],
+          "first_height": 282707,
+          "last_height": 282883
+        },
+        "Sapling_sapling_3": {
+          "blocks": 14,
+          "block_bytes": 1203976,
+          "counts": {
+            "transactions": 981,
+            "non_coinbase_transactions": 967,
+            "transparent_inputs": 967,
+            "transparent_outputs": 996,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 966,
+            "sapling_spends": 0,
+            "sapling_outputs": 966,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 282810,
+              "hash": "000e5e68d2b16ea38c65c97ddd388c6652b0dcc61763f286715990405a045a69",
+              "bytes": 134881,
+              "priority": "17dfcbc8550951ace8877b26ee195227436f6657bdb8c3cf943965e46b39774e"
+            },
+            {
+              "height": 282726,
+              "hash": "00095405d019c2ee2a2c2aa3328eb2f8ffd398342cd4bfdc444cc8ecb71941c4",
+              "bytes": 71554,
+              "priority": "22aa5cae29f9abd467c2b4a9858bad9d9513ae055ac1b1f37d84f87ce9997f8a"
+            },
+            {
+              "height": 282724,
+              "hash": "0003826dcd9b5b8f70051671de2e23ae17b023f7748559f480512eaadd74c918",
+              "bytes": 118977,
+              "priority": "2c9c20755079fd2b28331026f5f0a961c4d72604a3426ce6f5082a81e422b529"
+            }
+          ],
+          "largest": [
+            {
+              "height": 282810,
+              "hash": "000e5e68d2b16ea38c65c97ddd388c6652b0dcc61763f286715990405a045a69",
+              "bytes": 134881
+            },
+            {
+              "height": 282766,
+              "hash": "00076609500d32cf2d066ada1cf6e1aa22e837d48a36e291a2cc5f23a4e5304a",
+              "bytes": 125103
+            },
+            {
+              "height": 282693,
+              "hash": "0000b156898ef4cc2d0a21e079b10d80669226fa4a41c23beaba31e0943b0954",
+              "bytes": 125102
+            }
+          ],
+          "first_height": 282688,
+          "last_height": 282850
+        },
+        "Sapling_sapling_4": {
+          "blocks": 11,
+          "block_bytes": 4647575,
+          "counts": {
+            "transactions": 3798,
+            "non_coinbase_transactions": 3787,
+            "transparent_inputs": 3787,
+            "transparent_outputs": 3809,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 3787,
+            "sapling_spends": 0,
+            "sapling_outputs": 3787,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 282780,
+              "hash": "000920c1fbf915a9baf9535d49cbd6556a435439a7bdf34dbb79425b1ba3b043",
+              "bytes": 597000,
+              "priority": "271e457115fa097e58193f392929891ae212e14e6612858d0d625ec5d2b9fca5"
+            },
+            {
+              "height": 282713,
+              "hash": "000fd14a29590e925c82222f1cc9deb1dda3978ba0f7e64ff4f4ae36d2ae3c7c",
+              "bytes": 351280,
+              "priority": "29315ad3575968b3cefecbdae981f52bf6147bba3010e8659d055645930e15a2"
+            },
+            {
+              "height": 282770,
+              "hash": "00017956e517c4da29892c29317fef31f392a43ae64a6b0fc5bd3f9e61f4c761",
+              "bytes": 522411,
+              "priority": "3f97c6fd1b8afb296246608844233be5c3e218c5f361d69f857818ac0d02978f"
+            }
+          ],
+          "largest": [
+            {
+              "height": 282780,
+              "hash": "000920c1fbf915a9baf9535d49cbd6556a435439a7bdf34dbb79425b1ba3b043",
+              "bytes": 597000
+            },
+            {
+              "height": 282760,
+              "hash": "00126436c0039a4dc9faa45f5e94859f3862c819074590f3ece83480d7905ddb",
+              "bytes": 592091
+            },
+            {
+              "height": 282770,
+              "hash": "00017956e517c4da29892c29317fef31f392a43ae64a6b0fc5bd3f9e61f4c761",
+              "bytes": 522411
+            }
+          ],
+          "first_height": 282691,
+          "last_height": 282838
+        },
+        "Sapling_sapling_5": {
+          "blocks": 12,
+          "block_bytes": 21067159,
+          "counts": {
+            "transactions": 17229,
+            "non_coinbase_transactions": 17217,
+            "transparent_inputs": 17217,
+            "transparent_outputs": 17241,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 17217,
+            "sapling_spends": 0,
+            "sapling_outputs": 17217,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 282762,
+              "hash": "001145185fc6d46d942c65b8b3fef8e084584a07366e1c203198e17eaa1b9b10",
+              "bytes": 1999219,
+              "priority": "0af2186a5add10dba1c2230b51c14374f391b7b6aa08b9d01600b09a93d2e95c"
+            },
+            {
+              "height": 282805,
+              "hash": "0002f03dcf32e25122a7a7305225cc96a0f283b5a7445d413e730470d5b38681",
+              "bytes": 628765,
+              "priority": "2240277130b4e791d6b67dcaae5418ea438bed83502aab401c09d9a75fe1176c"
+            },
+            {
+              "height": 282752,
+              "hash": "000ae4b733120b2d8803e12778693c01cfb98758d8c7f7eef58a3d7b5bbb4b0b",
+              "bytes": 1999203,
+              "priority": "2a204e7049c423cc481aa3029fd2de180044250a41e266a02439611c5c5c7090"
+            }
+          ],
+          "largest": [
+            {
+              "height": 282762,
+              "hash": "001145185fc6d46d942c65b8b3fef8e084584a07366e1c203198e17eaa1b9b10",
+              "bytes": 1999219
+            },
+            {
+              "height": 282752,
+              "hash": "000ae4b733120b2d8803e12778693c01cfb98758d8c7f7eef58a3d7b5bbb4b0b",
+              "bytes": 1999203
+            },
+            {
+              "height": 282821,
+              "hash": "0000a46b464b6eb3f87c4249a65214fa09d26e16c2cb2c0c1a1db3e8c4a8e33b",
+              "bytes": 1999194
+            }
+          ],
+          "first_height": 282742,
+          "last_height": 282825
+        },
+        "Sapling_transparent_0": {
+          "blocks": 127,
+          "block_bytes": 208770,
+          "counts": {
+            "transactions": 133,
+            "non_coinbase_transactions": 6,
+            "transparent_inputs": 8,
+            "transparent_outputs": 266,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 282703,
+              "hash": "000058d52d019d93aeddbf62de32e11bf444c890b9d8b475a2255adfb1d2e037",
+              "bytes": 1630,
+              "priority": "00f4a560e801573684790278ed53d3973e46c79e9bcb98f25b16d8ef48a55237"
+            },
+            {
+              "height": 282828,
+              "hash": "00048bf42a46e228379891bd9299b9ec7fcf23819cb5a0b41e20dab5226ba11f",
+              "bytes": 1630,
+              "priority": "011a133848fa8d3f7c043b67ed54a2d70fd5fbf9dacec41e6e414c650087f8eb"
+            },
+            {
+              "height": 282784,
+              "hash": "0008597a3d22e5c6bc0fd173f107930eaee52fcb60b95dd7e72eb63efd0e8700",
+              "bytes": 1630,
+              "priority": "02ff2e7bc5b912bac31fe3295596c6418ddcc4f010d199af9026a794c5788256"
+            }
+          ],
+          "largest": [
+            {
+              "height": 282844,
+              "hash": "0006bff2f316c358d830c899a239371ec5197fe30e98548629f7da7cb20a7188",
+              "bytes": 2119
+            },
+            {
+              "height": 282835,
+              "hash": "0014ba8b5cd02de06877f1e1fa793a76473501c55f8fcf583b255a06fce00094",
+              "bytes": 2023
+            },
+            {
+              "height": 282719,
+              "hash": "000cdabc7534a133103faf5e47d7419635a81a5f89ff0abdb43aba0c98bd3958",
+              "bytes": 2020
+            }
+          ],
+          "first_height": 282689,
+          "last_height": 282887
+        }
+      },
+      "total_cycle_estimate": null,
+      "consensus_verified": false,
+      "proof_generated": false
+    },
+    "testnet-nu5-pilot-20261022": {
+      "binding": {
+        "schema": 1,
+        "network": "testnet",
+        "start_height": 1842400,
+        "target_height": 4529880,
+        "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+        "scanner_sha256": "e959127f8a11c55b7baacd64d30511e54f71e87beb41b240fe453f3a303aee0c"
+      },
+      "next_height": 1842600,
+      "totals": {
+        "blocks": 200,
+        "block_bytes": 555396,
+        "transactions": 213,
+        "non_coinbase_transactions": 13,
+        "transparent_inputs": 345,
+        "transparent_outputs": 754,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 56,
+        "sapling_spends": 4,
+        "sapling_outputs": 55,
+        "orchard_bundles": 12,
+        "orchard_actions": 24,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "groups_count": 9,
+      "groups_truncated": false,
+      "groups": {
+        "Canopy_sapling_0": {
+          "blocks": 1,
+          "block_bytes": 2672,
+          "counts": {
+            "transactions": 1,
+            "non_coinbase_transactions": 0,
+            "transparent_inputs": 0,
+            "transparent_outputs": 3,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 1,
+            "sapling_spends": 0,
+            "sapling_outputs": 1,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842413,
+              "hash": "000505904f431e18bcc6efd4cf8a288dd1cc59bd718b6c1ccde1410a6cc7ab39",
+              "bytes": 2672,
+              "priority": "0d1d823f151028d502c2db0dfa7219f4b67ea3090f5b511f02b1c76fc6dfb32d"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842413,
+              "hash": "000505904f431e18bcc6efd4cf8a288dd1cc59bd718b6c1ccde1410a6cc7ab39",
+              "bytes": 2672
+            }
+          ],
+          "first_height": 1842413,
+          "last_height": 1842413
+        },
+        "Canopy_transparent_0": {
+          "blocks": 19,
+          "block_bytes": 32564,
+          "counts": {
+            "transactions": 19,
+            "non_coinbase_transactions": 0,
+            "transparent_inputs": 0,
+            "transparent_outputs": 76,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842406,
+              "hash": "0009a75b00c25d07d194f49514ede7b57305cb3f550babec7cbdcf7e7ac62e9a",
+              "bytes": 1715,
+              "priority": "076ff0bfe0878cd3c2bc51a467314023390b44f2941767aac16ea58b42d418ae"
+            },
+            {
+              "height": 1842400,
+              "hash": "0009978a035de750453a518d0bd0dba8aa6e73dff7dbb3b518474f6a42c39d4a",
+              "bytes": 1715,
+              "priority": "12435f9b56654e283a1c9f53455e09ee47d1b13abe801b2036d2448a896fdb1e"
+            },
+            {
+              "height": 1842408,
+              "hash": "00088d2770b7a3fd6fb2b64a16baab305b0b3d29df5115499d47dc911bb6478e",
+              "bytes": 1715,
+              "priority": "322aafb0b3a0b0c72c5ab1591b727875c8c04f3c0cf8350c87723cb20a91626f"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842400,
+              "hash": "0009978a035de750453a518d0bd0dba8aa6e73dff7dbb3b518474f6a42c39d4a",
+              "bytes": 1715
+            },
+            {
+              "height": 1842401,
+              "hash": "000add529e129a4ad7514eabb517aa0b8001bbce2609d0fe937144d9b92c60ce",
+              "bytes": 1715
+            },
+            {
+              "height": 1842402,
+              "hash": "00020ba537dc76985cd3b27fe68a82fc850748304ab52e0b7b5b5e5f1ce52cd2",
+              "bytes": 1715
+            }
+          ],
+          "first_height": 1842400,
+          "last_height": 1842419
+        },
+        "Nu5_orchard_0": {
+          "blocks": 1,
+          "block_bytes": 10855,
+          "counts": {
+            "transactions": 2,
+            "non_coinbase_transactions": 1,
+            "transparent_inputs": 0,
+            "transparent_outputs": 4,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 1,
+            "orchard_actions": 2,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842467,
+              "hash": "000673af648e2886235fe0c58c8e463ba462323f23c0d0c68d9d379e4451f915",
+              "bytes": 10855,
+              "priority": "019ceac687ae587bfb47791ba15ddf2ef160483c76df6c2201e5c828af5b1ee8"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842467,
+              "hash": "000673af648e2886235fe0c58c8e463ba462323f23c0d0c68d9d379e4451f915",
+              "bytes": 10855
+            }
+          ],
+          "first_height": 1842467,
+          "last_height": 1842467
+        },
+        "Nu5_orchard_1": {
+          "blocks": 1,
+          "block_bytes": 11149,
+          "counts": {
+            "transactions": 2,
+            "non_coinbase_transactions": 1,
+            "transparent_inputs": 2,
+            "transparent_outputs": 4,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 1,
+            "orchard_actions": 2,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842462,
+              "hash": "003e75227fda400ac4923bbf028d2f039c29cbc2fe4efcce0f898ff9d2779df9",
+              "bytes": 11149,
+              "priority": "72fa309a8b3f2dc9718ee67b22654aee543329e51aa724637acc42d7746691b1"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842462,
+              "hash": "003e75227fda400ac4923bbf028d2f039c29cbc2fe4efcce0f898ff9d2779df9",
+              "bytes": 11149
+            }
+          ],
+          "first_height": 1842462,
+          "last_height": 1842462
+        },
+        "Nu5_orchard_4": {
+          "blocks": 1,
+          "block_bytes": 51859,
+          "counts": {
+            "transactions": 2,
+            "non_coinbase_transactions": 1,
+            "transparent_inputs": 278,
+            "transparent_outputs": 4,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 1,
+            "orchard_actions": 2,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842574,
+              "hash": "000e08e81111a4fa4ebefb2b98e2d44fff3c7cbf4f74f892956e33691ecec983",
+              "bytes": 51859,
+              "priority": "80b98b6e74920917406809e9a1ee0740817676a3e5a41a6762f3c4806decb9df"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842574,
+              "hash": "000e08e81111a4fa4ebefb2b98e2d44fff3c7cbf4f74f892956e33691ecec983",
+              "bytes": 51859
+            }
+          ],
+          "first_height": 1842574,
+          "last_height": 1842574
+        },
+        "Nu5_sapling-orchard_1": {
+          "blocks": 9,
+          "block_bytes": 111552,
+          "counts": {
+            "transactions": 18,
+            "non_coinbase_transactions": 9,
+            "transparent_inputs": 15,
+            "transparent_outputs": 34,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 11,
+            "sapling_spends": 4,
+            "sapling_outputs": 10,
+            "orchard_bundles": 9,
+            "orchard_actions": 18,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842581,
+              "hash": "000593c2604616b4203ccb14951b31034ed83eeb0d63ba09aeb4565b402cafe2",
+              "bytes": 12022,
+              "priority": "1f2b84b10d003aeca0687a88ab3532e79d79e4cb3f8310a5a5932bfd40dce508"
+            },
+            {
+              "height": 1842520,
+              "hash": "002d82d1e075c770fbcc12534b6aeb6d6fe42022ea8bb3c00ad0653cb03a5532",
+              "bytes": 13009,
+              "priority": "3b03fb5fd28b4ac853d6a5aaf0c6d1cc72235702e93dc3836dd74618b502616d"
+            },
+            {
+              "height": 1842552,
+              "hash": "0006ded7361fa756fd638322faeb90ca2449ce36d61277a2e6e4de770a5b6f18",
+              "bytes": 13450,
+              "priority": "71c52cfef55eac9b805bec9e8e5bc8c09bc8146581af60e2141ae9d9a01eff79"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842552,
+              "hash": "0006ded7361fa756fd638322faeb90ca2449ce36d61277a2e6e4de770a5b6f18",
+              "bytes": 13450
+            },
+            {
+              "height": 1842520,
+              "hash": "002d82d1e075c770fbcc12534b6aeb6d6fe42022ea8bb3c00ad0653cb03a5532",
+              "bytes": 13009
+            },
+            {
+              "height": 1842421,
+              "hash": "06d4a68dbd21f273e0dc1cb0f4cca9625f3ba0097e5b561831464fcc03c76a5e",
+              "bytes": 12367
+            }
+          ],
+          "first_height": 1842421,
+          "last_height": 1842581
+        },
+        "Nu5_sapling_0": {
+          "blocks": 43,
+          "block_bytes": 115068,
+          "counts": {
+            "transactions": 43,
+            "non_coinbase_transactions": 0,
+            "transparent_inputs": 0,
+            "transparent_outputs": 129,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 43,
+            "sapling_spends": 0,
+            "sapling_outputs": 43,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842488,
+              "hash": "002bea806338aab381aa262bf16a515883cfac57c094d6dadcc2297849e75ea8",
+              "bytes": 2676,
+              "priority": "0168ec0cd636e2e4998b0e639159a83936b5ad7654689315d524943141bb4f14"
+            },
+            {
+              "height": 1842490,
+              "hash": "00264fdcf6e180361dbadb99b8192a6117e1eff0748f3a2790018559054a445e",
+              "bytes": 2676,
+              "priority": "067350b6d7ebfee0f22fec8589337da1f59d28e5fd8762b829ba57deebb89855"
+            },
+            {
+              "height": 1842573,
+              "hash": "000891bd154143c48a02791c1163057f027c153c62920ab5f059274446d8c9fa",
+              "bytes": 2676,
+              "priority": "13d35383b431aefdd16e08988960aeb6ba3ee2d7ddbf6cef56d8ee7a15baee86"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842437,
+              "hash": "0100e73c245a02442225e82a4446e7e01dea7edea8ad7c84c844f555d4734022",
+              "bytes": 2676
+            },
+            {
+              "height": 1842445,
+              "hash": "002c933bedc45c76cc5ab805d5a517879178ea65e9f0b78af816e72f406efa46",
+              "bytes": 2676
+            },
+            {
+              "height": 1842447,
+              "hash": "009b9ba9cd063d41d61050f866ec402f953235544ca773b4bfda1339d2618708",
+              "bytes": 2676
+            }
+          ],
+          "first_height": 1842437,
+          "last_height": 1842595
+        },
+        "Nu5_sapling_2": {
+          "blocks": 1,
+          "block_bytes": 10117,
+          "counts": {
+            "transactions": 2,
+            "non_coinbase_transactions": 1,
+            "transparent_inputs": 50,
+            "transparent_outputs": 4,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 1,
+            "sapling_spends": 0,
+            "sapling_outputs": 1,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842432,
+              "hash": "00c70b1a66d93c762c7f2fff77db1e6915c2c7838755d62779bceac5e169fd10",
+              "bytes": 10117,
+              "priority": "8ef809b91f05f00855c53e3edc086c88f6c5d4670e309e0ff837dc6a6b667d92"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842432,
+              "hash": "00c70b1a66d93c762c7f2fff77db1e6915c2c7838755d62779bceac5e169fd10",
+              "bytes": 10117
+            }
+          ],
+          "first_height": 1842432,
+          "last_height": 1842432
+        },
+        "Nu5_transparent_0": {
+          "blocks": 124,
+          "block_bytes": 209560,
+          "counts": {
+            "transactions": 124,
+            "non_coinbase_transactions": 0,
+            "transparent_inputs": 0,
+            "transparent_outputs": 496,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 1842435,
+              "hash": "00dbb35553bf73594f861f1701eed4010b7d0601a17728b326a5f9e061915e56",
+              "bytes": 1690,
+              "priority": "009a726a479128dcfc66c0bc227a11cd1b72b99da4a664261d0b2a51a2311054"
+            },
+            {
+              "height": 1842593,
+              "hash": "0009ccbb4787bfa066c7878618427695afe2468b43d604334137a4a53c87bf2d",
+              "bytes": 1690,
+              "priority": "00f866709bfab6e81d749447660cda439e0be261f96d065d49ac2f4635dec47f"
+            },
+            {
+              "height": 1842508,
+              "hash": "0022c72a3b2f3a5fd8b64a58e1c7231518bd1ba2f6356b96fd50c496d7f63731",
+              "bytes": 1690,
+              "priority": "01880b92390fc8a180268da1dc10f1bbc0793bd6d63ad43a726d6f7e4e182c1a"
+            }
+          ],
+          "largest": [
+            {
+              "height": 1842420,
+              "hash": "0006d75c60b3093d1b671ff7da11c99ea535df9927c02e6ed9eb898605eb7381",
+              "bytes": 1690
+            },
+            {
+              "height": 1842422,
+              "hash": "0015858267d08db9be7f9cb18540b27f99ae31b31819e36d6bcfb3ef23a5aa2f",
+              "bytes": 1690
+            },
+            {
+              "height": 1842423,
+              "hash": "00161992fcfddeac0aa7380ba737d8d18abb1e41fa6597b8e5bb4edbc3393bf8",
+              "bytes": 1690
+            }
+          ],
+          "first_height": 1842420,
+          "last_height": 1842599
+        }
+      },
+      "total_cycle_estimate": null,
+      "consensus_verified": false,
+      "proof_generated": false
+    },
+    "testnet-recent-pilot-20261022": {
+      "binding": {
+        "schema": 1,
+        "network": "testnet",
+        "start_height": 4529681,
+        "target_height": 4529880,
+        "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+        "scanner_sha256": "e959127f8a11c55b7baacd64d30511e54f71e87beb41b240fe453f3a303aee0c"
+      },
+      "next_height": 4529881,
+      "totals": {
+        "blocks": 200,
+        "block_bytes": 1361993,
+        "transactions": 270,
+        "non_coinbase_transactions": 70,
+        "transparent_inputs": 1,
+        "transparent_outputs": 181,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 91,
+        "ironwood_actions": 246
+      },
+      "groups_count": 4,
+      "groups_truncated": false,
+      "groups": {
+        "Nu7_ironwood_0": {
+          "blocks": 22,
+          "block_bytes": 304849,
+          "counts": {
+            "transactions": 40,
+            "non_coinbase_transactions": 18,
+            "transparent_inputs": 0,
+            "transparent_outputs": 5,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 35,
+            "ironwood_actions": 54
+          },
+          "samples": [
+            {
+              "height": 4529871,
+              "hash": "00001c6b3b6a49efdf8ac381430cda670989b2fe3bd61f3ba430f1099ced5bb7",
+              "bytes": 10803,
+              "priority": "002cb0ce54248fd9426f59b4e56b3be6f56f4510d77866b3b2d65a4643f10bbb"
+            },
+            {
+              "height": 4529756,
+              "hash": "000020788f871f67c47cd027f18b3bcecd34e63265e976b5e94f093f4bfebecd",
+              "bytes": 16726,
+              "priority": "004fb8f3d9b39f86ac66415934b9067a919bf7749d9d50cfb15c5cd037fb2670"
+            },
+            {
+              "height": 4529875,
+              "hash": "00002247a99948aaf2b1e5743893fa1dcef1ebd83418c79489a1dcf7fdf7019f",
+              "bytes": 16726,
+              "priority": "0202c8fe5c136421b79d26ea2c5f842139f291f201c45b60c6c1275a8827e050"
+            }
+          ],
+          "largest": [
+            {
+              "height": 4529708,
+              "hash": "0000293442e836e01d5f1e7815e4fa8cb8c67093a589208f34410913511843a7",
+              "bytes": 16726
+            },
+            {
+              "height": 4529726,
+              "hash": "00001b7546d2825f9997f42c3a359219b27398a18a4807ded8c40e156f93019c",
+              "bytes": 16726
+            },
+            {
+              "height": 4529732,
+              "hash": "00002b726d557b8d4d1a21909e960873ed6fd35121ab96895172b7f24624bb5e",
+              "bytes": 16726
+            }
+          ],
+          "first_height": 4529685,
+          "last_height": 4529880
+        },
+        "Nu7_ironwood_1": {
+          "blocks": 17,
+          "block_bytes": 600631,
+          "counts": {
+            "transactions": 60,
+            "non_coinbase_transactions": 43,
+            "transparent_inputs": 1,
+            "transparent_outputs": 15,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 47,
+            "ironwood_actions": 139
+          },
+          "samples": [
+            {
+              "height": 4529758,
+              "hash": "0000012944a434bcb969242237b84bd3c78f12f4dffb9bd3a5e30eda42a2a9c7",
+              "bytes": 35447,
+              "priority": "1ae9c3222bf1f9f7d511f6fd87702bac6c1d4ba66f17fd4391a4966825f637b1"
+            },
+            {
+              "height": 4529764,
+              "hash": "00002198580ff315d4d291c31009c62ace8024428086e5954f28bcdb1b299958",
+              "bytes": 25892,
+              "priority": "3367c15ac014390614a611bb13bc578da295a8d7f6b8f9f8c4ba56e1c9112091"
+            },
+            {
+              "height": 4529789,
+              "hash": "000018aa019f2132992bfadfd2a56c80006604d878d9658e248e2c19a28b0aa8",
+              "bytes": 51529,
+              "priority": "35ae77585e46ca07ac38c829db10e4ba7965d7fcb0daf118342a142df91af3a5"
+            }
+          ],
+          "largest": [
+            {
+              "height": 4529819,
+              "hash": "00002dead08b5da0b5f86e17128bd0cfaeca5e16b4016df7d2cc25e5fd93569b",
+              "bytes": 54685
+            },
+            {
+              "height": 4529789,
+              "hash": "000018aa019f2132992bfadfd2a56c80006604d878d9658e248e2c19a28b0aa8",
+              "bytes": 51529
+            },
+            {
+              "height": 4529832,
+              "hash": "00001557178712c7b42ff52a821ee953a5235e6ab34a2f68df72b7853baf92eb",
+              "bytes": 51529
+            }
+          ],
+          "first_height": 4529684,
+          "last_height": 4529861
+        },
+        "Nu7_ironwood_2": {
+          "blocks": 2,
+          "block_bytes": 196230,
+          "counts": {
+            "transactions": 11,
+            "non_coinbase_transactions": 9,
+            "transparent_inputs": 0,
+            "transparent_outputs": 2,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 9,
+            "ironwood_actions": 53
+          },
+          "samples": [
+            {
+              "height": 4529694,
+              "hash": "00002cea253db3abbc20a96799507c08129c8d8a9f6de5eced699e1c0ce9d18b",
+              "bytes": 69559,
+              "priority": "5dc22045c1273235a7479c7d2a94518f65b06273967f8f97ec470c002bdd3953"
+            },
+            {
+              "height": 4529712,
+              "hash": "000021232b6c33b9abf1aa196fa5e822e1a61ff899dd2ebfe681e3363d529326",
+              "bytes": 126671,
+              "priority": "b4bbe64e423d08ba3939bdd142c0fad398a32dd72332ab1d5569d05e4aa2783c"
+            }
+          ],
+          "largest": [
+            {
+              "height": 4529712,
+              "hash": "000021232b6c33b9abf1aa196fa5e822e1a61ff899dd2ebfe681e3363d529326",
+              "bytes": 126671
+            },
+            {
+              "height": 4529694,
+              "hash": "00002cea253db3abbc20a96799507c08129c8d8a9f6de5eced699e1c0ce9d18b",
+              "bytes": 69559
+            }
+          ],
+          "first_height": 4529694,
+          "last_height": 4529712
+        },
+        "Nu7_transparent_0": {
+          "blocks": 159,
+          "block_bytes": 260283,
+          "counts": {
+            "transactions": 159,
+            "non_coinbase_transactions": 0,
+            "transparent_inputs": 0,
+            "transparent_outputs": 159,
+            "sprout_phgr_proofs": 0,
+            "sprout_groth16_proofs": 0,
+            "sprout_signatures": 0,
+            "sapling_bundles": 0,
+            "sapling_spends": 0,
+            "sapling_outputs": 0,
+            "orchard_bundles": 0,
+            "orchard_actions": 0,
+            "ironwood_bundles": 0,
+            "ironwood_actions": 0
+          },
+          "samples": [
+            {
+              "height": 4529687,
+              "hash": "000026cddf45432c155671f7899c46fecc9c780f75470bc8b33cb2fba7d616f8",
+              "bytes": 1637,
+              "priority": "027aa80450611ce75c45e1ab1c59d75f10d5c0b397743690f5418c773f50c079"
+            },
+            {
+              "height": 4529786,
+              "hash": "0000271cb612c375261db9d5af70706a72b158f2af8f0126973d25a214c873d7",
+              "bytes": 1637,
+              "priority": "035a974258cf5b3ddd6e7b3ca16ef0e464184104fda4219e3a7bf3a0ae68577f"
+            },
+            {
+              "height": 4529707,
+              "hash": "000001952f9920ebf914791c37a85e2652903fca9b682d1158244892ed91e5aa",
+              "bytes": 1637,
+              "priority": "03d40c2b8ee05dbf70699854c42a6e5d04883566e6d148fbb5edd9462fd13829"
+            }
+          ],
+          "largest": [
+            {
+              "height": 4529681,
+              "hash": "00002df43700b6ec604ca1035a7b147415772c67ed29ef97ef534c399f11eb46",
+              "bytes": 1637
+            },
+            {
+              "height": 4529682,
+              "hash": "000006edf00aa222bdf84036b83c92db88a07ec2ac9e1429900778c4885e52fb",
+              "bytes": 1637
+            },
+            {
+              "height": 4529683,
+              "hash": "00000614197597159bb3952a67949aedcaf6d48840ed73d5ff9b5dcc80afb208",
+              "bytes": 1637
+            }
+          ],
+          "first_height": 4529681,
+          "last_height": 4529879
+        }
+      },
+      "total_cycle_estimate": null,
+      "consensus_verified": false,
+      "proof_generated": false
+    }
+  },
+  "pilot_storage": {
+    "measured_utc": "2026-10-22T19:32:35.614272+00:00",
+    "disk_free_bytes": 88706973696,
+    "memory_available_bytes": 1278050304,
+    "collection": {
+      "count": 3600,
+      "size": 2603613,
+      "avgObjSize": 723,
+      "storageSize": 155648,
+      "totalIndexSize": 176128
+    },
+    "run_row_counts": {
+      "testnet-history-20261022": 3000,
+      "testnet-sprout-pilot-20261022": 200,
+      "testnet-nu5-pilot-20261022": 200,
+      "testnet-recent-pilot-20261022": 200
+    }
+  },
+  "protected_services_checked": 16,
+  "protected_services_unchanged": true,
+  "native_replay_active": true,
+  "native_replay_height": 2086068,
+  "full_inventory_initial_status": {
+    "schema": 1,
+    "started_utc": "2026-10-22T19:34:56.418182+00:00",
+    "target": {
+      "network": "testnet",
+      "height": 4529880,
+      "hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+      "observed_node_height": 4529980,
+      "selected_utc": "2026-10-22T19:24:46.733537+00:00"
+    },
+    "run_id": "testnet-history-20261022",
+    "paid_jobs": 0,
+    "proof_generated": false,
+    "scanner_sha256": "e959127f8a11c55b7baacd64d30511e54f71e87beb41b240fe453f3a303aee0c",
+    "memory_reserve_bytes": 536870912,
+    "disk_reserve_bytes": 32212254720,
+    "cpu_quota_percent": 50,
+    "memory_max_bytes": 536870912,
+    "max_rate": 250,
+    "max_seconds": 82800,
+    "status": "running",
+    "observed_utc": "2026-10-22T19:35:46.454216+00:00",
+    "memory_available_bytes": 1310670848,
+    "disk_free_bytes": 88700350464,
+    "observed_memory_peak_bytes": 42287104,
+    "next_height": 13752,
+    "complete": false,
+    "session_blocks_per_second": 220.9285292017644
+  },
+  "paid_jobs": 0,
+  "proof_generated": false,
+  "total_cycle_estimate": null
+}
