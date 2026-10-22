@@ -1,0 +1,16 @@
+[
+  {
+    "name": "pymongo",
+    "version": "4.19.0",
+    "url": "https://files.pythonhosted.org/packages/44/1b/e8364fadbc05bff19e67dda4f151e63fb13c58252cd5e1e1750c22cc1b8f/pymongo-4.19.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl",
+    "sha256": "a5af9e52dfd18224474d5f54817ef2cbf06e313d100772a4a72aea8394037941",
+    "bytes": 1058052
+  },
+  {
+    "name": "dnspython",
+    "version": "2.9.0",
+    "url": "https://files.pythonhosted.org/packages/10/02/cdcc9b7c051786a103c3b09e1003a82fa0c66bcb91ffbdabcfbf7b4163b9/dnspython-2.9.0-py3-none-any.whl",
+    "sha256": "9a4aedb833c3c1b49214d04d44d3032ab7a9135f7c1d29a549b4ff78fd82fda9",
+    "bytes": 354822
+  }
+]

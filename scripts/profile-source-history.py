@@ -1,50 +1,12 @@
 #!/usr/bin/env python3
 import argparse
-import base64
-import http.client
 import json
 import os
 from pathlib import Path
-import stat
 import struct
 import subprocess
 import sys
-from urllib.parse import urlsplit
-
-
-class Rpc:
-    def __init__(self, endpoint, cookie):
-        url = urlsplit(endpoint)
-        if url.scheme != "http" or url.hostname not in {"localhost", "127.0.0.1", "::1"}:
-            raise ValueError("profiling RPC must use a loopback HTTP endpoint")
-        if url.username or url.password or url.query or url.fragment:
-            raise ValueError("invalid profiling RPC URL")
-        fd = os.open(cookie, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
-        with os.fdopen(fd, "rb") as source:
-            meta = os.fstat(source.fileno())
-            if not stat.S_ISREG(meta.st_mode) or meta.st_mode & 0o077 or meta.st_uid != os.geteuid():
-                raise ValueError("RPC cookie must be an owner-only regular file")
-            value = source.read(4097).strip()
-        if len(value) > 4096 or b":" not in value or b"\n" in value or b"\r" in value:
-            raise ValueError("invalid RPC cookie")
-        self.authorization = "Basic " + base64.b64encode(value).decode()
-        self.connection = http.client.HTTPConnection(url.hostname, url.port, timeout=30)
-        self.path = url.path or "/"
-        self.identifier = 0
-
-    def call(self, method, params):
-        self.identifier += 1
-        payload = json.dumps({"jsonrpc": "2.0", "id": self.identifier, "method": method, "params": params})
-        self.connection.request("POST", self.path, body=payload,
-                                headers={"Content-Type": "application/json", "Authorization": self.authorization})
-        response = self.connection.getresponse()
-        data = response.read(4_001_025)
-        if response.status != 200 or len(data) > 4_001_024:
-            raise RuntimeError("RPC transport failed or exceeded its response bound")
-        value = json.loads(data)
-        if value.get("id") != self.identifier or value.get("error") or value.get("result") is None:
-            raise RuntimeError(f"RPC rejected {method}")
-        return value["result"]
+from source_rpc import Rpc
 
 
 def arguments():

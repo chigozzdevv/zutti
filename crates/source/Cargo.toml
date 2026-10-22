@@ -28,6 +28,11 @@ name = "source-replay"
 path = "src/bin/source-replay.rs"
 required-features = ["cli", "storage"]
 
+[[bin]]
+name = "source-inventory"
+path = "src/bin/source-inventory.rs"
+required-features = ["cli"]
+
 [dependencies]
 zutti-protocol.workspace = true
 thiserror.workspace = true

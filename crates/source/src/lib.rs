@@ -20,6 +20,8 @@ pub mod difficulty;
 pub mod history;
 pub mod index;
 #[cfg(feature = "blocks")]
+pub mod inventory;
+#[cfg(feature = "blocks")]
 mod phgr;
 #[cfg(feature = "blocks")]
 pub mod proof;
