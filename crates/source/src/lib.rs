@@ -30,6 +30,8 @@ pub mod query;
 pub mod range;
 mod sparse;
 #[cfg(feature = "blocks")]
+pub mod spv;
+#[cfg(feature = "blocks")]
 pub mod spends;
 #[cfg(feature = "blocks")]
 pub mod state;

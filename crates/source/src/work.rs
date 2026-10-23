@@ -1,4 +1,5 @@
 use crate::{Error, Result, block::ParsedBlock};
+use zcash_primitives::block::BlockHeader;
 use zcash_protocol::consensus::NetworkType;
 use zutti_protocol::Digest;
 
@@ -63,9 +64,13 @@ impl CheckedWork {
 }
 
 pub fn verify_work(block: &ParsedBlock, network: NetworkType) -> Result<CheckedWork> {
-    let header = block.header();
+    verify_header_work(block.header(), network)
+}
+
+pub fn verify_header_work(header: &BlockHeader, network: NetworkType) -> Result<CheckedWork> {
+    let block = Digest(header.hash().0);
     let target = Target::from_compact(header.bits)?;
-    if header.version < 4 || !target.within_limit(network)? || !target.accepts(block.hash()) {
+    if header.version < 4 || !target.within_limit(network)? || !target.accepts(block) {
         return Err(Error::Work);
     }
     if header.solution.len() != 1344 {
@@ -82,8 +87,5 @@ pub fn verify_work(block: &ParsedBlock, network: NetworkType) -> Result<CheckedW
         &header.solution,
     )
     .map_err(|_| Error::Equihash)?;
-    Ok(CheckedWork {
-        block: block.hash(),
-        target,
-    })
+    Ok(CheckedWork { block, target })
 }

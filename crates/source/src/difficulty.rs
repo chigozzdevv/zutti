@@ -2,10 +2,11 @@ use crate::{
     Error, Result,
     block::ParsedBlock,
     bootstrap::GenesisBlock,
-    work::{Target, verify_work},
+    work::{Target, verify_header_work},
 };
 use num_bigint::BigUint;
 use std::collections::VecDeque;
+use zcash_primitives::block::BlockHeader;
 use zcash_protocol::consensus::{
     BlockHeight, MAIN_NETWORK, NetworkType, NetworkUpgrade, Parameters, TEST_NETWORK,
 };
@@ -50,16 +51,37 @@ impl HeaderCandidate {
             cumulative_work,
         })
     }
+    pub fn from_genesis_header(header: &BlockHeader, network: NetworkType) -> Result<Self> {
+        if header.prev_block.0 != [0; 32]
+            || Digest(header.hash().0) != crate::bootstrap::genesis_hash(network)?
+        {
+            return Err(Error::Genesis);
+        }
+        verify_header_work(header, network)?;
+        Ok(Self {
+            network,
+            headers: VecDeque::from([Header {
+                height: 0,
+                hash: Digest(header.hash().0),
+                time: header.time,
+                bits: header.bits,
+            }]),
+            cumulative_work: work(header.bits)?,
+        })
+    }
     pub fn append(&mut self, block: &ParsedBlock) -> Result<()> {
-        let tip = self.headers.back().ok_or(Error::Genesis)?;
-        let height = tip.height.checked_add(1).ok_or(Error::Height)?;
-        if block.claimed_height() != height {
+        if block.claimed_height() != self.height()?.checked_add(1).ok_or(Error::Height)? {
             return Err(Error::Height);
         }
-        if block.parent() != tip.hash {
+        self.append_header(block.header())
+    }
+    pub fn append_header(&mut self, header: &BlockHeader) -> Result<()> {
+        let tip = self.headers.back().ok_or(Error::Genesis)?;
+        let height = tip.height.checked_add(1).ok_or(Error::Height)?;
+        if Digest(header.prev_block.0) != tip.hash {
             return Err(Error::Parent);
         }
-        let time = block.header().time;
+        let time = header.time;
         let context: Vec<_> = self.headers.iter().rev().cloned().collect();
         let median = median(context.iter().take(MEDIAN_WINDOW).map(|h| h.time))?;
         let maximum_time_active = match self.network {
@@ -70,11 +92,11 @@ impl HeaderCandidate {
         if time <= median || (maximum_time_active && u64::from(time) > u64::from(median) + 5_400) {
             return Err(Error::Work);
         }
-        if block.header().bits != expected_bits(self.network, height, time, &context)? {
+        if header.bits != expected_bits(self.network, height, time, &context)? {
             return Err(Error::Work);
         }
-        verify_work(block, self.network)?;
-        let cumulative_work = &self.cumulative_work + work(block.header().bits)?;
+        verify_header_work(header, self.network)?;
+        let cumulative_work = &self.cumulative_work + work(header.bits)?;
         if cumulative_work.bits() > 256 {
             return Err(Error::Work);
         }
@@ -83,9 +105,9 @@ impl HeaderCandidate {
         }
         self.headers.push_back(Header {
             height,
-            hash: block.hash(),
+            hash: Digest(header.hash().0),
             time,
-            bits: block.header().bits,
+            bits: header.bits,
         });
         self.cumulative_work = cumulative_work;
         Ok(())

@@ -1,0 +1,35 @@
+{
+  "network": "Zcash Testnet",
+  "source": "Public complete blocks retained from the project Zebra RPC download on 2026-10-18",
+  "scope": "Early genesis-linked coinbase-only source fixtures; these are not swap payments.",
+  "blocks": [
+    {
+      "file": "testnet-1.hex",
+      "height": 1,
+      "bytes": 1618,
+      "raw_sha256": "fc1f80eeaa5b19d9907d761ca7892a32f828d8199de25aff0df32af60ce1a4d7",
+      "block_hash": "025579869bcf52a989337342f5f57a84f3a28b968f7d6a8307902b065a668d23"
+    },
+    {
+      "file": "testnet-2.hex",
+      "height": 2,
+      "bytes": 1618,
+      "raw_sha256": "cb024b260bc78922bcbd803d11bbdaf634e55050ce543f231c5a78e3639ad4c2",
+      "block_hash": "00f1a49e54553ac3ef735f2eb1d8247c9a87c22a47dbd7823ae70adcd6c21a18"
+    },
+    {
+      "file": "testnet-3.hex",
+      "height": 3,
+      "bytes": 1618,
+      "raw_sha256": "b40234a77ab577bba06c5426df746eef269d00ac3083127e727495e806d735af",
+      "block_hash": "00e141e8da20035b03a406ad93802cdcac010cba87341796af51029094383d45"
+    },
+    {
+      "file": "testnet-4.hex",
+      "height": 4,
+      "bytes": 1618,
+      "raw_sha256": "5b0852a8a7cb250d9e49109e71034c75f8ee6b67e8f5513e01bd9566eac1928f",
+      "block_hash": "036b74ae369047798aa3772be049a9c06a8900b8af39f02362fb6e16ee21ef75"
+    }
+  ]
+}
