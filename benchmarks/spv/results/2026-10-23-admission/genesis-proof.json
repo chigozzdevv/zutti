@@ -1,0 +1,47 @@
+{
+  "result": {
+    "canonicality_admitted": false,
+    "cycles": 162514,
+    "full_transaction_validity_verified": false,
+    "image_id": "5b1db5eb5db64f783127cb2083c232a06e34c8a238e1aacb0a6c165c6b26b8bd",
+    "journal_matches": true,
+    "journal_sha256": "6f80fe73db01b12fd817f786d1ceb45afe64267d771bba22bf6cd5adc2e11f51",
+    "lower_boundary_birth_verified": false,
+    "paid_jobs": 0,
+    "payment_preparation_verified": false,
+    "predecessor_proof_verified": false,
+    "program_sha256": "f0493b320a609131992ae78e6f35eadcc5388baa6a284dc14411b561e073cf13",
+    "proof_generated": true,
+    "proof_verified": true,
+    "receipt_kind": "composite",
+    "schema": 1,
+    "seconds": 159.417129833,
+    "segments": 1,
+    "settlement_authority": false,
+    "unresolved_execution_assumption": false,
+    "witness_sha256": "984b8bab8af38efc7d054ffb3561185a390f0823808ac2b0867f9f7b3bd7d60d"
+  },
+  "supervisor": {
+    "status": "completed",
+    "exit_code": 0,
+    "seconds": 163.62773804191966,
+    "sampled_peak_rss_mib": 1033.921875,
+    "seconds_limit": 180,
+    "rss_limit_mib": 4096,
+    "development_mode": false,
+    "paid_jobs": 0,
+    "error": null
+  },
+  "audit": {
+    "changed_proof_rejected": true,
+    "changed_receipt_journal_rejected": true,
+    "development_mode": false,
+    "settlement_authority": false,
+    "valid_receipt_verified": true,
+    "wrong_expected_journal_rejected": true,
+    "wrong_image_rejected": true
+  },
+  "height": 0,
+  "new_headers_proved": 0,
+  "receipt_sha256": "f0fe8c5369f59fb1b3d8f4c9a25437a9f39ab904edb3f7ee3e63d9c642a6c6a2"
+}

@@ -1,0 +1,21 @@
+{
+  "source": {
+    "admitted": false,
+    "image_id": "5b1db5eb5db64f783127cb2083c232a06e34c8a238e1aacb0a6c165c6b26b8bd",
+    "kind": "spv_source",
+    "network_scope": "Testnet prototype",
+    "program_sha256": "f0493b320a609131992ae78e6f35eadcc5388baa6a284dc14411b561e073cf13",
+    "schema": 1
+  },
+  "admission": {
+    "admitted": false,
+    "image_id": "e9bc2e1b012b6f6cc7ef9f23605afea2576727a60d19455dcecd911919173be7",
+    "kind": "spv_admission",
+    "network_scope": "Testnet prototype",
+    "program_sha256": "5a09bdc009897e24ad32ec8fe6d9e9cb13f59d4979c6b99ffa3401902a9433dc",
+    "schema": 1
+  },
+  "prefix_encoding_version": 2,
+  "window_encoding_version": 2,
+  "admission_encoding_version": 1
+}

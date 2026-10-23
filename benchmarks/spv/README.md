@@ -6,19 +6,20 @@ The implementation is in [`crates/source/src/spv`](../../crates/source/src/spv),
 
 ## Measured status
 
-The [2026-10-23 results](results/2026-10-23/manifest.json) use an Apple M1 Pro with two proving threads and generated public inputs. No marketplace jobs or paid compute were used.
+The [latest results](results/2026-10-23-admission/manifest.json) use an Apple M1 Pro with two proving threads and public inputs. No marketplace jobs, paid compute or new chain downloads were used. The [first baseline](results/2026-10-23/manifest.json) remains archived under its original program identity.
 
 | Check | Result |
 | --- | --- |
-| Native source, work and receipt tests | 20 passed, including verification of the retained genuine receipt |
-| Resource supervisor tests | Success, memory-limit reporting and termination of a resistant descendant passed |
-| Four-header zkVM execution | 23,101,005 user cycles; 0.526 seconds; no proof |
-| Included / absent zkVM execution | 23,454,306 / 23,784,922 user cycles; no proof |
-| False absence, missing block and wrong parent | Rejected by both native and guest execution |
-| Genuine genesis-only composite receipt | Generated and verified in 142.216 seconds; no added headers |
-| Genesis plus the first header | No verified receipt before the 600-second limit |
+| Native source, work and receipt tests | 26 passed; clippy reports no warnings |
+| Ethereum tests | 28 passed, one existing preparation test skipped; 10 SPV tests use mock proof verification |
+| Four-header zkVM execution | 23,101,146 user cycles; genuine genesis predecessor; no new proof |
+| Included / absent zkVM execution | 23,459,591 / 23,790,207 user cycles; genuine genesis predecessor; no new proof |
+| False absence, missing block and wrong parent | Rejected by native and guest execution |
+| Admission zkVM execution | 23,113,855 user cycles; native and guest journals match |
+| Version-2 genesis composite receipt | Generated and verified in 159.417 seconds; no added headers |
+| Real shielded block coverage | Testnet block 282,757 has 1,634 non-coinbase Sapling transactions; Mainnet block 1,687,107 contains an Orchard transaction; omission fails |
 
-The [genesis receipt](fixtures/genesis/receipt.bin) is a cryptographically verified public-header fixture. Its [audit](results/2026-10-23/genesis-proof.json) rejects a wrong image, wrong expected journal, changed journal bytes and changed seal. It authenticates only the fixed genesis. Genuine inclusion, absence, recursive continuation, Ethereum wrapping and a practical current-chain bootstrap have not been demonstrated by this run. Small-input execution times do not predict complete proving time.
+The [version-2 genesis receipt](fixtures/genesis-v2/receipt.bin) authenticates only the fixed genesis. Its [audit](results/2026-10-23-admission/genesis-proof.json) rejects a wrong image, expected journal, changed journal and changed seal. Genuine non-genesis source/admission/window receipts, Ethereum wrapping and a practical current-chain bootstrap are not demonstrated. The original first-header CPU attempt timed out at 600 seconds; it used the earlier program. Small-input execution times do not predict complete proving time.
 
 ## Build and check
 
@@ -47,7 +48,7 @@ python3 benchmarks/spv/run.py --seconds 180 --rss-mib 4096 \
   --program /tmp/spv-program/program.elf --out /tmp/spv-execute
 ```
 
-The demo compares native and guest journals for genesis, four consecutive headers, inclusion and absence. It also checks native and guest rejection of false absence, missing interval coverage and a wrong parent. Execution generates no proof. Continuations supplied only with a predecessor claim are explicitly marked `unresolved_execution_assumption`; they do not authenticate a prefix.
+The demo compares native and guest journals for genesis, four consecutive headers, inclusion and absence. It also checks native and guest rejection of false absence, missing interval coverage and a wrong parent. Execution generates no proof. Supply `--previous` with a matching genesis receipt to execute all continuation cases using genuine predecessor evidence. Continuations supplied only with a predecessor claim are explicitly marked `unresolved_execution_assumption`; they do not authenticate a prefix.
 
 The default cycle guard is 268,435,456. `--cycle-limit` can explicitly request up to 274,877,906,944 cycles without changing the statement. The supervisor's time and memory bounds apply separately. Neither limit is a promise of proof completion or a fundamental proving ceiling.
 
@@ -79,15 +80,52 @@ The audit checks a genuine receipt and rejects a wrong image, a wrong expected j
 
 ## Statements and coverage
 
-`ZUTTISPP` identifies the SPV policy, binding the image, network, confirmation descendants, window bound and explicit supported-height horizon. `ZUTTISPH` identifies a header-prefix claim and carries rolling difficulty context and cumulative work. `ZUTTISPI` identifies guest input. Full-validity encodings reject these messages.
+`ZUTTISPP` identifies the SPV policy, binding the image, network, confirmation descendants, window bound and explicit supported-height horizon. `ZUTTISPH` version 2 identifies a header-prefix claim and carries rolling difficulty context, cumulative work and the maximum timestamp across every processed header. Version-1 journals cannot be decoded as current prefixes. `ZUTTISPI` identifies guest input. Full-validity encodings reject these messages.
 
 Bootstrap checks the exact fixed network genesis header hash. That identity already fixes the genesis contents; the SPV bootstrap does not recompute its immutable Equihash puzzle. Every added header receives linkage, Equihash, target, expected-difficulty and deterministic timestamp checks. Initial batches can start directly from genesis without an unresolved predecessor. A serialized claim is not a verified receipt or an admitted checkpoint.
 
-`ZUTTISPW` identifies a window observation. It binds the policy, prefix, salted reservation commitment, candidate head/work and selected fixed output commitment. The transaction ID, salt and branch selector are not journal fields. That output is not an issued USDC note or a private-pool spending authorization.
+`ZUTTISPW` version 2 identifies a window observation. It binds the policy, prefix, exact ending checkpoint identity, salted reservation commitment, candidate head/work and selected fixed output commitment. The transaction ID, salt and branch selector are not journal fields. That output is not an issued USDC note or a private-pool spending authorization.
 
 Inclusion checks a complete block against its verified header and requires the target at or before expiry with confirmation descendants. It can complete before expiry. Absence checks every complete block through inclusive expiry, rejects any present target and requires descendants after expiry. Delayed presentation does not revoke inclusion.
 
 Transaction IDs are derived from serialized transactions and their Merkle root is reconstructed. Omitted/trailing data and duplicate IDs fail. The SPV wrapper also rejects 64-byte legacy encodings, which share the input length and hash construction of Merkle internal nodes. Ambiguous unsupported data fails closed.
+
+## Stable source admission
+
+[`SpvRegistry`](../../contracts/src/SpvRegistry.sol) is a separate, undeployed contract. Its immutable configuration pins the admission image, header-policy identity, confirmation depth, minimum work/height, observation duration, freshness limit and future drift. The test configuration is not a recommended finality policy.
+
+The [admission guest](../../crates/prover/methods/source/src/spv_admission.rs) verifies a genuine header-prefix predecessor, extends it to a proposed stable prefix, then checks exactly the required confirmation descendants. `ZUTTISPA` binds the previous stable identity, new stable identity, head, work, policy and prefix-wide maximum timestamp. It does not authorize tokens or create pool notes.
+
+Any participant can submit verified candidates. A strictly heavier candidate replaces the pending candidate and restarts observation. Finalization requires the delay, fresh source evidence and the exact previously accepted stable ancestry. New proposals must use that stable prefix; old or lower-work proposals fail. The contract checks the maximum timestamp across the proved prefix, rather than the tip alone.
+
+A separately proved heavier fork that contradicts the current stable block can permanently halt admission and make `accepted()` return false. There is no administrator resume or history-root override. This is a safety halt; it does not reverse prior payouts or refund locked funds. Recovery following such a halt remains unresolved.
+
+Source-prefix proving and admission proving are separate programs. Admission currently rechecks the suffix after consuming its predecessor receipt; optimized composition is not measured. Existing preparation, pool and full-validity images remain unchanged. The old pool cannot consume the new journals.
+
+```sh
+"$CARGO_TARGET_DIR/debug/zutti-spv-prototype" build --kind admission \
+  --guest-target /tmp/spv-guest-target --out /tmp/spv-admission-program
+
+python3 benchmarks/spv/run.py --seconds 180 --rss-mib 4096 \
+  --log /tmp/spv-admission.log -- \
+  "$CARGO_TARGET_DIR/debug/zutti-spv-prototype" admission \
+  --program /tmp/spv-admission-program/program.elf \
+  --header-program /tmp/spv-program/program.elf \
+  --previous /tmp/spv-genesis/genesis/receipt.bin --out /tmp/spv-admission
+
+forge test --root contracts --offline -j 1 --match-contract SpvRegistryTest
+```
+
+The admission command executes against the matching version-2 genesis receipt by default. `--prove` requests a public composite receipt with development mode disabled; no such admission receipt was generated in the recorded run. Ethereum requires genuine wrapping before this program can advance an on-chain registry. Contract tests mock verification and compare the Rust guest's actual journal bytes; their mock seals are not usable proofs.
+
+The retained dense Testnet fixture is a historical Sapling shielding workload. The Orchard fixture is reused Mainnet data for parser compatibility; Zutti's deployment target remains Testnet. Neither proves an Ironwood swap payment, receiver, amount or encrypted memo.
+
+```sh
+cargo run --offline --locked --manifest-path benchmarks/spv/Cargo.toml --example inspect -- \
+  testnet tests/fixtures/spv/testnet-282757.bin
+```
+
+Individual block inspection verifies parsing, the complete transaction root and that header's work. It explicitly reports `chain_authenticated: false` because it supplies no genesis-bound prefix.
 
 ## Limits and remaining work
 
@@ -95,7 +133,7 @@ Inputs are capped at 16 MiB, blocks at 2,000,000 bytes, header batches at 4,096 
 
 The generated demo uses real Testnet heights 0 through 4, coinbase-only transaction fixtures and public generated order terms. The inclusion and absence cases exercise source observations, not a prepared shielded swap payment. Its one-descendant setting is not an accepted finality policy. Real private witnesses must not be uploaded to public proving services. Newly generated inputs and receipts use owner-only permissions. The committed genesis fixture contains only public data; Git does not preserve owner-only file modes.
 
-The prototype does not decide canonical fork choice, stable-prefix advancement, observation/freshness policy or wall-clock future-header admission. Confirmation descendants alone do not establish finality.
+The separate admission prototype below implements candidate comparison, observation, freshness and stable-prefix advancement. It requires proof verification and is not connected to the funded pool. Relevant competing histories must reach it; unseen higher-work chains cannot be ruled out cryptographically. Confirmation descendants and observation time alone do not establish finality.
 
 Absence is conditional on the supplied interval covering every possible inclusion height. Preparation and cryptographic birth after the lower boundary are not proved here. A memo containing an anchor is not a consensus-enforced creation timestamp. This must be resolved before a window observation can authorize a refund.
 

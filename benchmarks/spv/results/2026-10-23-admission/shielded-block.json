@@ -1,0 +1,20 @@
+{
+  "bytes": 1999172,
+  "chain_authenticated": false,
+  "first_shielded": {
+    "index": 1,
+    "txid": "d7029c49eeed77d60f6768f17115aa275cbaeae773a9027263a23d4cb82a80f1"
+  },
+  "hash": "11a40419492d774293b6efd1f375b13c60740f64e1ace6e29c1ed58673990800",
+  "header_work_verified": true,
+  "height": 282757,
+  "non_coinbase_pool_counts": {
+    "ironwood": 0,
+    "orchard": 0,
+    "sapling": 1634,
+    "sprout": 0
+  },
+  "transactions": 1635,
+  "raw_sha256": "ea00b5998d7e69cdbe153ccb6786703e954da484831f433d7bf8a0936681b87d",
+  "scope": "Historical Sapling shielding transactions, not prepared Ironwood swap payments; no prefix proof supplied."
+}

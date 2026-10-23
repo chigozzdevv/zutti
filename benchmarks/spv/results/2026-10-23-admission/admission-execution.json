@@ -1,0 +1,50 @@
+{
+  "result": {
+    "cycles": 23113855,
+    "deployment_admitted": false,
+    "ethereum_wrapped": false,
+    "head": {
+      "hash": "75ef21ee166efb6223f039afb800896ac0a949e02b77a38a79479036ae746b03",
+      "height": 4,
+      "prefix": "472583daf993b751e05d48fb697b42d1b8b0ba331c90613da59880e0f01510b6",
+      "timestamp": 1477677184,
+      "work": "00000000000000000000000000000000000000000000000000000000000000a0"
+    },
+    "image_id": "e9bc2e1b012b6f6cc7ef9f23605afea2576727a60d19455dcecd911919173be7",
+    "journal": "5a555454495350410100015017815ed8bd0221e227ea48d3d2d8f411ae4219016718718aa93ec01a1fb81400000000000000000000000000000000000000000000000000000000000000001f89a78259ba98f841f45eb38c50a1230491fcf2c4ad43a99acba2e1133336ec03000000453d3894900251af96173487ba0c01acdc2c8093ad06a4035b0320dae841e100349013580000000000000000000000000000000000000000000000000000000000000080472583daf993b751e05d48fb697b42d1b8b0ba331c90613da59880e0f01510b60400000075ef21ee166efb6223f039afb800896ac0a949e02b77a38a79479036ae746b038090135800000000000000000000000000000000000000000000000000000000000000a080901358",
+    "journal_matches": true,
+    "journal_sha256": "e77184ba808fbeab5269a0274825e6251c689520a80dd3fd415208707ed50c3e",
+    "kind": 1,
+    "maximum_time": 1477677184,
+    "paid_jobs": 0,
+    "policy": "5017815ed8bd0221e227ea48d3d2d8f411ae4219016718718aa93ec01a1fb814",
+    "predecessor_proof_verified": true,
+    "previous": "0000000000000000000000000000000000000000000000000000000000000000",
+    "program_sha256": "5a09bdc009897e24ad32ec8fe6d9e9cb13f59d4979c6b99ffa3401902a9433dc",
+    "proof_generated": false,
+    "proof_verified": false,
+    "seconds": 0.780727292,
+    "stable": {
+      "hash": "453d3894900251af96173487ba0c01acdc2c8093ad06a4035b0320dae841e100",
+      "height": 3,
+      "prefix": "1f89a78259ba98f841f45eb38c50a1230491fcf2c4ad43a99acba2e1133336ec",
+      "timestamp": 1477677108,
+      "work": "0000000000000000000000000000000000000000000000000000000000000080"
+    }
+  },
+  "supervisor": {
+    "status": "completed",
+    "exit_code": 0,
+    "seconds": 10.411454458953813,
+    "sampled_peak_rss_mib": 71.0,
+    "seconds_limit": 180,
+    "rss_limit_mib": 4096,
+    "development_mode": false,
+    "paid_jobs": 0,
+    "error": null
+  },
+  "genuine_genesis_predecessor": true,
+  "genuine_admission_receipt": false,
+  "ethereum_seal_generated": false,
+  "contract_tests": "Mock proof verifier; journal bytes match this Rust guest execution."
+}

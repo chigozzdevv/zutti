@@ -14,9 +14,11 @@ This is an architecture recommendation, not a demonstrated affordable bootstrap 
 
 ## Implemented prototype
 
-The [isolated SPV program and harness](../benchmarks/spv/README.md) now implement genesis-bound header transitions and complete bounded inclusion/absence checks. Twenty native tests pass. Real early-Testnet blocks pass zkVM execution; false absence, missing coverage and an incorrect parent fail. The retained genuine receipt authenticates genesis only. A first-header proof produced no verified receipt within its 600-second CPU limit. [Measured evidence](../benchmarks/spv/results/2026-10-23/manifest.json)
+The [isolated SPV program and harness](../benchmarks/spv/README.md) implement genesis-bound header transitions, complete bounded inclusion/absence and source-admission statements. Twenty-six Rust tests pass, including real shielded-block coverage. Source and admission guests execute using a genuine genesis predecessor; adversarial absence/coverage/parent cases fail. The retained version-2 receipt authenticates genesis only. [Measured evidence](../benchmarks/spv/results/2026-10-23-admission/manifest.json)
 
-The current window program directly checks complete block bodies; the reusable public interval index described below is not implemented by this prototype. Fork admission, stable-prefix policy, justified payment birth, preparation binding and Ethereum settlement remain outside its authority. Existing deployment-policy gates have not been relaxed.
+The separate, undeployed `SpvRegistry` compares work, observes competing candidates, checks freshness and the maximum timestamp across the prefix, advances only the accepted stable ancestry, and can halt on proved heavier stable-history conflicts. Ten SPV contract tests use mock verification; their journal bytes match Rust guest execution. A genuine admission receipt and Ethereum wrapping have not been demonstrated. No trust committee or privileged checkpoint setter is introduced.
+
+The window program directly checks complete block bodies; the reusable public interval index described below is not implemented. Its version-2 journal binds the exact ending checkpoint, ready for explicit admission composition. Justified payment birth, preparation binding and funded Ethereum settlement remain outside its authority. Existing deployment-policy gates have not been relaxed.
 
 ## Required behavior
 
@@ -40,7 +42,7 @@ Zcash transaction expiry prevents first inclusion after the expiry height. It do
 | Current full-validity zkVM | Every consensus transition from genesis | Present execution cost; no practical complete bootstrap demonstrated | Pause |
 | Reusable full-validity receipts | Independently verified receipts for the required network, rules and ancestry | A matching available receipt chain is needed; a node database is insufficient | No usable current-chain receipt chain established by this review |
 | Accelerated full-validity verifier | Same validity statement with cheaper cryptography and composition | Substantial engineering; no measured complete speedup yet | Separate research; no delivery commitment |
-| Deterministic SPV and bounded history | Every header transition, then complete transaction enumeration only where settlement needs it | Miners enforce transaction/state validity; relevant chain evidence must reach the verifier | Recommended candidate for evaluation, subject to a requirement change |
+| Deterministic SPV and bounded history | Every header transition, then complete transaction enumeration only where settlement needs it | Miners enforce transaction/state validity; relevant chain evidence must reach the verifier | Approved prototype; deployment admission remains pending |
 | FlyClient and bounded history | Sampled history plus deterministic recent checks and complete refund coverage | Sampling parameters, difficulty analysis, epoch transitions and a complete verifier | Not a drop-in replacement |
 | Bilaterally agreed recent anchor | Proofs after an anchor independently checked by both parties | Clients must authenticate the anchor; Ethereum does not prove its prefix | Not admitted; this changes bootstrap trust and client duties |
 | Optimistic validation | Native validation with a permissionless dispute mechanism | A timely, funded honest challenger and a working dispute system | Not selected; a separate architecture and assumption change |
@@ -58,7 +60,7 @@ The reviewed [ZSwap proposal](https://forum.zcashcommunity.com/t/zswap-a-shielde
 
 The baseline starts from the fixed Testnet genesis, not a server-selected recent root. A separate source-header program must verify consecutive headers, Equihash solutions, header hashes against targets, exact expected difficulty, applicable timestamp rules, network upgrades and cumulative work.
 
-All headers still need processing in this baseline. Removing historical transaction authorization does not eliminate header bootstrap, recursive proving or Ethereum verification costs. Those costs are unmeasured for this proposed program. Existing downloaded blocks can supply inputs without a new chain download.
+All headers still need processing in this baseline. Removing historical transaction authorization does not eliminate header bootstrap, recursive proving or Ethereum verification costs. Complete bootstrap, genuine non-genesis proving and Ethereum wrapping costs remain unmeasured. Existing downloaded blocks can supply inputs without a new chain download.
 
 Permissionless submissions must expose competing eligible chains. The registry needs an explicit work comparison, observation/maturity period, confirmation policy, freshness rule and stable-prefix rule. A proof cannot establish that an unseen higher-work fork does not exist. Source finality remains probabilistic.
 
