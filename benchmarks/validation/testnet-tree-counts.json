@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "run_id": "testnet-history-20261022",
+  "target_height": 4529880,
+  "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+  "batch_blocks": 128,
+  "blocks_start_at": 1,
+  "counts": {
+    "sprout_active_blocks": 25766,
+    "sprout_occupied_batches": 1601,
+    "sapling_active_blocks": 296920,
+    "sapling_occupied_batches": 11013,
+    "orchard_active_blocks": 104879,
+    "orchard_occupied_batches": 5955,
+    "ironwood_active_blocks": 119856,
+    "ironwood_occupied_batches": 2871
+  },
+  "computed_utc": "2026-10-23T07:08:20.788807+00:00",
+  "seconds": 41.735427826002706,
+  "proof_generated": false,
+  "paid_jobs": 0
+}
