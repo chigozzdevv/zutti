@@ -57,7 +57,6 @@ impl HeaderCandidate {
         {
             return Err(Error::Genesis);
         }
-        verify_header_work(header, network)?;
         Ok(Self {
             network,
             headers: VecDeque::from([Header {

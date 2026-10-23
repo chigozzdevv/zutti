@@ -282,6 +282,37 @@ fn headers_stop_at_the_explicit_policy_horizon() {
 }
 
 #[test]
+fn an_initial_header_batch_is_bound_to_genesis_without_an_unresolved_predecessor() {
+    let witness = Witness::Genesis {
+        policy: policy(),
+        header: raw(0)[..HEADER_BYTES].to_vec(),
+        headers: vec![raw(1)[..HEADER_BYTES].to_vec()],
+    };
+    assert!(witness.assumption().is_none());
+    let expected = prefix()
+        .advance(&[raw(1)[..HEADER_BYTES].to_vec()])
+        .unwrap()
+        .to_bytes()
+        .unwrap();
+    assert_eq!(witness.evaluate().unwrap().journal().unwrap(), expected);
+    assert_eq!(
+        Witness::from_bytes(&witness.to_bytes().unwrap())
+            .unwrap()
+            .evaluate()
+            .unwrap()
+            .journal()
+            .unwrap(),
+        expected
+    );
+    let wrong = Witness::Genesis {
+        policy: policy(),
+        header: raw(1)[..HEADER_BYTES].to_vec(),
+        headers: vec![],
+    };
+    assert!(wrong.evaluate().is_err());
+}
+
+#[test]
 fn legacy_64_byte_transactions_are_rejected_before_merkle_shape_can_be_ambiguous() {
     use sha2::{Digest as _, Sha256};
     use zcash_encoding::CompactSize;

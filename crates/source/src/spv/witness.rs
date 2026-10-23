@@ -8,6 +8,7 @@ pub enum Witness {
     Genesis {
         policy: Policy,
         header: Vec<u8>,
+        headers: Vec<Vec<u8>>,
     },
     Headers {
         previous: HeaderClaim,
@@ -49,8 +50,17 @@ impl Witness {
     }
     pub fn evaluate(&self) -> Result<Evaluation> {
         match self {
-            Self::Genesis { policy, header } => {
-                Ok(Evaluation::Headers(HeaderClaim::genesis(*policy, header)?))
+            Self::Genesis {
+                policy,
+                header,
+                headers,
+            } => {
+                let start = HeaderClaim::genesis(*policy, header)?;
+                Ok(Evaluation::Headers(if headers.is_empty() {
+                    start
+                } else {
+                    start.advance(headers)?
+                }))
             }
             Self::Headers { previous, headers } => {
                 Ok(Evaluation::Headers(previous.advance(headers)?))
@@ -65,13 +75,24 @@ impl Canonical for Witness {
         writer.fixed(b"ZUTTISPI");
         writer.u16(1);
         match self {
-            Self::Genesis { policy, header } => {
-                if header.len() != HEADER_BYTES {
+            Self::Genesis {
+                policy,
+                header,
+                headers,
+            } => {
+                if header.len() != HEADER_BYTES
+                    || headers.len() > MAX_HEADERS
+                    || headers.iter().any(|h| h.len() != HEADER_BYTES)
+                {
                     return Err(zutti_protocol::Error::Length);
                 }
                 writer.u8(1);
                 policy.encode(writer)?;
                 writer.fixed(header);
+                writer.u32(headers.len() as u32);
+                for header in headers {
+                    writer.fixed(header);
+                }
             }
             Self::Headers { previous, headers } => {
                 if headers.is_empty()
@@ -100,10 +121,23 @@ impl Canonical for Witness {
             return Err(zutti_protocol::Error::Version);
         }
         match reader.u8()? {
-            1 => Ok(Self::Genesis {
-                policy: Policy::decode(reader)?,
-                header: reader.fixed::<HEADER_BYTES>()?.to_vec(),
-            }),
+            1 => {
+                let policy = Policy::decode(reader)?;
+                let header = reader.fixed::<HEADER_BYTES>()?.to_vec();
+                let count = reader.u32()? as usize;
+                if count > MAX_HEADERS {
+                    return Err(zutti_protocol::Error::Length);
+                }
+                let mut headers = Vec::with_capacity(count);
+                for _ in 0..count {
+                    headers.push(reader.fixed::<HEADER_BYTES>()?.to_vec());
+                }
+                Ok(Self::Genesis {
+                    policy,
+                    header,
+                    headers,
+                })
+            }
             2 => {
                 let previous = HeaderClaim::decode(reader)?;
                 let count = reader.u32()? as usize;
