@@ -4,6 +4,8 @@ Private cross-chain RFQ swaps between native shielded ZEC and privately owned US
 
 This repository implements Rust protocol components, native Zcash transaction validation, local and Boundless preparation proving, Ethereum settlement state machines, and a native-backed encrypted RFQ flow through the TypeScript SDKs and relay. No Zutti contract is deployed, and end-to-end swaps are not available. The intended protocol and SDK APIs are specified in [zutti.md](zutti.md).
 
+Full-history proving with the current source implementation is paused after the execution-cost review. [Source-verification review](docs/source-verification.md) records the candidate replacement, its changed assumptions and the evidence required before implementation. No replacement policy is admitted.
+
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
 | `rfq` | Strict shared schemas, native Rust amount/fee bindings, HPKE/Ed25519 messaging, encrypted owner journals, client/maker SDK quote flow and a bounded HTTP relay | Live wallet adapters, pricing/inventory providers, admitted deployments, SDK accounts and swap execution |

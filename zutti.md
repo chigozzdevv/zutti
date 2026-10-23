@@ -1,5 +1,7 @@
 # Zutti
 
+Full-history proving is paused pending a practical source-verification design. The [source-verification review](docs/source-verification.md) proposes an alternative security profile for evaluation. It has not replaced the full-validity requirements in this specification or admitted any new settlement evidence.
+
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 
 Specification draft · 21 October 2026

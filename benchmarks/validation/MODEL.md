@@ -1,5 +1,7 @@
 # Testnet source cycle model
 
+Full-history proving with this implementation is paused. The [source-verification review](../../docs/source-verification.md) records the architecture decision and the separate approval and measurement gates for any replacement.
+
 The first planning scenarios project **1.97–2.41 quadrillion RISC Zero user cycles** for source execution over the pinned Testnet snapshot, through height **4,529,880**. This extrapolates measured samples; the complete history has not been executed in the VM. The two scenarios are not guaranteed bounds or a proving quote.
 
 The strongest component projection is **1.809 quadrillion cycles for Orchard and Ironwood authorization**, assuming shared setup within fixed groups of 128 blocks. Other source work uses less complete measurements and explicit proxies.
@@ -63,4 +65,4 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
   -s benchmarks/validation -p 'test_*.py'
 ```
 
-The next optimization target is repeated deterministic public verifier setup. Precomputing and pinning equivalent verifier data is a candidate; its implementation, verification checks and cycle savings still need demonstration. The remaining verification work and other source costs would still have to be proved.
+Repeated deterministic public verifier setup is an identified research target. Precomputing and pinning equivalent verifier data has not demonstrated sufficient savings, and removing that setup alone would still leave substantial work. Further optimization is not an approved full-bootstrap delivery plan.
