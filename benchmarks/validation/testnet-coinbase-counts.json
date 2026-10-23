@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "run_id": "testnet-history-20261022",
+  "target_height": 4529880,
+  "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+  "identified_coinbase_counts": {
+    "blocks": 4218328,
+    "sapling_bundles": 256158,
+    "sapling_outputs": 256165,
+    "orchard_bundles": 71315,
+    "orchard_actions": 121903,
+    "ironwood_bundles": 71488,
+    "ironwood_actions": 71501
+  },
+  "scope": "Exact coinbase counts in single-transaction blocks only; other blocks can contain additional shielded coinbase outputs.",
+  "computed_utc": "2026-10-23T08:09:22.509806+00:00",
+  "proof_generated": false,
+  "paid_jobs": 0
+}

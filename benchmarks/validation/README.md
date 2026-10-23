@@ -2,7 +2,7 @@
 
 These diagnostics execute Zutti's transaction authorization and commitment-tree code inside RISC Zero 3.0.5. They generate no receipts, purchase no compute and confer no source or settlement authority.
 
-The six fixtures are raw public Zcash Testnet blocks. Their heights, block hashes and SHA-256 digests are in `fixtures/manifest.json`. They cover the original Orchard circuit, its NU6.2 replacement and Ironwood's NU6.3 circuit. The selected transactions require no external transparent prevouts. The native runner checks each authorization before executing the guest.
+The seven fixtures are raw public Zcash Testnet blocks. Their heights, block hashes and SHA-256 digests are in `fixtures/manifest.json`. They cover Sapling, the original Orchard circuit, its NU6.2 replacement and Ironwood's NU6.3 circuit. The selected transactions require no external transparent prevouts. The native runner checks each authorization before executing the guest.
 
 ## Measure authorization phases
 
@@ -58,6 +58,8 @@ A timeout provides no cycle count. A cycle-limit failure records only a lower bo
 
 `context-orchard-original-2-r1`, `context-orchard-fixed-1-r1` and `context-ironwood-1-r1` measure transaction-context checks, including the shielded coinbase recovery rules. Each also has an `r16` case. Context inputs use a separate domain tag, so an authorization guest cannot be silently substituted for a context guest.
 
+`sapling-1-r1`, `context-sapling-1-r1` and `trees-sapling-1-r1` provide the same separation for a real one-output Sapling coinbase. Each also has an `r16` case. `testnet-coinbase-counts.json` records exact identified shielded coinbase counts in single-transaction blocks. These are lower counts for coinbase recovery work; additional coinbases occur in blocks containing other transactions.
+
 The native `key-cost` binary separates deterministic public-parameter construction from complete verifier-key construction:
 
 ```sh
@@ -95,3 +97,5 @@ PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover \
 ```
 
 This component estimate is not a complete bootstrap budget. Header and ledger processing, other transaction formats, historical state witnesses, paging, recursive proving, proof compression and Ethereum wrapping require separate accounting. A complete execution count requires executing the complete history.
+
+The [recorded model](MODEL.md) combines the completed circuit measurements with explicit proxies for other source work. Reproduce its two planning scenarios with `python3 benchmarks/validation/plan.py --out /tmp/zutti-source-model.json`. They are not guaranteed bounds or a complete proving quote.

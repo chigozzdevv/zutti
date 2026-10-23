@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "scope": "Exploratory source-execution planning scenarios for the pinned public Testnet history.",
+  "network": "testnet",
+  "target_height": 4529880,
+  "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+  "unit": "RISC Zero 3.0.5 user cycles",
+  "batch_blocks_assumed": 128,
+  "components": [
+    {
+      "component": "modern_authorization",
+      "batched_common_proxy_cycles": 1808803605313588,
+      "conservative_common_proxy_cycles": 1808803605313588
+    },
+    {
+      "component": "common_block_work_proxy",
+      "batched_common_proxy_cycles": 66912224657250,
+      "conservative_common_proxy_cycles": 416292108012360
+    },
+    {
+      "component": "legacy_sprout_authorization_proxy",
+      "batched_common_proxy_cycles": 11766714304063,
+      "conservative_common_proxy_cycles": 13094095371991
+    },
+    {
+      "component": "sapling_authorization_proxy",
+      "batched_common_proxy_cycles": 20214028075112,
+      "conservative_common_proxy_cycles": 26694840722574
+    },
+    {
+      "component": "shielded_tree_update_projection",
+      "batched_common_proxy_cycles": 35027597954678,
+      "conservative_common_proxy_cycles": 35027597954678
+    },
+    {
+      "component": "shielded_coinbase_context_proxy",
+      "batched_common_proxy_cycles": 23711766270860,
+      "conservative_common_proxy_cycles": 52532298648834
+    },
+    {
+      "component": "additional_transaction_ledger_script_proxy",
+      "batched_common_proxy_cycles": 4671039908208,
+      "conservative_common_proxy_cycles": 60733399911456
+    }
+  ],
+  "modeled_source_execution_cycles": {
+    "batched_common_proxy_scenario": 1971106976483759,
+    "conservative_common_proxy_scenario": 2413177945935481
+  },
+  "modern_shared_setup_projected_cycles": 1148646907344254,
+  "modern_authorization_model": {
+    "scope": "Modern authorization component extrapolation, excluding other validation work and proving.",
+    "network": "testnet",
+    "target_height": 4529880,
+    "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+    "unit": "RISC Zero 3.0.5 user cycles",
+    "modern_authorization": [
+      {
+        "kind": "orchard-original",
+        "bundles": 85378,
+        "actions": 185321,
+        "fixed_128_block_key_initializations": 4949,
+        "single_block_key_initializations": 77542,
+        "fitted_rates": {
+          "setup": 130143413834,
+          "per_bundle": 1269564113,
+          "per_action": 255588720
+        },
+        "estimated_cycles": 799838557086941,
+        "single_block_scenario_cycles": 10247339397538503
+      },
+      {
+        "kind": "orchard-fixed",
+        "bundles": 36584,
+        "actions": 64321,
+        "fixed_128_block_key_initializations": 1006,
+        "single_block_key_initializations": 27337,
+        "fitted_rates": {
+          "setup": 130143440419,
+          "per_bundle": 1277603568,
+          "per_action": 248519417
+        },
+        "estimated_cycles": 193649167363631,
+        "single_block_scenario_cycles": 3620456097036320
+      },
+      {
+        "kind": "ironwood",
+        "bundles": 232839,
+        "actions": 574259,
+        "fixed_128_block_key_initializations": 2871,
+        "single_block_key_initializations": 119856,
+        "fitted_rates": {
+          "setup": 130143800494,
+          "per_bundle": 1259966246,
+          "per_action": 258252372
+        },
+        "estimated_cycles": 815315880863016,
+        "single_block_scenario_cycles": 16040188381653606
+      }
+    ],
+    "modern_authorization_estimated_cycles": 1808803605313588,
+    "modern_authorization_single_block_scenario_cycles": 29907983876228429,
+    "minimum_128_block_source_batches": 35390,
+    "estimate_is_full_history_execution_count": false,
+    "partition_is_proven_feasible": false,
+    "proof_generated": false,
+    "paid_jobs": 0
+  },
+  "assumptions": [
+    "Fixed 128-block groups share verifier setup. This partition has not been shown to fit all witness and execution bounds.",
+    "Modern verification uses affine fits from the measured 1/2-action or 2/6-action bundles. Larger bundles are extrapolated.",
+    "Common work uses an early 16/128-block source fit; the conservative scenario charges the measured 91,899,147-cycle single-block control for every block.",
+    "Legacy source rates and component samples come from different recorded program versions. Their use here is a transfer assumption, not a matched whole-source execution.",
+    "Sprout and Sapling proxies include conservative allowances for formats without an isolated warm transaction measurement.",
+    "Recovery scenarios charge identified coinbases versus all shielded outputs/actions. Shared recovery setup is charged in every pool-occupied batch.",
+    "Additional state/script work uses a historical transparent-transaction delta per extra transaction or per extra transparent state operation. Executed multisig counts and representative later-state costs remain unmeasured.",
+    "Tree fits use synthetic frontiers. Historical frontier reconstruction and overlap with common-work proxies remain uncertain."
+  ],
+  "excluded": [
+    "Additional setup caused by batch splits",
+    "Larger-bundle fit error",
+    "Initial genesis receipt generation",
+    "Reorganisations and retries",
+    "Segment padding and paging overhead",
+    "Recursive proving and proof compression",
+    "Ethereum wrapping and verification",
+    "Per-swap private proofs",
+    "Provider fees and execution/proving throughput"
+  ],
+  "scenarios_are_guaranteed_bounds": false,
+  "full_history_vm_execution_performed": false,
+  "full_bootstrap_budget_established": false,
+  "source_state_admitted": false,
+  "proof_generated": false,
+  "paid_jobs": 0,
+  "evidence_sha256": {
+    "source-inventory/testnet-complete-2026-10-23.json": "7ef6c955c1d7faae52ae3d26ca54012d40c15ffa2238195b976786aaf6ceecb3",
+    "validation/testnet-distribution.json": "f4068e7c034282d1362820718b363672fcb9cf5a33a87eb9cc60382352349230",
+    "validation/testnet-tree-counts.json": "95eb962404955f649e38494288268f92a62a2c2c4a3fbb164360c2900de1aaa0",
+    "validation/testnet-coinbase-counts.json": "77c4e4eaae409cf7afc5249b9baa63b50c8beac3e920b1dbd36f834197d1b7ba",
+    "validation/results/2026-10-23/orchard-original.json": "1ddea0b2576dd7843327af4ff4cb68cdb00a52bf97449b71016ba47995a0f75f",
+    "validation/results/2026-10-23/orchard-fixed.json": "0b0319ad7078e5effe5ce8dccc6420314925406f0d364a474869225319ebbfd9",
+    "validation/results/2026-10-23/ironwood.json": "6cf1767bf8972fc619b0bfe451bbac69c8144d465f807b9a8a121da34e22cf04",
+    "source-validation-components-2026-10-23.json": "21c120ae571ec4ba4085dbc1149e0a23b95c34902585845766b05ebe5d9c9cb5",
+    "source-workloads-2026-10-19.json": "db2f05c30414a8bb956ddcc0d69d80f30fc3717f58ca63341bdf36463ff3d0ab",
+    "source-authorization-2026-10-19.json": "ae3c26a55bd3025c71ef0aa509996ff47305f1eda8e313f1754459ba82a9116b",
+    "source-sapling-signatures-2026-10-19.json": "aceef1e921dd5c47ef06a3b6ec0b201c0a598ae3a0f4b80a32b76c788cc5d4af",
+    "source-trees-2026-10-19.json": "523379749afdc8a1d4b89576555220ca6f6cba7ee7a949a03d6b2882130113d7"
+  },
+  "computed_utc": "2026-10-23T08:36:02.221363+00:00",
+  "model_sha256": {
+    "plan.py": "0360a2647a53a383c3aa3aabfec8061ea10ec88886ae5110bd33b19d840d35d8",
+    "estimate.py": "9285bd64d17ee0dc9bd9ede9716ce2f3366809053bbd05685032d79a81ac6db3"
+  }
+}

@@ -11,6 +11,11 @@ KINDS = {
     "OrchardFixed": "orchard-fixed",
     "Ironwood": "ironwood",
 }
+VERSIONS = {
+    "OrchardOriginal": "InsecurePreNu6_2",
+    "OrchardFixed": "FixedPostNu6_2",
+    "Ironwood": "PostNu6_3",
+}
 
 
 def load(path):
@@ -33,7 +38,7 @@ def fit_authorization(report):
             or report.get("journal_matches") is not True or report.get("proof_generated") is not False:
         raise ValueError("authorization fit requires completed native and guest checks")
     cases = report["cases"]
-    if len(cases) != 2 or cases[0]["circuit_version"] != cases[1]["circuit_version"]:
+    if len(cases) != 2 or any(case["circuit_version"] != VERSIONS[report["suite"]] for case in cases):
         raise ValueError("authorization fit requires two workloads for the same circuit")
     small, large = cases
     first = [integer(value) for value in small["verification_cycles"]]
@@ -90,17 +95,31 @@ def estimate(inventory, distribution, trees, reports):
         raise ValueError("authorization measurements have different program or source identities")
     rows = []
     modern = Fraction(0)
+    single_block = Fraction(0)
     for report in reports:
         kind = KINDS[report["suite"]]
         rates = fit_authorization(report)
         counts = totals[kind]
         cost = rates["setup"] * counts["batches"] + rates["per_bundle"] * counts["bundles"] + rates["per_action"] * counts["actions"]
+        single = sum(row["bundles"] for row in distribution["single_bundle_histogram"] if row["_id"]["kind"] == kind)
+        multiple = next(row["blocks"] for row in distribution["multiple_bundle_totals"] if row["_id"] == kind)
+        active_blocks = single + multiple
+        split_cost = cost + rates["setup"] * (active_blocks - counts["batches"])
         modern += cost
+        single_block += split_cost
         rows.append({"kind": kind, "bundles": counts["bundles"], "actions": counts["actions"],
                      "fixed_128_block_key_initializations": counts["batches"],
+                     "single_block_key_initializations": active_blocks,
                      "fitted_rates": {key: rounded(value) for key, value in rates.items()},
-                     "estimated_cycles": rounded(cost)})
-    return {"modern_authorization": rows, "modern_authorization_estimated_cycles": rounded(modern),
+                     "estimated_cycles": rounded(cost), "single_block_scenario_cycles": rounded(split_cost)})
+    if sum(row["single_block_key_initializations"] for row in rows if row["kind"].startswith("orchard-")) != trees["counts"]["orchard_active_blocks"] \
+            or next(row["single_block_key_initializations"] for row in rows if row["kind"] == "ironwood") != trees["counts"]["ironwood_active_blocks"]:
+        raise ValueError("active-block distributions do not reconcile")
+    return {"scope":"Modern authorization component extrapolation, excluding other validation work and proving.",
+            "network":inventory["binding"]["network"],"target_height":inventory["binding"]["target_height"],
+            "target_hash":inventory["binding"]["target_hash"],"unit":"RISC Zero 3.0.5 user cycles",
+            "modern_authorization": rows, "modern_authorization_estimated_cycles": rounded(modern),
+            "modern_authorization_single_block_scenario_cycles": rounded(single_block),
             "minimum_128_block_source_batches": (inventory["binding"]["target_height"] + 127) // 128,
             "estimate_is_full_history_execution_count": False,
             "partition_is_proven_feasible": False,
@@ -119,7 +138,8 @@ def main():
     datasets = [load(path) for path in paths]
     measured = [load(path) for path in args.measurements]
     result = estimate(*(data for data, _ in datasets), [data for data, _ in measured])
-    result["evidence_sha256"] = {path.name: checksum for path, (_, checksum) in zip(paths + args.measurements, datasets + measured)}
+    result["evidence_sha256"] = {name: checksum for name, (_, checksum) in zip(
+        ["inventory", "distribution", "tree_counts"] + [data["suite"] for data, _ in measured], datasets + measured)}
     args.out.write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))
 

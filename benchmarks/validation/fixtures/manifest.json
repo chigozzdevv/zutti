@@ -74,6 +74,16 @@
       "filename": "4520552.bin",
       "sha256": "00e351e17d87622bec16a6051f1e9c5a4f5ef71755f6826a15f508f30dec3240",
       "source": "Zcash Testnet full-node raw block RPC"
+    },
+    {
+      "height": 3004772,
+      "hash": "005ecd12a62eecdfcc0a64d34e518bb303a5ff4df83572c133e2ae9288d931ae",
+      "bytes": 2608,
+      "branch": "Nu6",
+      "pool": "sapling",
+      "filename": "3004772.bin",
+      "sha256": "0b3e2d7356bd5701793281ec37ab56f54cb3cbc790621d364b3ff03db35623bc",
+      "source": "Zcash Testnet full-node raw block RPC"
     }
   ]
 }

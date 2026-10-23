@@ -1,0 +1,58 @@
+{
+  "cases": [
+    {
+      "actions": 1,
+      "block_sha256": "223f71c1d185bfbc38d44b9798204bd9fd252425ee6a72572b94a265bf368b99",
+      "circuit_version": "FixedPostNu6_2",
+      "height": 4119011,
+      "parse_cycles": 2902638,
+      "transaction_index": 0,
+      "txid": "026d9bfcd48590b9cd08261f0880de6c29627c0ede233b45f143d11c4f49f04a",
+      "verification_cycles": [
+        131669563403,
+        1526122984
+      ]
+    },
+    {
+      "actions": 2,
+      "block_sha256": "7304f551c5387a59b80903dd2a5654c71150a03e2e5943cb4f705b61bddfb3e9",
+      "circuit_version": "FixedPostNu6_2",
+      "height": 4094265,
+      "parse_cycles": 5569792,
+      "transaction_index": 1,
+      "txid": "bd0ee7165db12e4c3ff7a1e5b7991506bfe0eacf1630e9dfb2b500be9aa52564",
+      "verification_cycles": [
+        1774643343,
+        1774641458
+      ]
+    }
+  ],
+  "cycles": 136755192342,
+  "image_id": "210fb0ed2f07b768fbba4d50ad9d7a20fd6ab95c68492058ec86116edeeb8a06",
+  "journal_matches": true,
+  "journal_sha256": "38db1d79ab0f5547d4264fd25a53b922d27df5ea000006dc1f8cdf719bb1707b",
+  "native_authorization_verified": true,
+  "network": "testnet",
+  "padded_cycles": 147144572928,
+  "paid_jobs": 0,
+  "program_sha256": "de37394620cfd5bd6fbd249ceba080e099dafb6effc61c4e9ec7665f2ac906b5",
+  "proof_generated": false,
+  "repetitions": 2,
+  "runtime": "risc0-zkvm 3.0.5",
+  "schema": 1,
+  "seconds": 2831.519322375,
+  "segments": 140328,
+  "source_sha256": {
+    "benchmarks/validation/Cargo.lock": "2774935d64b359dad4125cb2621b872606f368a58671432a57ec6c79caa9b4bf",
+    "benchmarks/validation/Cargo.toml": "e65f490d1343b32b1018f012e57124eee711898f96e7b3ee689a60c6b5b8496b",
+    "benchmarks/validation/src/batch.rs": "1daf955cff6fe95659222558318a153a3d11cfac2b08e8ed3bc9a28a31b77ba6",
+    "crates/prover/methods/source/vendor/halo2_proofs/provenance.json": "58f68b848832c5556f199689582cb284eaaf58b368a3b3b073b00c701023d9b2",
+    "crates/prover/methods/source/vendor/maybe-rayon/provenance.json": "a7e5beda2df6681954d3f12871c741cacd175304faa71d179dbc57d6fb9bd3cb",
+    "crates/source/src/authorization.rs": "b3ec80da17a9be01abb6c71bf09cd8a2ab367a9f167303ed5eb5048014379a82",
+    "crates/source/src/authorization/groth.rs": "c578af47bf990f7427684dc97bf1a9188b5d091b50694177574ba2fdb39d4472",
+    "crates/source/src/authorization/signatures.rs": "47bca6c6ef1414920e9bbcb716230457246f9ac84f8aa1d5a48b83eef5c961d9"
+  },
+  "source_state_admitted": false,
+  "stdin_sha256": "e5340fc30d6cc203af503bd4cad3eca8d93ed118f5f2945555cabe0853bb1ff5",
+  "suite": "OrchardFixed"
+}

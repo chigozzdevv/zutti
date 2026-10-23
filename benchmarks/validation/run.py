@@ -53,6 +53,13 @@ for kind, height, pool, actions in (
             "height": height, "pool": pool, "actions": actions,
             "repetitions": repetitions, "context": True,
         }
+for name, operation in (("sapling-1", {}), ("context-sapling-1", {"context": True}),
+                        ("trees-sapling-1", {"trees": True})):
+    for repetitions in (1, 16):
+        CASES[f"{name}-r{repetitions}"] = {
+            "height": 3004772, "pool": "sapling", "actions": 1,
+            "repetitions": repetitions, **operation,
+        }
 
 
 def fixture(height):

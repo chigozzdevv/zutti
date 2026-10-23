@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 import unittest
 
-from estimate import KINDS, estimate, fit_authorization
+from estimate import VERSIONS, estimate, fit_authorization
 
 
 ROOT = Path(__file__).resolve().parent
@@ -14,9 +14,9 @@ def measurement(suite, small, large):
         "suite": suite, "native_authorization_verified": True, "journal_matches": True,
         "proof_generated": False, "program_sha256": "a" * 64, "source_sha256": {"source": "b" * 64},
         "cases": [
-            {"circuit_version": suite, "actions": small,
+            {"circuit_version": VERSIONS[suite], "actions": small,
              "verification_cycles": [1000 + 60 + 40 * small, 60 + 40 * small]},
-            {"circuit_version": suite, "actions": large,
+            {"circuit_version": VERSIONS[suite], "actions": large,
              "verification_cycles": [60 + 40 * large, 60 + 40 * large]},
         ],
     }
@@ -47,6 +47,16 @@ class EstimateTests(unittest.TestCase):
     def test_missing_circuit_never_counts_as_zero(self):
         self.reports.pop()
         with self.assertRaisesRegex(ValueError, "all three"):
+            self.run_estimate()
+
+    def test_split_batches_repeat_setup_work(self):
+        result = self.run_estimate()
+        self.assertGreater(result["modern_authorization_single_block_scenario_cycles"],
+                           result["modern_authorization_estimated_cycles"])
+
+    def test_mislabeled_circuit_rejected(self):
+        self.reports[0]["cases"][0]["circuit_version"] = VERSIONS["Ironwood"]
+        with self.assertRaisesRegex(ValueError, "same circuit"):
             self.run_estimate()
 
     def test_truncated_census_rejected(self):
