@@ -6,11 +6,17 @@ Reviewed 2026-10-23. Scope: public Zcash Testnet and Ethereum Sepolia.
 
 Full-history proving with the current RISC Zero source program is paused. Its [execution model](../benchmarks/validation/MODEL.md) does not establish a practical bootstrap. Increasing job limits or purchasing more compute is not an approved remedy.
 
-No replacement source policy is admitted. The existing full-validity requirement, verifier identities and settlement gates remain unchanged. This review recommends a different profile for evaluation; adopting it requires an explicit change to the full-validity requirement.
+On 2026-10-23, the user explicitly approved building the SPV prototype with the mining-validity assumption. Full historical transaction-validity proving is no longer the prototype target. No replacement deployment policy is admitted; existing verifier identities and settlement gates remain unchanged. See the [prototype and verification commands](../benchmarks/spv/README.md).
 
 The recommended candidate is **deterministic proof-of-work header verification plus complete, bounded payment-history proofs**. It verifies chain linkage, actual difficulty rules and Equihash, while relying on the Zcash mining network to enforce transaction validity. It preserves the no-custodian and no-checkpoint-committee constraints. It does not preserve independent proof of every historical transaction and state transition.
 
 This is an architecture recommendation, not a demonstrated affordable bootstrap or a working swap. No candidate reviewed here has demonstrated the complete original requirements within the available resources.
+
+## Implemented prototype
+
+The [isolated SPV program and harness](../benchmarks/spv/README.md) now implement genesis-bound header transitions and complete bounded inclusion/absence checks. Twenty native tests pass. Real early-Testnet blocks pass zkVM execution; false absence, missing coverage and an incorrect parent fail. The retained genuine receipt authenticates genesis only. A first-header proof produced no verified receipt within its 600-second CPU limit. [Measured evidence](../benchmarks/spv/results/2026-10-23/manifest.json)
+
+The current window program directly checks complete block bodies; the reusable public interval index described below is not implemented by this prototype. Fork admission, stable-prefix policy, justified payment birth, preparation binding and Ethereum settlement remain outside its authority. Existing deployment-policy gates have not been relaxed.
 
 ## Required behavior
 
@@ -111,7 +117,7 @@ Sampling source headers would not sample away the refund obligation. Every possi
 
 ## Acceptance gates
 
-Implementation under a replacement profile requires explicit acceptance of its security assumptions. The existing full-validity profile must not accept its receipts, roots or state snapshots.
+Implementation of the SPV prototype is approved under the stated assumptions. The existing full-validity profile must not accept its receipts, roots or state snapshots. Prototype approval is not deployment admission.
 
 Before a bootstrap or deployment is authorized, the replacement must demonstrate:
 

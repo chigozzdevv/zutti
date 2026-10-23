@@ -1,0 +1,63 @@
+{
+  "program": {
+    "admitted": false,
+    "image_id": "de286cb10a4a1e1e540a9f154962d4e9235500ccee85c653781f52ff82da39f4",
+    "network_scope": "Testnet prototype",
+    "program_sha256": "44b3c2bdc6721b0842740054239b1976f777adae896c36a1509148d565365111",
+    "schema": 1
+  },
+  "result": {
+    "canonicality_admitted": false,
+    "cycles": 162441,
+    "full_transaction_validity_verified": false,
+    "image_id": "de286cb10a4a1e1e540a9f154962d4e9235500ccee85c653781f52ff82da39f4",
+    "journal_matches": true,
+    "journal_sha256": "0a16c7e747a494012ab23603bd30dd4afc877c54af3faa617c13f4d396949a35",
+    "lower_boundary_birth_verified": false,
+    "paid_jobs": 0,
+    "payment_preparation_verified": false,
+    "predecessor_proof_verified": false,
+    "program_sha256": "44b3c2bdc6721b0842740054239b1976f777adae896c36a1509148d565365111",
+    "proof_generated": true,
+    "proof_verified": true,
+    "receipt_kind": "composite",
+    "schema": 1,
+    "seconds": 142.216241709,
+    "segments": 1,
+    "settlement_authority": false,
+    "unresolved_execution_assumption": false,
+    "witness_sha256": "2a08714a08fb75415c218d8a4bc16a5962813480faccf6127e0158f7f214f5b2"
+  },
+  "supervisor": {
+    "status": "completed",
+    "exit_code": 0,
+    "seconds": 145.8852355000563,
+    "sampled_peak_rss_mib": 1613.921875,
+    "seconds_limit": 180,
+    "rss_limit_mib": 4096,
+    "development_mode": false,
+    "paid_jobs": 0,
+    "error": null
+  },
+  "audit": {
+    "changed_proof_rejected": true,
+    "changed_receipt_journal_rejected": true,
+    "development_mode": false,
+    "settlement_authority": false,
+    "valid_receipt_verified": true,
+    "wrong_expected_journal_rejected": true,
+    "wrong_image_rejected": true
+  },
+  "fixture": {
+    "receipt": "../../fixtures/genesis/receipt.bin",
+    "receipt_bytes": 256248,
+    "receipt_sha256": "74887b4cd40e5cd420bd7e9bdf2dc85c7951deed2ffb8880ae8e6da937066a91",
+    "journal": "../../fixtures/genesis/journal.bin",
+    "journal_sha256": "0a16c7e747a494012ab23603bd30dd4afc877c54af3faa617c13f4d396949a35"
+  },
+  "network": "Zcash Testnet",
+  "height": 0,
+  "new_headers_proved": 0,
+  "ethereum_wrapped": false,
+  "private_window_proved": false
+}

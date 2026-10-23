@@ -1,6 +1,6 @@
 # Zutti
 
-Full-history proving is paused pending a practical source-verification design. The [source-verification review](docs/source-verification.md) proposes an alternative security profile for evaluation. It has not replaced the full-validity requirements in this specification or admitted any new settlement evidence.
+Full-history proving is paused. A separate [SPV prototype](benchmarks/spv/README.md) is approved for evaluation with the mining-validity assumption recorded in the [source-verification review](docs/source-verification.md). No replacement deployment policy or settlement evidence is admitted; the full-validity construction below is retained as a reference.
 
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 
