@@ -1,3 +1,4 @@
+mod admission;
 mod block;
 mod chain;
 mod header;
@@ -5,6 +6,7 @@ mod policy;
 mod window;
 mod witness;
 
+pub use admission::{AdmissionClaim, AdmissionKind, AdmissionWitness, ChainPoint};
 pub use block::parse_block;
 pub use chain::HeaderClaim;
 pub use header::{HEADER_BYTES, parse_header};

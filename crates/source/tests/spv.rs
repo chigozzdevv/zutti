@@ -29,6 +29,199 @@ fn raw(height: u32) -> Vec<u8> {
 fn policy() -> Policy {
     Policy::new(Digest([1; 32]), NetworkType::Test, 1, 3, 4).unwrap()
 }
+
+#[test]
+fn shielded_transaction_bodies_are_covered_by_the_actual_block_root() {
+    use zcash_protocol::consensus::MAIN_NETWORK;
+    use zutti_source::spv::parse_block;
+    let raw =
+        hex::decode(include_str!("../../../tests/fixtures/block-1687107.txt").trim()).unwrap();
+    let block = parse_block(&raw, NetworkType::Main).unwrap();
+    assert_eq!(block.claimed_height(), 1_687_107);
+    assert_eq!(block.transactions().len(), 6);
+    let index = block
+        .transactions()
+        .iter()
+        .position(|tx| tx.orchard_bundle().is_some())
+        .unwrap();
+    assert_ne!(index, 0);
+    let tx = &block.transactions()[index];
+    assert!(!tx.transparent_bundle().is_some_and(|b| b.is_coinbase()));
+    assert!(block.txids().contains(&Digest(*tx.txid().as_ref())));
+    assert_eq!(
+        ParsedBlock::parse(&raw, &MAIN_NETWORK).unwrap().hash(),
+        block.hash()
+    );
+    let mut changed = raw.clone();
+    changed.pop();
+    assert!(parse_block(&changed, NetworkType::Main).is_err());
+    let mut encoded = Vec::new();
+    block.header().write(&mut encoded).unwrap();
+    zcash_encoding::CompactSize::write(&mut encoded, block.transactions().len() - 1).unwrap();
+    for (position, transaction) in block.transactions().iter().enumerate() {
+        if position != index {
+            transaction.write(&mut encoded).unwrap();
+        }
+    }
+    assert!(parse_block(&encoded, NetworkType::Main).is_err());
+}
+
+#[test]
+fn dense_testnet_sapling_block_cannot_omit_a_shielded_transaction() {
+    use zutti_source::{spv::parse_block, work::verify_header_work};
+    let raw = include_bytes!("../../../tests/fixtures/spv/testnet-282757.bin");
+    let block = parse_block(raw, NetworkType::Test).unwrap();
+    verify_header_work(block.header(), NetworkType::Test).unwrap();
+    assert_eq!(block.claimed_height(), 282_757);
+    assert_eq!(block.transactions().len(), 1635);
+    assert_eq!(
+        block
+            .transactions()
+            .iter()
+            .skip(1)
+            .filter(|tx| tx.sapling_bundle().is_some())
+            .count(),
+        1634
+    );
+    let target = block.txids()[1];
+    assert_eq!(Digest(*block.transactions()[1].txid().as_ref()), target);
+    let mut omitted = Vec::new();
+    block.header().write(&mut omitted).unwrap();
+    zcash_encoding::CompactSize::write(&mut omitted, block.transactions().len() - 1).unwrap();
+    for (position, transaction) in block.transactions().iter().enumerate() {
+        if position != 1 {
+            transaction.write(&mut omitted).unwrap();
+        }
+    }
+    assert!(parse_block(&omitted, NetworkType::Test).is_err());
+}
+
+#[test]
+fn admission_binds_the_stable_prefix_exact_depth_and_next_work() {
+    use zutti_source::spv::{AdmissionClaim, AdmissionKind, AdmissionWitness};
+    let witness = AdmissionWitness::Advance {
+        previous: prefix(),
+        stable_headers: (1..=3).map(|h| raw(h)[..HEADER_BYTES].to_vec()).collect(),
+        confirmations: vec![raw(4)[..HEADER_BYTES].to_vec()],
+    };
+    let claim = witness.evaluate().unwrap();
+    assert_eq!(claim.kind, AdmissionKind::Advance);
+    assert_eq!(claim.previous, Digest::default());
+    assert_eq!(claim.stable.height, 3);
+    assert_eq!(claim.head.height, 4);
+    assert!(claim.head.work > claim.stable.work);
+    assert_eq!(
+        claim.head.prefix,
+        prefix()
+            .advance(
+                &(1..=4)
+                    .map(|h| raw(h)[..HEADER_BYTES].to_vec())
+                    .collect::<Vec<_>>()
+            )
+            .unwrap()
+            .id()
+            .unwrap()
+    );
+    assert_eq!(
+        AdmissionClaim::from_bytes(&claim.to_bytes().unwrap()).unwrap(),
+        claim
+    );
+    assert_eq!(
+        AdmissionWitness::from_bytes(&witness.to_bytes().unwrap())
+            .unwrap()
+            .evaluate()
+            .unwrap(),
+        claim
+    );
+    for confirmations in [
+        vec![],
+        vec![
+            raw(3)[..HEADER_BYTES].to_vec(),
+            raw(4)[..HEADER_BYTES].to_vec(),
+        ],
+    ] {
+        assert!(
+            AdmissionWitness::Advance {
+                previous: prefix(),
+                stable_headers: vec![
+                    raw(1)[..HEADER_BYTES].to_vec(),
+                    raw(2)[..HEADER_BYTES].to_vec()
+                ],
+                confirmations
+            }
+            .evaluate()
+            .is_err()
+        );
+    }
+    let previous = prefix()
+        .advance(&[raw(1)[..HEADER_BYTES].to_vec()])
+        .unwrap();
+    let update = AdmissionWitness::Advance {
+        previous: previous.clone(),
+        stable_headers: vec![raw(2)[..HEADER_BYTES].to_vec()],
+        confirmations: vec![raw(3)[..HEADER_BYTES].to_vec()],
+    }
+    .evaluate()
+    .unwrap();
+    assert_eq!(update.previous, previous.id().unwrap());
+}
+
+#[test]
+fn conflicts_need_a_different_stable_prefix_and_confirmed_alternative() {
+    use zutti_source::spv::{AdmissionKind, AdmissionWitness};
+    let alternative = prefix()
+        .advance(&[raw(1)[..HEADER_BYTES].to_vec()])
+        .unwrap();
+    assert!(
+        AdmissionWitness::Conflict {
+            alternative: alternative.clone(),
+            accepted_stable: alternative.id().unwrap(),
+            headers: vec![raw(2)[..HEADER_BYTES].to_vec()]
+        }
+        .evaluate()
+        .is_err()
+    );
+    let conflict = AdmissionWitness::Conflict {
+        alternative: alternative.clone(),
+        accepted_stable: Digest([8; 32]),
+        headers: vec![raw(2)[..HEADER_BYTES].to_vec()],
+    }
+    .evaluate()
+    .unwrap();
+    assert_eq!(conflict.kind, AdmissionKind::Conflict);
+    assert_eq!(conflict.stable.prefix, alternative.id().unwrap());
+    assert!(
+        AdmissionWitness::Conflict {
+            alternative,
+            accepted_stable: Digest([8; 32]),
+            headers: vec![]
+        }
+        .evaluate()
+        .is_err()
+    );
+}
+
+#[test]
+fn prefix_timestamp_ceiling_covers_every_appended_header() {
+    let headers = (1..=4)
+        .map(|h| raw(h)[..HEADER_BYTES].to_vec())
+        .collect::<Vec<_>>();
+    let claim = prefix().advance(&headers).unwrap();
+    let expected = (0..=4)
+        .map(|h| parse_header(&raw(h)[..HEADER_BYTES]).unwrap().time)
+        .max()
+        .unwrap();
+    assert_eq!(claim.maximum_time(), expected);
+    let roundtrip = HeaderClaim::from_bytes(&claim.to_bytes().unwrap()).unwrap();
+    assert_eq!(roundtrip.maximum_time(), expected);
+    let observed = query(Digest([77; 32]), Branch::Absent, &[1, 2], 4)
+        .evaluate(&prefix())
+        .unwrap();
+    assert_eq!(observed.checkpoint, claim.id().unwrap());
+    let mut legacy = claim.to_bytes().unwrap();
+    legacy[8..10].copy_from_slice(&1_u16.to_le_bytes());
+    assert!(HeaderClaim::from_bytes(&legacy).is_err());
+}
 fn prefix() -> HeaderClaim {
     HeaderClaim::genesis(policy(), &raw(0)[..HEADER_BYTES]).unwrap()
 }

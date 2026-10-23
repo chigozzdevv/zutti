@@ -232,6 +232,7 @@ impl WindowWitness {
         Ok(WindowClaim {
             policy: policy.id()?,
             prefix: previous.id()?,
+            checkpoint: end.id()?,
             reservation: self.reservation(policy)?,
             height: end.height()?,
             tip: end.tip()?,
@@ -296,6 +297,7 @@ impl Canonical for WindowWitness {
 pub struct WindowClaim {
     pub policy: Digest,
     pub prefix: Digest,
+    pub checkpoint: Digest,
     pub reservation: Digest,
     pub height: u32,
     pub tip: Digest,
@@ -308,6 +310,7 @@ impl Canonical for WindowClaim {
         for digest in [
             self.policy,
             self.prefix,
+            self.checkpoint,
             self.reservation,
             self.tip,
             self.output,
@@ -318,8 +321,8 @@ impl Canonical for WindowClaim {
             return Err(zutti_protocol::Error::Invalid("SPV window work"));
         }
         writer.fixed(b"ZUTTISPW");
-        writer.u16(1);
-        for digest in [self.policy, self.prefix, self.reservation] {
+        writer.u16(2);
+        for digest in [self.policy, self.prefix, self.checkpoint, self.reservation] {
             writer.fixed(&digest.0);
         }
         writer.u32(self.height);
@@ -329,12 +332,13 @@ impl Canonical for WindowClaim {
         Ok(())
     }
     fn decode(reader: &mut Reader<'_>) -> zutti_protocol::Result<Self> {
-        if reader.fixed::<8>()? != *b"ZUTTISPW" || reader.u16()? != 1 {
+        if reader.fixed::<8>()? != *b"ZUTTISPW" || reader.u16()? != 2 {
             return Err(zutti_protocol::Error::Version);
         }
         let claim = Self {
             policy: Digest(reader.fixed()?),
             prefix: Digest(reader.fixed()?),
+            checkpoint: Digest(reader.fixed()?),
             reservation: Digest(reader.fixed()?),
             height: reader.u32()?,
             tip: Digest(reader.fixed()?),
