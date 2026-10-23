@@ -1,0 +1,7516 @@
+{
+  "schema": 1,
+  "verified_utc": "2026-10-23T06:21:46.766002+00:00",
+  "run_id": "testnet-history-20261022",
+  "binding": {
+    "schema": 1,
+    "network": "testnet",
+    "start_height": 0,
+    "target_height": 4529880,
+    "target_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648",
+    "scanner_sha256": "e959127f8a11c55b7baacd64d30511e54f71e87beb41b240fe453f3a303aee0c"
+  },
+  "complete": true,
+  "remaining_blocks": 0,
+  "row_count_verified": 4529881,
+  "first_block": {
+    "block_hash": "05a60a92d99d85997cce3b87616c089f6124d7342af37106edc76126334a2c38",
+    "height": 0,
+    "parent_hash": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "last_block": {
+    "height": 4529880,
+    "block_hash": "00001466e3a11106d77ed12d825de7b9f038cb91433819fe771e0076a4a71648"
+  },
+  "totals": {
+    "blocks": 4529881,
+    "block_bytes": 11960796091,
+    "transactions": 5339658,
+    "non_coinbase_transactions": 809777,
+    "transparent_inputs": 1858771,
+    "transparent_outputs": 13199923,
+    "sprout_phgr_proofs": 37593,
+    "sprout_groth16_proofs": 5536,
+    "sprout_signatures": 38698,
+    "sapling_bundles": 371469,
+    "sapling_spends": 50271,
+    "sapling_outputs": 405091,
+    "orchard_bundles": 121962,
+    "orchard_actions": 249642,
+    "ironwood_bundles": 232839,
+    "ironwood_actions": 574259
+  },
+  "groups_count": 237,
+  "group_totals_reconcile": true,
+  "groups": {
+    "Sprout_transparent_0": {
+      "blocks": 186126,
+      "block_bytes": 307042154,
+      "counts": {
+        "transactions": 197969,
+        "non_coinbase_transactions": 11843,
+        "transparent_inputs": 17918,
+        "transparent_outputs": 432794,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 0,
+      "last_height": 207499,
+      "sample_heights": [
+        158714,
+        179728,
+        126718
+      ],
+      "largest_block_heights": [
+        108002,
+        72219,
+        72377
+      ]
+    },
+    "Sprout_phgr_0": {
+      "blocks": 9865,
+      "block_bytes": 39554605,
+      "counts": {
+        "transactions": 23201,
+        "non_coinbase_transactions": 13336,
+        "transparent_inputs": 7684,
+        "transparent_outputs": 36992,
+        "sprout_phgr_proofs": 11421,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 10895,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 2259,
+      "last_height": 207479,
+      "sample_heights": [
+        66572,
+        205815,
+        186801
+      ],
+      "largest_block_heights": [
+        161706,
+        190551,
+        190657
+      ]
+    },
+    "Sprout_phgr_2": {
+      "blocks": 521,
+      "block_bytes": 7573395,
+      "counts": {
+        "transactions": 3653,
+        "non_coinbase_transactions": 3132,
+        "transparent_inputs": 10228,
+        "transparent_outputs": 4927,
+        "sprout_phgr_proofs": 2718,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 1717,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4950,
+      "last_height": 207364,
+      "sample_heights": [
+        165762,
+        143442,
+        152252
+      ],
+      "largest_block_heights": [
+        70827,
+        70505,
+        70918
+      ]
+    },
+    "Sprout_transparent_1": {
+      "blocks": 1520,
+      "block_bytes": 4025753,
+      "counts": {
+        "transactions": 5038,
+        "non_coinbase_transactions": 3518,
+        "transparent_inputs": 8084,
+        "transparent_outputs": 11925,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4951,
+      "last_height": 207490,
+      "sample_heights": [
+        73786,
+        147832,
+        42749
+      ],
+      "largest_block_heights": [
+        139084,
+        156219,
+        188759
+      ]
+    },
+    "Sprout_transparent_3": {
+      "blocks": 7,
+      "block_bytes": 139774,
+      "counts": {
+        "transactions": 123,
+        "non_coinbase_transactions": 116,
+        "transparent_inputs": 694,
+        "transparent_outputs": 746,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4953,
+      "last_height": 108882,
+      "sample_heights": [
+        4977,
+        30253,
+        4979
+      ],
+      "largest_block_heights": [
+        108066,
+        108882,
+        4953
+      ]
+    },
+    "Sprout_transparent_2": {
+      "blocks": 51,
+      "block_bytes": 332365,
+      "counts": {
+        "transactions": 650,
+        "non_coinbase_transactions": 599,
+        "transparent_inputs": 1352,
+        "transparent_outputs": 1406,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4955,
+      "last_height": 196487,
+      "sample_heights": [
+        5000,
+        65179,
+        4965
+      ],
+      "largest_block_heights": [
+        108021,
+        4983,
+        4958
+      ]
+    },
+    "Sprout_phgr_3": {
+      "blocks": 73,
+      "block_bytes": 3033750,
+      "counts": {
+        "transactions": 1497,
+        "non_coinbase_transactions": 1424,
+        "transparent_inputs": 8185,
+        "transparent_outputs": 1449,
+        "sprout_phgr_proofs": 844,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 819,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4959,
+      "last_height": 207041,
+      "sample_heights": [
+        70346,
+        143185,
+        66788
+      ],
+      "largest_block_heights": [
+        70347,
+        70348,
+        64464
+      ]
+    },
+    "Sprout_phgr_1": {
+      "blocks": 9290,
+      "block_bytes": 56728666,
+      "counts": {
+        "transactions": 35008,
+        "non_coinbase_transactions": 25718,
+        "transparent_inputs": 42797,
+        "transparent_outputs": 52687,
+        "sprout_phgr_proofs": 17938,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 16261,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 7041,
+      "last_height": 207467,
+      "sample_heights": [
+        74520,
+        195845,
+        73699
+      ],
+      "largest_block_heights": [
+        68760,
+        65311,
+        206642
+      ]
+    },
+    "Sprout_phgr_4": {
+      "blocks": 35,
+      "block_bytes": 4756953,
+      "counts": {
+        "transactions": 1816,
+        "non_coinbase_transactions": 1781,
+        "transparent_inputs": 15773,
+        "transparent_outputs": 1835,
+        "sprout_phgr_proofs": 937,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 923,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 8101,
+      "last_height": 198511,
+      "sample_heights": [
+        36868,
+        64475,
+        29705
+      ],
+      "largest_block_heights": [
+        70354,
+        64475,
+        64958
+      ]
+    },
+    "Sprout_phgr_5": {
+      "blocks": 4,
+      "block_bytes": 2547731,
+      "counts": {
+        "transactions": 1372,
+        "non_coinbase_transactions": 1368,
+        "transparent_inputs": 10055,
+        "transparent_outputs": 2687,
+        "sprout_phgr_proofs": 31,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 30,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 41785,
+      "last_height": 186931,
+      "sample_heights": [
+        41785,
+        41805,
+        186931
+      ],
+      "largest_block_heights": [
+        140975,
+        186931,
+        41785
+      ]
+    },
+    "Sprout_transparent_4": {
+      "blocks": 2,
+      "block_bytes": 157106,
+      "counts": {
+        "transactions": 7,
+        "non_coinbase_transactions": 5,
+        "transparent_inputs": 782,
+        "transparent_outputs": 1134,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 108071,
+      "last_height": 108079,
+      "sample_heights": [
+        108079,
+        108071
+      ],
+      "largest_block_heights": [
+        108071,
+        108079
+      ]
+    },
+    "Sprout_phgr_6": {
+      "blocks": 6,
+      "block_bytes": 11742109,
+      "counts": {
+        "transactions": 135,
+        "non_coinbase_transactions": 129,
+        "transparent_inputs": 29326,
+        "transparent_outputs": 24,
+        "sprout_phgr_proofs": 125,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 125,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 141042,
+      "last_height": 143468,
+      "sample_heights": [
+        143468,
+        143467,
+        143466
+      ],
+      "largest_block_heights": [
+        143465,
+        143467,
+        143468
+      ]
+    },
+    "Overwinter_transparent_0": {
+      "blocks": 67760,
+      "block_bytes": 111630042,
+      "counts": {
+        "transactions": 71023,
+        "non_coinbase_transactions": 3263,
+        "transparent_inputs": 4397,
+        "transparent_outputs": 155700,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 207500,
+      "last_height": 279999,
+      "sample_heights": [
+        216821,
+        239828,
+        264860
+      ],
+      "largest_block_heights": [
+        275033,
+        240497,
+        273134
+      ]
+    },
+    "Overwinter_phgr_0": {
+      "blocks": 923,
+      "block_bytes": 3683780,
+      "counts": {
+        "transactions": 2270,
+        "non_coinbase_transactions": 1347,
+        "transparent_inputs": 621,
+        "transparent_outputs": 3664,
+        "sprout_phgr_proofs": 1051,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 1007,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 207501,
+      "last_height": 279088,
+      "sample_heights": [
+        261638,
+        262677,
+        262754
+      ],
+      "largest_block_heights": [
+        261591,
+        261614,
+        261890
+      ]
+    },
+    "Overwinter_transparent_1": {
+      "blocks": 1720,
+      "block_bytes": 5280140,
+      "counts": {
+        "transactions": 8421,
+        "non_coinbase_transactions": 6701,
+        "transparent_inputs": 12787,
+        "transparent_outputs": 17224,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 208010,
+      "last_height": 279014,
+      "sample_heights": [
+        241966,
+        227517,
+        227089
+      ],
+      "largest_block_heights": [
+        275107,
+        275108,
+        275180
+      ]
+    },
+    "Overwinter_phgr_2": {
+      "blocks": 64,
+      "block_bytes": 716352,
+      "counts": {
+        "transactions": 423,
+        "non_coinbase_transactions": 359,
+        "transparent_inputs": 2076,
+        "transparent_outputs": 616,
+        "sprout_phgr_proofs": 150,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 134,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 208509,
+      "last_height": 278744,
+      "sample_heights": [
+        236126,
+        208509,
+        234696
+      ],
+      "largest_block_heights": [
+        244346,
+        275177,
+        235384
+      ]
+    },
+    "Overwinter_phgr_1": {
+      "blocks": 1024,
+      "block_bytes": 7018931,
+      "counts": {
+        "transactions": 4341,
+        "non_coinbase_transactions": 3317,
+        "transparent_inputs": 4659,
+        "transparent_outputs": 6983,
+        "sprout_phgr_proofs": 2346,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 1929,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 218918,
+      "last_height": 276302,
+      "sample_heights": [
+        261080,
+        263231,
+        262339
+      ],
+      "largest_block_heights": [
+        263241,
+        262511,
+        262167
+      ]
+    },
+    "Overwinter_transparent_2": {
+      "blocks": 891,
+      "block_bytes": 6514378,
+      "counts": {
+        "transactions": 14644,
+        "non_coinbase_transactions": 13753,
+        "transparent_inputs": 26252,
+        "transparent_outputs": 29370,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 225950,
+      "last_height": 265163,
+      "sample_heights": [
+        242774,
+        242408,
+        227264
+      ],
+      "largest_block_heights": [
+        243006,
+        241818,
+        241560
+      ]
+    },
+    "Overwinter_transparent_3": {
+      "blocks": 107,
+      "block_bytes": 2130294,
+      "counts": {
+        "transactions": 4491,
+        "non_coinbase_transactions": 4384,
+        "transparent_inputs": 10682,
+        "transparent_outputs": 8999,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 226109,
+      "last_height": 243634,
+      "sample_heights": [
+        241390,
+        242643,
+        243500
+      ],
+      "largest_block_heights": [
+        243448,
+        243039,
+        243059
+      ]
+    },
+    "Overwinter_phgr_3": {
+      "blocks": 3,
+      "block_bytes": 53701,
+      "counts": {
+        "transactions": 81,
+        "non_coinbase_transactions": 78,
+        "transparent_inputs": 248,
+        "transparent_outputs": 156,
+        "sprout_phgr_proofs": 3,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 3,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 241887,
+      "last_height": 242721,
+      "sample_heights": [
+        241887,
+        242116,
+        242721
+      ],
+      "largest_block_heights": [
+        241887,
+        242721,
+        242116
+      ]
+    },
+    "Overwinter_transparent_4": {
+      "blocks": 3,
+      "block_bytes": 189907,
+      "counts": {
+        "transactions": 485,
+        "non_coinbase_transactions": 482,
+        "transparent_inputs": 971,
+        "transparent_outputs": 970,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 243026,
+      "last_height": 243260,
+      "sample_heights": [
+        243260,
+        243026,
+        243030
+      ],
+      "largest_block_heights": [
+        243026,
+        243030,
+        243260
+      ]
+    },
+    "Overwinter_phgr_4": {
+      "blocks": 4,
+      "block_bytes": 421130,
+      "counts": {
+        "transactions": 13,
+        "non_coinbase_transactions": 9,
+        "transparent_inputs": 2706,
+        "transparent_outputs": 12,
+        "sprout_phgr_proofs": 8,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 8,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 261490,
+      "last_height": 278643,
+      "sample_heights": [
+        278643,
+        261490,
+        276179
+      ],
+      "largest_block_heights": [
+        276177,
+        261490,
+        278643
+      ]
+    },
+    "Overwinter_phgr_6": {
+      "blocks": 1,
+      "block_bytes": 1632174,
+      "counts": {
+        "transactions": 23,
+        "non_coinbase_transactions": 22,
+        "transparent_inputs": 10780,
+        "transparent_outputs": 8,
+        "sprout_phgr_proofs": 21,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 21,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 261494,
+      "last_height": 261494,
+      "sample_heights": [
+        261494
+      ],
+      "largest_block_heights": [
+        261494
+      ]
+    },
+    "Sapling_transparent_0": {
+      "blocks": 290985,
+      "block_bytes": 481951760,
+      "counts": {
+        "transactions": 305981,
+        "non_coinbase_transactions": 14996,
+        "transparent_inputs": 18739,
+        "transparent_outputs": 625695,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 280000,
+      "last_height": 583999,
+      "sample_heights": [
+        464732,
+        382331,
+        285156
+      ],
+      "largest_block_heights": [
+        444264,
+        444265,
+        444015
+      ]
+    },
+    "Sapling_sprout_0": {
+      "blocks": 1435,
+      "block_bytes": 5409858,
+      "counts": {
+        "transactions": 3079,
+        "non_coinbase_transactions": 1644,
+        "transparent_inputs": 816,
+        "transparent_outputs": 3923,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 1591,
+        "sprout_signatures": 1530,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 280003,
+      "last_height": 583746,
+      "sample_heights": [
+        573469,
+        517501,
+        319730
+      ],
+      "largest_block_heights": [
+        285787,
+        294220,
+        304563
+      ]
+    },
+    "Sapling_sprout_2": {
+      "blocks": 181,
+      "block_bytes": 1961282,
+      "counts": {
+        "transactions": 689,
+        "non_coinbase_transactions": 508,
+        "transparent_inputs": 6467,
+        "transparent_outputs": 910,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 368,
+        "sprout_signatures": 333,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 280230,
+      "last_height": 583611,
+      "sample_heights": [
+        316149,
+        320606,
+        439246
+      ],
+      "largest_block_heights": [
+        297572,
+        297576,
+        297573
+      ]
+    },
+    "Sapling_sapling_1": {
+      "blocks": 1661,
+      "block_bytes": 9034782,
+      "counts": {
+        "transactions": 5363,
+        "non_coinbase_transactions": 3702,
+        "transparent_inputs": 3904,
+        "transparent_outputs": 5964,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2839,
+        "sapling_spends": 3040,
+        "sapling_outputs": 4362,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 280769,
+      "last_height": 583930,
+      "sample_heights": [
+        510293,
+        509813,
+        411421
+      ],
+      "largest_block_heights": [
+        509843,
+        523277,
+        523293
+      ]
+    },
+    "Sapling_sapling_0": {
+      "blocks": 2153,
+      "block_bytes": 7401893,
+      "counts": {
+        "transactions": 4398,
+        "non_coinbase_transactions": 2245,
+        "transparent_inputs": 797,
+        "transparent_outputs": 5440,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2161,
+        "sapling_spends": 1621,
+        "sapling_outputs": 3056,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 280771,
+      "last_height": 583944,
+      "sample_heights": [
+        549693,
+        351612,
+        455404
+      ],
+      "largest_block_heights": [
+        519557,
+        538067,
+        538068
+      ]
+    },
+    "Sapling_transparent_1": {
+      "blocks": 4455,
+      "block_bytes": 17768745,
+      "counts": {
+        "transactions": 22563,
+        "non_coinbase_transactions": 18108,
+        "transparent_inputs": 33066,
+        "transparent_outputs": 112960,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 281361,
+      "last_height": 583972,
+      "sample_heights": [
+        582334,
+        555306,
+        533357
+      ],
+      "largest_block_heights": [
+        443052,
+        443071,
+        444239
+      ]
+    },
+    "Sapling_sprout_1": {
+      "blocks": 712,
+      "block_bytes": 3936753,
+      "counts": {
+        "transactions": 2136,
+        "non_coinbase_transactions": 1424,
+        "transparent_inputs": 3389,
+        "transparent_outputs": 2570,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 1221,
+        "sprout_signatures": 1023,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 282213,
+      "last_height": 576399,
+      "sample_heights": [
+        319330,
+        376008,
+        322744
+      ],
+      "largest_block_heights": [
+        324086,
+        328830,
+        322319
+      ]
+    },
+    "Sapling_sapling_2": {
+      "blocks": 444,
+      "block_bytes": 7363369,
+      "counts": {
+        "transactions": 4089,
+        "non_coinbase_transactions": 3645,
+        "transparent_inputs": 5760,
+        "transparent_outputs": 3956,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2674,
+        "sapling_spends": 3174,
+        "sapling_outputs": 4353,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 282637,
+      "last_height": 583949,
+      "sample_heights": [
+        282686,
+        579500,
+        313590
+      ],
+      "largest_block_heights": [
+        523393,
+        523262,
+        523391
+      ]
+    },
+    "Sapling_sapling_4": {
+      "blocks": 31,
+      "block_bytes": 8619292,
+      "counts": {
+        "transactions": 5783,
+        "non_coinbase_transactions": 5752,
+        "transparent_inputs": 10640,
+        "transparent_outputs": 6976,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 5341,
+        "sapling_spends": 414,
+        "sapling_outputs": 6094,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 282638,
+      "last_height": 574973,
+      "sample_heights": [
+        285432,
+        523397,
+        282676
+      ],
+      "largest_block_heights": [
+        282780,
+        282760,
+        282770
+      ]
+    },
+    "Sapling_sapling_5": {
+      "blocks": 39,
+      "block_bytes": 57688995,
+      "counts": {
+        "transactions": 46785,
+        "non_coinbase_transactions": 46746,
+        "transparent_inputs": 55657,
+        "transparent_outputs": 51850,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 44783,
+        "sapling_spends": 2,
+        "sapling_outputs": 44785,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 282640,
+      "last_height": 497558,
+      "sample_heights": [
+        283145,
+        294573,
+        282762
+      ],
+      "largest_block_heights": [
+        285455,
+        296852,
+        283434
+      ]
+    },
+    "Sapling_sapling_3": {
+      "blocks": 87,
+      "block_bytes": 6323592,
+      "counts": {
+        "transactions": 3739,
+        "non_coinbase_transactions": 3652,
+        "transparent_inputs": 4724,
+        "transparent_outputs": 3150,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 3333,
+        "sapling_spends": 2489,
+        "sapling_outputs": 4332,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 282643,
+      "last_height": 578934,
+      "sample_heights": [
+        282687,
+        324434,
+        283149
+      ],
+      "largest_block_heights": [
+        490037,
+        490016,
+        490067
+      ]
+    },
+    "Sapling_sapling_6": {
+      "blocks": 2,
+      "block_bytes": 3998998,
+      "counts": {
+        "transactions": 2848,
+        "non_coinbase_transactions": 2846,
+        "transparent_inputs": 5692,
+        "transparent_outputs": 5696,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2846,
+        "sapling_spends": 0,
+        "sapling_outputs": 2846,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 282649,
+      "last_height": 285448,
+      "sample_heights": [
+        285448,
+        282649
+      ],
+      "largest_block_heights": [
+        285448,
+        282649
+      ]
+    },
+    "Sapling_sprout-sapling_1": {
+      "blocks": 273,
+      "block_bytes": 1835272,
+      "counts": {
+        "transactions": 990,
+        "non_coinbase_transactions": 717,
+        "transparent_inputs": 406,
+        "transparent_outputs": 908,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 403,
+        "sprout_signatures": 343,
+        "sapling_bundles": 361,
+        "sapling_spends": 330,
+        "sapling_outputs": 452,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 285452,
+      "last_height": 576427,
+      "sample_heights": [
+        449498,
+        518487,
+        319377
+      ],
+      "largest_block_heights": [
+        492270,
+        492290,
+        485880
+      ]
+    },
+    "Sapling_sprout-sapling_5": {
+      "blocks": 1,
+      "block_bytes": 1999229,
+      "counts": {
+        "transactions": 1636,
+        "non_coinbase_transactions": 1635,
+        "transparent_inputs": 1635,
+        "transparent_outputs": 1639,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 1,
+        "sprout_signatures": 1,
+        "sapling_bundles": 1632,
+        "sapling_spends": 0,
+        "sapling_outputs": 1632,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 285456,
+      "last_height": 285456,
+      "sample_heights": [
+        285456
+      ],
+      "largest_block_heights": [
+        285456
+      ]
+    },
+    "Sapling_sprout-sapling_0": {
+      "blocks": 160,
+      "block_bytes": 726358,
+      "counts": {
+        "transactions": 413,
+        "non_coinbase_transactions": 253,
+        "transparent_inputs": 34,
+        "transparent_outputs": 424,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 160,
+        "sprout_signatures": 160,
+        "sapling_bundles": 162,
+        "sapling_spends": 71,
+        "sapling_outputs": 131,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 290470,
+      "last_height": 576429,
+      "sample_heights": [
+        489720,
+        576426,
+        492200
+      ],
+      "largest_block_heights": [
+        493500,
+        308418,
+        356125
+      ]
+    },
+    "Sapling_transparent_2": {
+      "blocks": 1261,
+      "block_bytes": 10100936,
+      "counts": {
+        "transactions": 17023,
+        "non_coinbase_transactions": 15762,
+        "transparent_inputs": 31043,
+        "transparent_outputs": 57196,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 293881,
+      "last_height": 583960,
+      "sample_heights": [
+        563719,
+        583097,
+        578609
+      ],
+      "largest_block_heights": [
+        443057,
+        443073,
+        443046
+      ]
+    },
+    "Sapling_sprout_3": {
+      "blocks": 16,
+      "block_bytes": 768351,
+      "counts": {
+        "transactions": 277,
+        "non_coinbase_transactions": 261,
+        "transparent_inputs": 1644,
+        "transparent_outputs": 431,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 271,
+        "sprout_signatures": 107,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 297571,
+      "last_height": 575435,
+      "sample_heights": [
+        299180,
+        297571,
+        439090
+      ],
+      "largest_block_heights": [
+        321747,
+        325430,
+        297571
+      ]
+    },
+    "Sapling_sprout-sapling_2": {
+      "blocks": 11,
+      "block_bytes": 212764,
+      "counts": {
+        "transactions": 82,
+        "non_coinbase_transactions": 71,
+        "transparent_inputs": 137,
+        "transparent_outputs": 93,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 55,
+        "sprout_signatures": 22,
+        "sapling_bundles": 30,
+        "sapling_spends": 93,
+        "sapling_outputs": 38,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 299184,
+      "last_height": 576400,
+      "sample_heights": [
+        314823,
+        299184,
+        320725
+      ],
+      "largest_block_heights": [
+        486700,
+        492280,
+        319223
+      ]
+    },
+    "Sapling_sprout_6": {
+      "blocks": 1,
+      "block_bytes": 638148,
+      "counts": {
+        "transactions": 2,
+        "non_coinbase_transactions": 1,
+        "transparent_inputs": 4303,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 1,
+        "sprout_signatures": 1,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 337760,
+      "last_height": 337760,
+      "sample_heights": [
+        337760
+      ],
+      "largest_block_heights": [
+        337760
+      ]
+    },
+    "Sapling_sprout_5": {
+      "blocks": 1,
+      "block_bytes": 197241,
+      "counts": {
+        "transactions": 3,
+        "non_coinbase_transactions": 2,
+        "transparent_inputs": 1301,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 2,
+        "sprout_signatures": 2,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 339176,
+      "last_height": 339176,
+      "sample_heights": [
+        339176
+      ],
+      "largest_block_heights": [
+        339176
+      ]
+    },
+    "Sapling_transparent_3": {
+      "blocks": 30,
+      "block_bytes": 903191,
+      "counts": {
+        "transactions": 1505,
+        "non_coinbase_transactions": 1475,
+        "transparent_inputs": 3790,
+        "transparent_outputs": 5412,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 359836,
+      "last_height": 583910,
+      "sample_heights": [
+        515842,
+        497539,
+        575404
+      ],
+      "largest_block_heights": [
+        515842,
+        402059,
+        515097
+      ]
+    },
+    "Sapling_transparent_4": {
+      "blocks": 33,
+      "block_bytes": 3959735,
+      "counts": {
+        "transactions": 9787,
+        "non_coinbase_transactions": 9754,
+        "transparent_inputs": 19183,
+        "transparent_outputs": 22903,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 368054,
+      "last_height": 575428,
+      "sample_heights": [
+        497467,
+        496895,
+        496901
+      ],
+      "largest_block_heights": [
+        402061,
+        402058,
+        402053
+      ]
+    },
+    "Sapling_transparent_5": {
+      "blocks": 17,
+      "block_bytes": 6516829,
+      "counts": {
+        "transactions": 13638,
+        "non_coinbase_transactions": 13621,
+        "transparent_inputs": 32427,
+        "transparent_outputs": 38674,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 402055,
+      "last_height": 515884,
+      "sample_heights": [
+        496796,
+        496741,
+        496744
+      ],
+      "largest_block_heights": [
+        443061,
+        496741,
+        497466
+      ]
+    },
+    "Sapling_sprout-sapling_3": {
+      "blocks": 2,
+      "block_bytes": 71800,
+      "counts": {
+        "transactions": 23,
+        "non_coinbase_transactions": 21,
+        "transparent_inputs": 100,
+        "transparent_outputs": 4,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 2,
+        "sprout_signatures": 2,
+        "sapling_bundles": 20,
+        "sapling_spends": 32,
+        "sapling_outputs": 38,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 411777,
+      "last_height": 490000,
+      "sample_heights": [
+        490000,
+        411777
+      ],
+      "largest_block_heights": [
+        490000,
+        411777
+      ]
+    },
+    "Sapling_transparent_6": {
+      "blocks": 7,
+      "block_bytes": 12414411,
+      "counts": {
+        "transactions": 780,
+        "non_coinbase_transactions": 773,
+        "transparent_inputs": 83590,
+        "transparent_outputs": 1526,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 444870,
+      "last_height": 457020,
+      "sample_heights": [
+        457020,
+        444873,
+        444875
+      ],
+      "largest_block_heights": [
+        444874,
+        444871,
+        444872
+      ]
+    },
+    "Sapling_sprout_4": {
+      "blocks": 2,
+      "block_bytes": 221393,
+      "counts": {
+        "transactions": 323,
+        "non_coinbase_transactions": 321,
+        "transparent_inputs": 1133,
+        "transparent_outputs": 654,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 2,
+        "sprout_signatures": 2,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 496797,
+      "last_height": 575450,
+      "sample_heights": [
+        496797,
+        575450
+      ],
+      "largest_block_heights": [
+        496797,
+        575450
+      ]
+    },
+    "Blossom_transparent_0": {
+      "blocks": 292212,
+      "block_bytes": 485254459,
+      "counts": {
+        "transactions": 316022,
+        "non_coinbase_transactions": 23810,
+        "transparent_inputs": 35800,
+        "transparent_outputs": 637509,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 584000,
+      "last_height": 903799,
+      "sample_heights": [
+        681443,
+        874716,
+        848164
+      ],
+      "largest_block_heights": [
+        638380,
+        836973,
+        895171
+      ]
+    },
+    "Blossom_sapling_1": {
+      "blocks": 1228,
+      "block_bytes": 6582298,
+      "counts": {
+        "transactions": 4082,
+        "non_coinbase_transactions": 2854,
+        "transparent_inputs": 3360,
+        "transparent_outputs": 5177,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1740,
+        "sapling_spends": 1730,
+        "sapling_outputs": 3272,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 584145,
+      "last_height": 897654,
+      "sample_heights": [
+        682452,
+        797174,
+        671183
+      ],
+      "largest_block_heights": [
+        629151,
+        592901,
+        673436
+      ]
+    },
+    "Blossom_sapling_0": {
+      "blocks": 1603,
+      "block_bytes": 5475890,
+      "counts": {
+        "transactions": 3229,
+        "non_coinbase_transactions": 1626,
+        "transparent_inputs": 679,
+        "transparent_outputs": 3553,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1604,
+        "sapling_spends": 1036,
+        "sapling_outputs": 2321,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 584148,
+      "last_height": 897526,
+      "sample_heights": [
+        689502,
+        888978,
+        671296
+      ],
+      "largest_block_heights": [
+        688743,
+        688772,
+        688970
+      ]
+    },
+    "Blossom_sapling_2": {
+      "blocks": 156,
+      "block_bytes": 1786178,
+      "counts": {
+        "transactions": 1438,
+        "non_coinbase_transactions": 1282,
+        "transparent_inputs": 2985,
+        "transparent_outputs": 2288,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 414,
+        "sapling_spends": 720,
+        "sapling_outputs": 706,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 584290,
+      "last_height": 894268,
+      "sample_heights": [
+        610961,
+        849840,
+        659984
+      ],
+      "largest_block_heights": [
+        662844,
+        662845,
+        663085
+      ]
+    },
+    "Blossom_sapling_3": {
+      "blocks": 20,
+      "block_bytes": 542861,
+      "counts": {
+        "transactions": 106,
+        "non_coinbase_transactions": 86,
+        "transparent_inputs": 2321,
+        "transparent_outputs": 86,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 65,
+        "sapling_spends": 240,
+        "sapling_outputs": 71,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 585482,
+      "last_height": 822203,
+      "sample_heights": [
+        772634,
+        585482,
+        667325
+      ],
+      "largest_block_heights": [
+        719315,
+        610860,
+        585482
+      ]
+    },
+    "Blossom_sprout_0": {
+      "blocks": 89,
+      "block_bytes": 326505,
+      "counts": {
+        "transactions": 188,
+        "non_coinbase_transactions": 99,
+        "transparent_inputs": 20,
+        "transparent_outputs": 224,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 97,
+        "sprout_signatures": 95,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 586663,
+      "last_height": 887932,
+      "sample_heights": [
+        869814,
+        770365,
+        869825
+      ],
+      "largest_block_heights": [
+        814391,
+        757305,
+        869814
+      ]
+    },
+    "Blossom_sapling_5": {
+      "blocks": 1,
+      "block_bytes": 368243,
+      "counts": {
+        "transactions": 45,
+        "non_coinbase_transactions": 44,
+        "transparent_inputs": 2175,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 44,
+        "sapling_spends": 0,
+        "sapling_outputs": 44,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 587060,
+      "last_height": 587060,
+      "sample_heights": [
+        587060
+      ],
+      "largest_block_heights": [
+        587060
+      ]
+    },
+    "Blossom_sprout_1": {
+      "blocks": 17,
+      "block_bytes": 79900,
+      "counts": {
+        "transactions": 65,
+        "non_coinbase_transactions": 48,
+        "transparent_inputs": 87,
+        "transparent_outputs": 114,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 19,
+        "sprout_signatures": 19,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 589192,
+      "last_height": 884145,
+      "sample_heights": [
+        871815,
+        884145,
+        831949
+      ],
+      "largest_block_heights": [
+        589192,
+        723072,
+        616813
+      ]
+    },
+    "Blossom_sprout-sapling_3": {
+      "blocks": 3,
+      "block_bytes": 69569,
+      "counts": {
+        "transactions": 19,
+        "non_coinbase_transactions": 16,
+        "transparent_inputs": 287,
+        "transparent_outputs": 14,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 7,
+        "sprout_signatures": 7,
+        "sapling_bundles": 5,
+        "sapling_spends": 3,
+        "sapling_outputs": 8,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 589195,
+      "last_height": 673720,
+      "sample_heights": [
+        673695,
+        673720,
+        589195
+      ],
+      "largest_block_heights": [
+        673720,
+        673695,
+        589195
+      ]
+    },
+    "Blossom_sapling_4": {
+      "blocks": 3,
+      "block_bytes": 285428,
+      "counts": {
+        "transactions": 25,
+        "non_coinbase_transactions": 22,
+        "transparent_inputs": 946,
+        "transparent_outputs": 6,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 22,
+        "sapling_spends": 305,
+        "sapling_outputs": 23,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 589197,
+      "last_height": 701270,
+      "sample_heights": [
+        683786,
+        701270,
+        589197
+      ],
+      "largest_block_heights": [
+        701270,
+        683786,
+        589197
+      ]
+    },
+    "Blossom_transparent_1": {
+      "blocks": 21970,
+      "block_bytes": 68940710,
+      "counts": {
+        "transactions": 105677,
+        "non_coinbase_transactions": 83707,
+        "transparent_inputs": 154220,
+        "transparent_outputs": 230394,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 590390,
+      "last_height": 903748,
+      "sample_heights": [
+        705175,
+        767443,
+        767065
+      ],
+      "largest_block_heights": [
+        870100,
+        870124,
+        593727
+      ]
+    },
+    "Blossom_transparent_2": {
+      "blocks": 1870,
+      "block_bytes": 12770732,
+      "counts": {
+        "transactions": 28389,
+        "non_coinbase_transactions": 26519,
+        "transparent_inputs": 46086,
+        "transparent_outputs": 61295,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 591361,
+      "last_height": 902865,
+      "sample_heights": [
+        874272,
+        762802,
+        865018
+      ],
+      "largest_block_heights": [
+        716918,
+        763056,
+        820170
+      ]
+    },
+    "Blossom_sprout-sapling_1": {
+      "blocks": 122,
+      "block_bytes": 761584,
+      "counts": {
+        "transactions": 494,
+        "non_coinbase_transactions": 372,
+        "transparent_inputs": 306,
+        "transparent_outputs": 572,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 153,
+        "sprout_signatures": 128,
+        "sapling_bundles": 133,
+        "sapling_spends": 135,
+        "sapling_outputs": 170,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 616815,
+      "last_height": 887937,
+      "sample_heights": [
+        663135,
+        662516,
+        663131
+      ],
+      "largest_block_heights": [
+        662578,
+        616869,
+        662564
+      ]
+    },
+    "Blossom_sprout_2": {
+      "blocks": 97,
+      "block_bytes": 1129489,
+      "counts": {
+        "transactions": 273,
+        "non_coinbase_transactions": 176,
+        "transparent_inputs": 4681,
+        "transparent_outputs": 362,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 153,
+        "sprout_signatures": 99,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 616841,
+      "last_height": 816347,
+      "sample_heights": [
+        673829,
+        758261,
+        673798
+      ],
+      "largest_block_heights": [
+        758421,
+        805640,
+        816347
+      ]
+    },
+    "Blossom_sprout-sapling_2": {
+      "blocks": 5,
+      "block_bytes": 46037,
+      "counts": {
+        "transactions": 50,
+        "non_coinbase_transactions": 45,
+        "transparent_inputs": 111,
+        "transparent_outputs": 84,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 6,
+        "sprout_signatures": 6,
+        "sapling_bundles": 5,
+        "sapling_spends": 5,
+        "sapling_outputs": 5,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 616868,
+      "last_height": 673718,
+      "sample_heights": [
+        662572,
+        663167,
+        673718
+      ],
+      "largest_block_heights": [
+        673718,
+        663138,
+        662572
+      ]
+    },
+    "Blossom_sprout-sapling_0": {
+      "blocks": 40,
+      "block_bytes": 182708,
+      "counts": {
+        "transactions": 111,
+        "non_coinbase_transactions": 71,
+        "transparent_inputs": 4,
+        "transparent_outputs": 119,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 43,
+        "sprout_signatures": 42,
+        "sapling_bundles": 40,
+        "sapling_spends": 34,
+        "sapling_outputs": 22,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 616885,
+      "last_height": 887938,
+      "sample_heights": [
+        887912,
+        761001,
+        887920
+      ],
+      "largest_block_heights": [
+        655500,
+        662534,
+        887912
+      ]
+    },
+    "Blossom_transparent_3": {
+      "blocks": 322,
+      "block_bytes": 6948525,
+      "counts": {
+        "transactions": 4037,
+        "non_coinbase_transactions": 3715,
+        "transparent_inputs": 40611,
+        "transparent_outputs": 8385,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 660858,
+      "last_height": 896405,
+      "sample_heights": [
+        822177,
+        811622,
+        763144
+      ],
+      "largest_block_heights": [
+        820155,
+        789693,
+        762953
+      ]
+    },
+    "Blossom_sprout_3": {
+      "blocks": 30,
+      "block_bytes": 666743,
+      "counts": {
+        "transactions": 120,
+        "non_coinbase_transactions": 90,
+        "transparent_inputs": 3347,
+        "transparent_outputs": 120,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 66,
+        "sprout_signatures": 66,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 673709,
+      "last_height": 816331,
+      "sample_heights": [
+        673950,
+        673771,
+        673709
+      ],
+      "largest_block_heights": [
+        673780,
+        673804,
+        709671
+      ]
+    },
+    "Blossom_transparent_4": {
+      "blocks": 12,
+      "block_bytes": 612237,
+      "counts": {
+        "transactions": 319,
+        "non_coinbase_transactions": 307,
+        "transparent_inputs": 3590,
+        "transparent_outputs": 639,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 763389,
+      "last_height": 897687,
+      "sample_heights": [
+        763393,
+        897687,
+        878498
+      ],
+      "largest_block_heights": [
+        897687,
+        897686,
+        820065
+      ]
+    },
+    "Heartwood_transparent_0": {
+      "blocks": 106206,
+      "block_bytes": 176277625,
+      "counts": {
+        "transactions": 115395,
+        "non_coinbase_transactions": 9189,
+        "transparent_inputs": 12988,
+        "transparent_outputs": 230139,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 903800,
+      "last_height": 1028499,
+      "sample_heights": [
+        939845,
+        907231,
+        1003310
+      ],
+      "largest_block_heights": [
+        932921,
+        932926,
+        932917
+      ]
+    },
+    "Heartwood_sapling_0": {
+      "blocks": 11909,
+      "block_bytes": 31796155,
+      "counts": {
+        "transactions": 13245,
+        "non_coinbase_transactions": 1336,
+        "transparent_inputs": 1216,
+        "transparent_outputs": 14188,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 11921,
+        "sapling_spends": 403,
+        "sapling_outputs": 12200,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 906208,
+      "last_height": 1028495,
+      "sample_heights": [
+        927415,
+        931776,
+        930024
+      ],
+      "largest_block_heights": [
+        925477,
+        989334,
+        989488
+      ]
+    },
+    "Heartwood_sapling_2": {
+      "blocks": 19,
+      "block_bytes": 187022,
+      "counts": {
+        "transactions": 74,
+        "non_coinbase_transactions": 55,
+        "transparent_inputs": 620,
+        "transparent_outputs": 84,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 33,
+        "sapling_spends": 49,
+        "sapling_outputs": 42,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 908827,
+      "last_height": 1021308,
+      "sample_heights": [
+        1020880,
+        983441,
+        1021308
+      ],
+      "largest_block_heights": [
+        1020880,
+        1014749,
+        991451
+      ]
+    },
+    "Heartwood_sprout_0": {
+      "blocks": 124,
+      "block_bytes": 481485,
+      "counts": {
+        "transactions": 281,
+        "non_coinbase_transactions": 157,
+        "transparent_inputs": 21,
+        "transparent_outputs": 381,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 149,
+        "sprout_signatures": 146,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 912317,
+      "last_height": 1003535,
+      "sample_heights": [
+        1003006,
+        912385,
+        938654
+      ],
+      "largest_block_heights": [
+        912382,
+        912388,
+        963400
+      ]
+    },
+    "Heartwood_transparent_1": {
+      "blocks": 5166,
+      "block_bytes": 15039143,
+      "counts": {
+        "transactions": 21518,
+        "non_coinbase_transactions": 16352,
+        "transparent_inputs": 31738,
+        "transparent_outputs": 41129,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 913216,
+      "last_height": 1028491,
+      "sample_heights": [
+        1006994,
+        913222,
+        956264
+      ],
+      "largest_block_heights": [
+        913484,
+        913396,
+        913269
+      ]
+    },
+    "Heartwood_transparent_2": {
+      "blocks": 52,
+      "block_bytes": 379028,
+      "counts": {
+        "transactions": 1205,
+        "non_coinbase_transactions": 1153,
+        "transparent_inputs": 1233,
+        "transparent_outputs": 2400,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 913243,
+      "last_height": 1018071,
+      "sample_heights": [
+        913493,
+        913505,
+        913495
+      ],
+      "largest_block_heights": [
+        913592,
+        913388,
+        913615
+      ]
+    },
+    "Heartwood_sapling_1": {
+      "blocks": 1087,
+      "block_bytes": 4495451,
+      "counts": {
+        "transactions": 3908,
+        "non_coinbase_transactions": 2821,
+        "transparent_inputs": 5005,
+        "transparent_outputs": 5890,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1267,
+        "sapling_spends": 508,
+        "sapling_outputs": 1513,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 913366,
+      "last_height": 1028292,
+      "sample_heights": [
+        1016862,
+        926824,
+        1002388
+      ],
+      "largest_block_heights": [
+        990846,
+        1008729,
+        1020854
+      ]
+    },
+    "Heartwood_sapling_4": {
+      "blocks": 1,
+      "block_bytes": 52116,
+      "counts": {
+        "transactions": 7,
+        "non_coinbase_transactions": 6,
+        "transparent_inputs": 300,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 6,
+        "sapling_spends": 0,
+        "sapling_outputs": 6,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 915639,
+      "last_height": 915639,
+      "sample_heights": [
+        915639
+      ],
+      "largest_block_heights": [
+        915639
+      ]
+    },
+    "Heartwood_sapling_5": {
+      "blocks": 1,
+      "block_bytes": 337754,
+      "counts": {
+        "transactions": 2,
+        "non_coinbase_transactions": 1,
+        "transparent_inputs": 2272,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1,
+        "sapling_spends": 0,
+        "sapling_outputs": 1,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 915641,
+      "last_height": 915641,
+      "sample_heights": [
+        915641
+      ],
+      "largest_block_heights": [
+        915641
+      ]
+    },
+    "Heartwood_sprout-sapling_1": {
+      "blocks": 101,
+      "block_bytes": 625248,
+      "counts": {
+        "transactions": 396,
+        "non_coinbase_transactions": 295,
+        "transparent_inputs": 255,
+        "transparent_outputs": 422,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 118,
+        "sprout_signatures": 103,
+        "sapling_bundles": 129,
+        "sapling_spends": 111,
+        "sapling_outputs": 152,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 925440,
+      "last_height": 1003542,
+      "sample_heights": [
+        925491,
+        1003027,
+        1003037
+      ],
+      "largest_block_heights": [
+        925483,
+        938440,
+        1002980
+      ]
+    },
+    "Heartwood_sprout-sapling_0": {
+      "blocks": 22,
+      "block_bytes": 102915,
+      "counts": {
+        "transactions": 66,
+        "non_coinbase_transactions": 44,
+        "transparent_inputs": 3,
+        "transparent_outputs": 76,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 25,
+        "sprout_signatures": 25,
+        "sapling_bundles": 23,
+        "sapling_spends": 22,
+        "sapling_outputs": 10,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 925441,
+      "last_height": 1003544,
+      "sample_heights": [
+        925468,
+        938657,
+        925494
+      ],
+      "largest_block_heights": [
+        938422,
+        938661,
+        1002996
+      ]
+    },
+    "Heartwood_sprout_1": {
+      "blocks": 10,
+      "block_bytes": 51734,
+      "counts": {
+        "transactions": 49,
+        "non_coinbase_transactions": 39,
+        "transparent_inputs": 46,
+        "transparent_outputs": 81,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 14,
+        "sprout_signatures": 14,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 963399,
+      "last_height": 1003521,
+      "sample_heights": [
+        984972,
+        963417,
+        1002990
+      ],
+      "largest_block_heights": [
+        984941,
+        984977,
+        963399
+      ]
+    },
+    "Heartwood_sapling_3": {
+      "blocks": 2,
+      "block_bytes": 51675,
+      "counts": {
+        "transactions": 12,
+        "non_coinbase_transactions": 10,
+        "transparent_inputs": 296,
+        "transparent_outputs": 15,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 4,
+        "sapling_spends": 0,
+        "sapling_outputs": 4,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 964103,
+      "last_height": 991089,
+      "sample_heights": [
+        964103,
+        991089
+      ],
+      "largest_block_heights": [
+        991089,
+        964103
+      ]
+    },
+    "Canopy_transparent_0": {
+      "blocks": 786035,
+      "block_bytes": 1351262506,
+      "counts": {
+        "transactions": 836875,
+        "non_coinbase_transactions": 50840,
+        "transparent_inputs": 77455,
+        "transparent_outputs": 3249314,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1028500,
+      "last_height": 1842419,
+      "sample_heights": [
+        1833393,
+        1292311,
+        1716494
+      ],
+      "largest_block_heights": [
+        1571293,
+        1592097,
+        1592385
+      ]
+    },
+    "Canopy_sapling_1": {
+      "blocks": 3687,
+      "block_bytes": 15193062,
+      "counts": {
+        "transactions": 9040,
+        "non_coinbase_transactions": 5353,
+        "transparent_inputs": 16218,
+        "transparent_outputs": 16780,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 4538,
+        "sapling_spends": 1882,
+        "sapling_outputs": 5563,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1038792,
+      "last_height": 1842371,
+      "sample_heights": [
+        1830133,
+        1819989,
+        1823871
+      ],
+      "largest_block_heights": [
+        1187918,
+        1512779,
+        1512785
+      ]
+    },
+    "Canopy_sapling_0": {
+      "blocks": 13102,
+      "block_bytes": 37771611,
+      "counts": {
+        "transactions": 16788,
+        "non_coinbase_transactions": 3686,
+        "transparent_inputs": 2411,
+        "transparent_outputs": 44360,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 13149,
+        "sapling_spends": 2107,
+        "sapling_outputs": 14361,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1040061,
+      "last_height": 1842413,
+      "sample_heights": [
+        1062654,
+        1061774,
+        1061721
+      ],
+      "largest_block_heights": [
+        1135739,
+        1139314,
+        1139393
+      ]
+    },
+    "Canopy_transparent_1": {
+      "blocks": 9732,
+      "block_bytes": 28528190,
+      "counts": {
+        "transactions": 38300,
+        "non_coinbase_transactions": 28568,
+        "transparent_inputs": 53947,
+        "transparent_outputs": 92808,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1046006,
+      "last_height": 1707890,
+      "sample_heights": [
+        1204208,
+        1240060,
+        1204783
+      ],
+      "largest_block_heights": [
+        1421299,
+        1421270,
+        1386505
+      ]
+    },
+    "Canopy_sprout_0": {
+      "blocks": 162,
+      "block_bytes": 600373,
+      "counts": {
+        "transactions": 355,
+        "non_coinbase_transactions": 193,
+        "transparent_inputs": 40,
+        "transparent_outputs": 765,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 173,
+        "sprout_signatures": 169,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1057612,
+      "last_height": 1551845,
+      "sample_heights": [
+        1057796,
+        1210935,
+        1059652
+      ],
+      "largest_block_heights": [
+        1059051,
+        1058585,
+        1057727
+      ]
+    },
+    "Canopy_sprout-sapling_1": {
+      "blocks": 249,
+      "block_bytes": 1745319,
+      "counts": {
+        "transactions": 1116,
+        "non_coinbase_transactions": 867,
+        "transparent_inputs": 424,
+        "transparent_outputs": 1555,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 338,
+        "sprout_signatures": 290,
+        "sapling_bundles": 359,
+        "sapling_spends": 422,
+        "sapling_outputs": 449,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1057621,
+      "last_height": 1537168,
+      "sample_heights": [
+        1167557,
+        1537168,
+        1057804
+      ],
+      "largest_block_heights": [
+        1060175,
+        1059061,
+        1058595
+      ]
+    },
+    "Canopy_sprout-sapling_0": {
+      "blocks": 74,
+      "block_bytes": 346065,
+      "counts": {
+        "transactions": 208,
+        "non_coinbase_transactions": 134,
+        "transparent_inputs": 12,
+        "transparent_outputs": 332,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 75,
+        "sprout_signatures": 74,
+        "sapling_bundles": 75,
+        "sapling_spends": 56,
+        "sapling_outputs": 56,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1057652,
+      "last_height": 1443255,
+      "sample_heights": [
+        1212089,
+        1212078,
+        1167550
+      ],
+      "largest_block_heights": [
+        1167554,
+        1167631,
+        1057652
+      ]
+    },
+    "Canopy_sprout_1": {
+      "blocks": 11,
+      "block_bytes": 59470,
+      "counts": {
+        "transactions": 48,
+        "non_coinbase_transactions": 37,
+        "transparent_inputs": 39,
+        "transparent_outputs": 93,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 18,
+        "sprout_signatures": 12,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1058572,
+      "last_height": 1426713,
+      "sample_heights": [
+        1426713,
+        1074603,
+        1058572
+      ],
+      "largest_block_heights": [
+        1074603,
+        1366422,
+        1426713
+      ]
+    },
+    "Canopy_sprout-sapling_2": {
+      "blocks": 1,
+      "block_bytes": 14321,
+      "counts": {
+        "transactions": 9,
+        "non_coinbase_transactions": 8,
+        "transparent_inputs": 4,
+        "transparent_outputs": 8,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 3,
+        "sprout_signatures": 3,
+        "sapling_bundles": 3,
+        "sapling_spends": 6,
+        "sapling_outputs": 4,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1059064,
+      "last_height": 1059064,
+      "sample_heights": [
+        1059064
+      ],
+      "largest_block_heights": [
+        1059064
+      ]
+    },
+    "Canopy_transparent_2": {
+      "blocks": 399,
+      "block_bytes": 2529425,
+      "counts": {
+        "transactions": 3454,
+        "non_coinbase_transactions": 3055,
+        "transparent_inputs": 9804,
+        "transparent_outputs": 7971,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1078013,
+      "last_height": 1593974,
+      "sample_heights": [
+        1531873,
+        1526931,
+        1124264
+      ],
+      "largest_block_heights": [
+        1355944,
+        1533700,
+        1386470
+      ]
+    },
+    "Canopy_transparent_3": {
+      "blocks": 115,
+      "block_bytes": 2706770,
+      "counts": {
+        "transactions": 1975,
+        "non_coinbase_transactions": 1860,
+        "transparent_inputs": 14773,
+        "transparent_outputs": 4608,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1105518,
+      "last_height": 1535327,
+      "sample_heights": [
+        1535325,
+        1275684,
+        1133404
+      ],
+      "largest_block_heights": [
+        1303955,
+        1460567,
+        1460562
+      ]
+    },
+    "Canopy_transparent_4": {
+      "blocks": 18,
+      "block_bytes": 1411778,
+      "counts": {
+        "transactions": 2487,
+        "non_coinbase_transactions": 2469,
+        "transparent_inputs": 7729,
+        "transparent_outputs": 5066,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1105534,
+      "last_height": 1535324,
+      "sample_heights": [
+        1105641,
+        1275695,
+        1152369
+      ],
+      "largest_block_heights": [
+        1152360,
+        1152378,
+        1152381
+      ]
+    },
+    "Canopy_sapling_3": {
+      "blocks": 82,
+      "block_bytes": 3010913,
+      "counts": {
+        "transactions": 293,
+        "non_coinbase_transactions": 211,
+        "transparent_inputs": 8655,
+        "transparent_outputs": 364,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 192,
+        "sapling_spends": 3506,
+        "sapling_outputs": 197,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1116239,
+      "last_height": 1834969,
+      "sample_heights": [
+        1116239,
+        1380095,
+        1815954
+      ],
+      "largest_block_heights": [
+        1829411,
+        1820922,
+        1829424
+      ]
+    },
+    "Canopy_sapling_2": {
+      "blocks": 189,
+      "block_bytes": 1897365,
+      "counts": {
+        "transactions": 570,
+        "non_coinbase_transactions": 381,
+        "transparent_inputs": 5693,
+        "transparent_outputs": 907,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 313,
+        "sapling_spends": 795,
+        "sapling_outputs": 414,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1120962,
+      "last_height": 1835284,
+      "sample_heights": [
+        1291812,
+        1816090,
+        1291805
+      ],
+      "largest_block_heights": [
+        1133537,
+        1133618,
+        1210681
+      ]
+    },
+    "Canopy_sapling_5": {
+      "blocks": 18,
+      "block_bytes": 5654196,
+      "counts": {
+        "transactions": 690,
+        "non_coinbase_transactions": 672,
+        "transparent_inputs": 33375,
+        "transparent_outputs": 75,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 671,
+        "sapling_spends": 5,
+        "sapling_outputs": 671,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1120966,
+      "last_height": 1834506,
+      "sample_heights": [
+        1811905,
+        1121255,
+        1121258
+      ],
+      "largest_block_heights": [
+        1587598,
+        1120966,
+        1121258
+      ]
+    },
+    "Canopy_sapling_4": {
+      "blocks": 41,
+      "block_bytes": 3918010,
+      "counts": {
+        "transactions": 508,
+        "non_coinbase_transactions": 467,
+        "transparent_inputs": 22705,
+        "transparent_outputs": 184,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 462,
+        "sapling_spends": 29,
+        "sapling_outputs": 468,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1120967,
+      "last_height": 1815659,
+      "sample_heights": [
+        1120988,
+        1587599,
+        1812431
+      ],
+      "largest_block_heights": [
+        1121259,
+        1120967,
+        1120970
+      ]
+    },
+    "Canopy_sapling_6": {
+      "blocks": 1,
+      "block_bytes": 767487,
+      "counts": {
+        "transactions": 92,
+        "non_coinbase_transactions": 91,
+        "transparent_inputs": 4550,
+        "transparent_outputs": 4,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 91,
+        "sapling_spends": 0,
+        "sapling_outputs": 91,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1121257,
+      "last_height": 1121257,
+      "sample_heights": [
+        1121257
+      ],
+      "largest_block_heights": [
+        1121257
+      ]
+    },
+    "Canopy_transparent_5": {
+      "blocks": 2,
+      "block_bytes": 904671,
+      "counts": {
+        "transactions": 3690,
+        "non_coinbase_transactions": 3688,
+        "transparent_inputs": 3688,
+        "transparent_outputs": 7384,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1152375,
+      "last_height": 1152376,
+      "sample_heights": [
+        1152375,
+        1152376
+      ],
+      "largest_block_heights": [
+        1152375,
+        1152376
+      ]
+    },
+    "Canopy_transparent_6": {
+      "blocks": 1,
+      "block_bytes": 796521,
+      "counts": {
+        "transactions": 7,
+        "non_coinbase_transactions": 6,
+        "transparent_inputs": 5385,
+        "transparent_outputs": 14,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1152538,
+      "last_height": 1152538,
+      "sample_heights": [
+        1152538
+      ],
+      "largest_block_heights": [
+        1152538
+      ]
+    },
+    "Canopy_sprout_2": {
+      "blocks": 1,
+      "block_bytes": 10005,
+      "counts": {
+        "transactions": 17,
+        "non_coinbase_transactions": 16,
+        "transparent_inputs": 22,
+        "transparent_outputs": 27,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 2,
+        "sprout_signatures": 2,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1167474,
+      "last_height": 1167474,
+      "sample_heights": [
+        1167474
+      ],
+      "largest_block_heights": [
+        1167474
+      ]
+    },
+    "Nu5_transparent_0": {
+      "blocks": 1106376,
+      "block_bytes": 1859072052,
+      "counts": {
+        "transactions": 1113252,
+        "non_coinbase_transactions": 6876,
+        "transparent_inputs": 7635,
+        "transparent_outputs": 3913144,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842420,
+      "last_height": 2975999,
+      "sample_heights": [
+        2169722,
+        2682670,
+        2906011
+      ],
+      "largest_block_heights": [
+        2102080,
+        2571202,
+        2911381
+      ]
+    },
+    "Nu5_sapling-orchard_1": {
+      "blocks": 3353,
+      "block_bytes": 46206644,
+      "counts": {
+        "transactions": 6890,
+        "non_coinbase_transactions": 3537,
+        "transparent_inputs": 9752,
+        "transparent_outputs": 12488,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 3464,
+        "sapling_spends": 534,
+        "sapling_outputs": 3670,
+        "orchard_bundles": 3836,
+        "orchard_actions": 7688,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842421,
+      "last_height": 2963765,
+      "sample_heights": [
+        1856318,
+        1861811,
+        1844334
+      ],
+      "largest_block_heights": [
+        2963765,
+        2781607,
+        1851528
+      ]
+    },
+    "Nu5_sapling_2": {
+      "blocks": 99,
+      "block_bytes": 819518,
+      "counts": {
+        "transactions": 253,
+        "non_coinbase_transactions": 154,
+        "transparent_inputs": 3188,
+        "transparent_outputs": 454,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 131,
+        "sapling_spends": 53,
+        "sapling_outputs": 155,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842432,
+      "last_height": 2613110,
+      "sample_heights": [
+        2080467,
+        1899093,
+        1942608
+      ],
+      "largest_block_heights": [
+        2611287,
+        2611288,
+        2613110
+      ]
+    },
+    "Nu5_sapling_0": {
+      "blocks": 5572,
+      "block_bytes": 16878593,
+      "counts": {
+        "transactions": 8160,
+        "non_coinbase_transactions": 2588,
+        "transparent_inputs": 1684,
+        "transparent_outputs": 19637,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 5586,
+        "sapling_spends": 1504,
+        "sapling_outputs": 6613,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842437,
+      "last_height": 2963465,
+      "sample_heights": [
+        1907387,
+        2321252,
+        2213426
+      ],
+      "largest_block_heights": [
+        1907383,
+        1907386,
+        2318495
+      ]
+    },
+    "Nu5_orchard_1": {
+      "blocks": 229,
+      "block_bytes": 5358732,
+      "counts": {
+        "transactions": 663,
+        "non_coinbase_transactions": 434,
+        "transparent_inputs": 256,
+        "transparent_outputs": 1045,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 402,
+        "orchard_actions": 1198,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842462,
+      "last_height": 2970152,
+      "sample_heights": [
+        1912518,
+        1986500,
+        1888636
+      ],
+      "largest_block_heights": [
+        1993136,
+        1958160,
+        2660048
+      ]
+    },
+    "Nu5_orchard_0": {
+      "blocks": 13814,
+      "block_bytes": 149355952,
+      "counts": {
+        "transactions": 14716,
+        "non_coinbase_transactions": 902,
+        "transparent_inputs": 162,
+        "transparent_outputs": 42977,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 13814,
+        "orchard_actions": 27666,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842467,
+      "last_height": 2970149,
+      "sample_heights": [
+        1886667,
+        1891556,
+        1847574
+      ],
+      "largest_block_heights": [
+        2086208,
+        2062938,
+        2065871
+      ]
+    },
+    "Nu5_orchard_4": {
+      "blocks": 2,
+      "block_bytes": 121857,
+      "counts": {
+        "transactions": 4,
+        "non_coinbase_transactions": 2,
+        "transparent_inputs": 679,
+        "transparent_outputs": 8,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 2,
+        "orchard_actions": 4,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842574,
+      "last_height": 1860711,
+      "sample_heights": [
+        1842574,
+        1860711
+      ],
+      "largest_block_heights": [
+        1860711,
+        1842574
+      ]
+    },
+    "Nu5_orchard_2": {
+      "blocks": 43,
+      "block_bytes": 3448353,
+      "counts": {
+        "transactions": 258,
+        "non_coinbase_transactions": 215,
+        "transparent_inputs": 323,
+        "transparent_outputs": 182,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 215,
+        "orchard_actions": 860,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1842984,
+      "last_height": 2723266,
+      "sample_heights": [
+        2166101,
+        2660058,
+        2347624
+      ],
+      "largest_block_heights": [
+        2031715,
+        1993141,
+        2141631
+      ]
+    },
+    "Nu5_sapling-orchard_2": {
+      "blocks": 60,
+      "block_bytes": 4833286,
+      "counts": {
+        "transactions": 508,
+        "non_coinbase_transactions": 448,
+        "transparent_inputs": 387,
+        "transparent_outputs": 215,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 405,
+        "sapling_spends": 348,
+        "sapling_outputs": 74,
+        "orchard_bundles": 441,
+        "orchard_actions": 1009,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1844100,
+      "last_height": 2959018,
+      "sample_heights": [
+        2319381,
+        2319383,
+        2319397
+      ],
+      "largest_block_heights": [
+        2318194,
+        1912549,
+        2305906
+      ]
+    },
+    "Nu5_sapling-orchard_3": {
+      "blocks": 12,
+      "block_bytes": 1668256,
+      "counts": {
+        "transactions": 29,
+        "non_coinbase_transactions": 17,
+        "transparent_inputs": 3,
+        "transparent_outputs": 48,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 17,
+        "sapling_spends": 1600,
+        "sapling_outputs": 352,
+        "orchard_bundles": 17,
+        "orchard_actions": 222,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1860520,
+      "last_height": 2318385,
+      "sample_heights": [
+        2318379,
+        1860523,
+        1871404
+      ],
+      "largest_block_heights": [
+        2318384,
+        2318379,
+        2318385
+      ]
+    },
+    "Nu5_sapling-orchard_4": {
+      "blocks": 1,
+      "block_bytes": 149449,
+      "counts": {
+        "transactions": 4,
+        "non_coinbase_transactions": 3,
+        "transparent_inputs": 0,
+        "transparent_outputs": 4,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 3,
+        "sapling_spends": 330,
+        "sapling_outputs": 4,
+        "orchard_bundles": 3,
+        "orchard_actions": 6,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1860547,
+      "last_height": 1860547,
+      "sample_heights": [
+        1860547
+      ],
+      "largest_block_heights": [
+        1860547
+      ]
+    },
+    "Nu5_orchard_3": {
+      "blocks": 6,
+      "block_bytes": 2127854,
+      "counts": {
+        "transactions": 20,
+        "non_coinbase_transactions": 14,
+        "transparent_inputs": 200,
+        "transparent_outputs": 24,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 14,
+        "orchard_actions": 649,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1860705,
+      "last_height": 2031742,
+      "sample_heights": [
+        1860772,
+        1987633,
+        2031742
+      ],
+      "largest_block_heights": [
+        1860741,
+        2031742,
+        1987633
+      ]
+    },
+    "Nu5_transparent_1": {
+      "blocks": 471,
+      "block_bytes": 1487698,
+      "counts": {
+        "transactions": 1714,
+        "non_coinbase_transactions": 1243,
+        "transparent_inputs": 3852,
+        "transparent_outputs": 4207,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1865245,
+      "last_height": 2970548,
+      "sample_heights": [
+        2251611,
+        1997851,
+        2028586
+      ],
+      "largest_block_heights": [
+        2092458,
+        2311633,
+        2413381
+      ]
+    },
+    "Nu5_sapling_1": {
+      "blocks": 3232,
+      "block_bytes": 12167176,
+      "counts": {
+        "transactions": 6941,
+        "non_coinbase_transactions": 3709,
+        "transparent_inputs": 15982,
+        "transparent_outputs": 13435,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 3496,
+        "sapling_spends": 725,
+        "sapling_outputs": 3914,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1871416,
+      "last_height": 2957526,
+      "sample_heights": [
+        1875976,
+        1909612,
+        1913404
+      ],
+      "largest_block_heights": [
+        2187353,
+        2187393,
+        2195079
+      ]
+    },
+    "Nu5_sapling_3": {
+      "blocks": 17,
+      "block_bytes": 835902,
+      "counts": {
+        "transactions": 42,
+        "non_coinbase_transactions": 25,
+        "transparent_inputs": 1558,
+        "transparent_outputs": 68,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 25,
+        "sapling_spends": 1564,
+        "sapling_outputs": 25,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1871433,
+      "last_height": 2320007,
+      "sample_heights": [
+        1918015,
+        1871433,
+        1917991
+      ],
+      "largest_block_heights": [
+        1918020,
+        1918013,
+        1918015
+      ]
+    },
+    "Nu5_sapling-orchard_0": {
+      "blocks": 218,
+      "block_bytes": 2541279,
+      "counts": {
+        "transactions": 433,
+        "non_coinbase_transactions": 215,
+        "transparent_inputs": 0,
+        "transparent_outputs": 812,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 218,
+        "sapling_spends": 82,
+        "sapling_outputs": 136,
+        "orchard_bundles": 218,
+        "orchard_actions": 436,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1871858,
+      "last_height": 2958746,
+      "sample_heights": [
+        2717027,
+        2314631,
+        2958738
+      ],
+      "largest_block_heights": [
+        1971607,
+        2314432,
+        2314631
+      ]
+    },
+    "Nu5_sapling_4": {
+      "blocks": 13,
+      "block_bytes": 1636695,
+      "counts": {
+        "transactions": 53,
+        "non_coinbase_transactions": 40,
+        "transparent_inputs": 3409,
+        "transparent_outputs": 51,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 41,
+        "sapling_spends": 3033,
+        "sapling_outputs": 41,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1917987,
+      "last_height": 2307473,
+      "sample_heights": [
+        2114449,
+        1971972,
+        1917990
+      ],
+      "largest_block_heights": [
+        1917990,
+        1918011,
+        1918019
+      ]
+    },
+    "Nu5_sapling_5": {
+      "blocks": 5,
+      "block_bytes": 1371240,
+      "counts": {
+        "transactions": 34,
+        "non_coinbase_transactions": 29,
+        "transparent_inputs": 8155,
+        "transparent_outputs": 22,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 28,
+        "sapling_spends": 373,
+        "sapling_outputs": 27,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1918022,
+      "last_height": 1971595,
+      "sample_heights": [
+        1971595,
+        1918022,
+        1947267
+      ],
+      "largest_block_heights": [
+        1920807,
+        1971595,
+        1918022
+      ]
+    },
+    "Nu5_sapling_6": {
+      "blocks": 19,
+      "block_bytes": 33270433,
+      "counts": {
+        "transactions": 45,
+        "non_coinbase_transactions": 26,
+        "transparent_inputs": 225160,
+        "transparent_outputs": 77,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 26,
+        "sapling_spends": 3,
+        "sapling_outputs": 26,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1918024,
+      "last_height": 2318547,
+      "sample_heights": [
+        1967992,
+        2318543,
+        2318546
+      ],
+      "largest_block_heights": [
+        1967992,
+        2086112,
+        2318544
+      ]
+    },
+    "Nu5_transparent_2": {
+      "blocks": 25,
+      "block_bytes": 194324,
+      "counts": {
+        "transactions": 139,
+        "non_coinbase_transactions": 114,
+        "transparent_inputs": 863,
+        "transparent_outputs": 349,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 1977620,
+      "last_height": 2673143,
+      "sample_heights": [
+        2246995,
+        2127080,
+        2248521
+      ],
+      "largest_block_heights": [
+        2127080,
+        2048028,
+        2027906
+      ]
+    },
+    "Nu5_transparent_3": {
+      "blocks": 13,
+      "block_bytes": 200000,
+      "counts": {
+        "transactions": 59,
+        "non_coinbase_transactions": 46,
+        "transparent_inputs": 1178,
+        "transparent_outputs": 137,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 2028068,
+      "last_height": 2517912,
+      "sample_heights": [
+        2028716,
+        2517912,
+        2028580
+      ],
+      "largest_block_heights": [
+        2517912,
+        2372596,
+        2028365
+      ]
+    },
+    "Nu6_transparent_0": {
+      "blocks": 404229,
+      "block_bytes": 658993985,
+      "counts": {
+        "transactions": 415005,
+        "non_coinbase_transactions": 10776,
+        "transparent_inputs": 11002,
+        "transparent_outputs": 689680,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 2976000,
+      "last_height": 3536499,
+      "sample_heights": [
+        3115543,
+        3426286,
+        3172086
+      ],
+      "largest_block_heights": [
+        3352917,
+        3371553,
+        3352831
+      ]
+    },
+    "Nu6_orchard_0": {
+      "blocks": 19654,
+      "block_bytes": 211003705,
+      "counts": {
+        "transactions": 19970,
+        "non_coinbase_transactions": 316,
+        "transparent_inputs": 131,
+        "transparent_outputs": 20066,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 19654,
+        "orchard_actions": 39312,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 2976016,
+      "last_height": 3531445,
+      "sample_heights": [
+        3372534,
+        3334049,
+        3386034
+      ],
+      "largest_block_heights": [
+        3305836,
+        3310701,
+        3305895
+      ]
+    },
+    "Nu6_orchard_2": {
+      "blocks": 17,
+      "block_bytes": 370641,
+      "counts": {
+        "transactions": 47,
+        "non_coinbase_transactions": 30,
+        "transparent_inputs": 631,
+        "transparent_outputs": 56,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 27,
+        "orchard_actions": 54,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 2976019,
+      "last_height": 3459446,
+      "sample_heights": [
+        3459446,
+        3063703,
+        3114852
+      ],
+      "largest_block_heights": [
+        3114852,
+        3114859,
+        3100892
+      ]
+    },
+    "Nu6_sapling_4": {
+      "blocks": 1,
+      "block_bytes": 97265,
+      "counts": {
+        "transactions": 2,
+        "non_coinbase_transactions": 1,
+        "transparent_inputs": 635,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1,
+        "sapling_spends": 0,
+        "sapling_outputs": 2,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 2977299,
+      "last_height": 2977299,
+      "sample_heights": [
+        2977299
+      ],
+      "largest_block_heights": [
+        2977299
+      ]
+    },
+    "Nu6_orchard_1": {
+      "blocks": 82,
+      "block_bytes": 1323395,
+      "counts": {
+        "transactions": 200,
+        "non_coinbase_transactions": 118,
+        "transparent_inputs": 162,
+        "transparent_outputs": 242,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 114,
+        "orchard_actions": 262,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 2986406,
+      "last_height": 3516601,
+      "sample_heights": [
+        3305891,
+        3390369,
+        3380154
+      ],
+      "largest_block_heights": [
+        3279119,
+        2986406,
+        3178757
+      ]
+    },
+    "Nu6_sapling_0": {
+      "blocks": 136243,
+      "block_bytes": 355406145,
+      "counts": {
+        "transactions": 136417,
+        "non_coinbase_transactions": 174,
+        "transparent_inputs": 172,
+        "transparent_outputs": 136546,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 136243,
+        "sapling_spends": 9,
+        "sapling_outputs": 136255,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3004676,
+      "last_height": 3526936,
+      "sample_heights": [
+        3232798,
+        3010995,
+        3065450
+      ],
+      "largest_block_heights": [
+        3004696,
+        3286464,
+        3305910
+      ]
+    },
+    "Nu6_sapling_1": {
+      "blocks": 20,
+      "block_bytes": 87420,
+      "counts": {
+        "transactions": 54,
+        "non_coinbase_transactions": 34,
+        "transparent_inputs": 51,
+        "transparent_outputs": 76,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 23,
+        "sapling_spends": 13,
+        "sapling_outputs": 38,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3004682,
+      "last_height": 3393597,
+      "sample_heights": [
+        3004682,
+        3392406,
+        3004706
+      ],
+      "largest_block_heights": [
+        3217719,
+        3004682,
+        3286484
+      ]
+    },
+    "Nu6_orchard_4": {
+      "blocks": 3,
+      "block_bytes": 361247,
+      "counts": {
+        "transactions": 12,
+        "non_coinbase_transactions": 9,
+        "transparent_inputs": 1857,
+        "transparent_outputs": 5,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 9,
+        "orchard_actions": 18,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3021071,
+      "last_height": 3459443,
+      "sample_heights": [
+        3021071,
+        3364291,
+        3459443
+      ],
+      "largest_block_heights": [
+        3021071,
+        3459443,
+        3364291
+      ]
+    },
+    "Nu6_sapling-orchard_0": {
+      "blocks": 37,
+      "block_bytes": 435907,
+      "counts": {
+        "transactions": 74,
+        "non_coinbase_transactions": 37,
+        "transparent_inputs": 0,
+        "transparent_outputs": 46,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 37,
+        "sapling_spends": 0,
+        "sapling_outputs": 37,
+        "orchard_bundles": 37,
+        "orchard_actions": 74,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3061999,
+      "last_height": 3382444,
+      "sample_heights": [
+        3139651,
+        3199101,
+        3099862
+      ],
+      "largest_block_heights": [
+        3070519,
+        3076083,
+        3079683
+      ]
+    },
+    "Nu6_sapling-orchard_1": {
+      "blocks": 84,
+      "block_bytes": 1319356,
+      "counts": {
+        "transactions": 176,
+        "non_coinbase_transactions": 92,
+        "transparent_inputs": 38,
+        "transparent_outputs": 159,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 109,
+        "sapling_spends": 58,
+        "sapling_outputs": 174,
+        "orchard_bundles": 98,
+        "orchard_actions": 223,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3062021,
+      "last_height": 3449482,
+      "sample_heights": [
+        3382456,
+        3091563,
+        3380207
+      ],
+      "largest_block_heights": [
+        3380080,
+        3115024,
+        3070865
+      ]
+    },
+    "Nu6_sapling-orchard_3": {
+      "blocks": 2,
+      "block_bytes": 82895,
+      "counts": {
+        "transactions": 7,
+        "non_coinbase_transactions": 5,
+        "transparent_inputs": 216,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2,
+        "sapling_spends": 0,
+        "sapling_outputs": 2,
+        "orchard_bundles": 5,
+        "orchard_actions": 10,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3069079,
+      "last_height": 3114832,
+      "sample_heights": [
+        3069079,
+        3114832
+      ],
+      "largest_block_heights": [
+        3114832,
+        3069079
+      ]
+    },
+    "Nu6_sapling_6": {
+      "blocks": 1,
+      "block_bytes": 841624,
+      "counts": {
+        "transactions": 2,
+        "non_coinbase_transactions": 1,
+        "transparent_inputs": 5682,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1,
+        "sapling_spends": 0,
+        "sapling_outputs": 2,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3087688,
+      "last_height": 3087688,
+      "sample_heights": [
+        3087688
+      ],
+      "largest_block_heights": [
+        3087688
+      ]
+    },
+    "Nu6_transparent_2": {
+      "blocks": 4,
+      "block_bytes": 25040,
+      "counts": {
+        "transactions": 17,
+        "non_coinbase_transactions": 13,
+        "transparent_inputs": 108,
+        "transparent_outputs": 30,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3097066,
+      "last_height": 3484846,
+      "sample_heights": [
+        3403159,
+        3097120,
+        3484846
+      ],
+      "largest_block_heights": [
+        3403159,
+        3484846,
+        3097066
+      ]
+    },
+    "Nu6_orchard_3": {
+      "blocks": 12,
+      "block_bytes": 1622601,
+      "counts": {
+        "transactions": 59,
+        "non_coinbase_transactions": 47,
+        "transparent_inputs": 1251,
+        "transparent_outputs": 22,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 47,
+        "orchard_actions": 407,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3100883,
+      "last_height": 3506605,
+      "sample_heights": [
+        3114850,
+        3279099,
+        3114834
+      ],
+      "largest_block_heights": [
+        3279099,
+        3275847,
+        3100883
+      ]
+    },
+    "Nu6_sapling-orchard_2": {
+      "blocks": 5,
+      "block_bytes": 86874,
+      "counts": {
+        "transactions": 10,
+        "non_coinbase_transactions": 5,
+        "transparent_inputs": 190,
+        "transparent_outputs": 5,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 5,
+        "sapling_spends": 0,
+        "sapling_outputs": 5,
+        "orchard_bundles": 5,
+        "orchard_actions": 10,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3112684,
+      "last_height": 3364290,
+      "sample_heights": [
+        3349497,
+        3349498,
+        3195115
+      ],
+      "largest_block_heights": [
+        3349497,
+        3364290,
+        3349498
+      ]
+    },
+    "Nu6_sapling-orchard_4": {
+      "blocks": 1,
+      "block_bytes": 111592,
+      "counts": {
+        "transactions": 8,
+        "non_coinbase_transactions": 7,
+        "transparent_inputs": 304,
+        "transparent_outputs": 1,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1,
+        "sapling_spends": 0,
+        "sapling_outputs": 1,
+        "orchard_bundles": 7,
+        "orchard_actions": 14,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3114835,
+      "last_height": 3114835,
+      "sample_heights": [
+        3114835
+      ],
+      "largest_block_heights": [
+        3114835
+      ]
+    },
+    "Nu6_sapling_2": {
+      "blocks": 1,
+      "block_bytes": 5029,
+      "counts": {
+        "transactions": 2,
+        "non_coinbase_transactions": 1,
+        "transparent_inputs": 16,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1,
+        "sapling_spends": 0,
+        "sapling_outputs": 1,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3341153,
+      "last_height": 3341153,
+      "sample_heights": [
+        3341153
+      ],
+      "largest_block_heights": [
+        3341153
+      ]
+    },
+    "Nu6_transparent_1": {
+      "blocks": 104,
+      "block_bytes": 355606,
+      "counts": {
+        "transactions": 511,
+        "non_coinbase_transactions": 407,
+        "transparent_inputs": 476,
+        "transparent_outputs": 1027,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3349758,
+      "last_height": 3483479,
+      "sample_heights": [
+        3353501,
+        3359383,
+        3358655
+      ],
+      "largest_block_heights": [
+        3454282,
+        3393529,
+        3359466
+      ]
+    },
+    "Nu6_1_transparent_0": {
+      "blocks": 383769,
+      "block_bytes": 626027717,
+      "counts": {
+        "transactions": 385097,
+        "non_coinbase_transactions": 1328,
+        "transparent_inputs": 1720,
+        "transparent_outputs": 780472,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3536500,
+      "last_height": 4051999,
+      "sample_heights": [
+        3966606,
+        3908668,
+        4037429
+      ],
+      "largest_block_heights": [
+        3691871,
+        3691866,
+        3691850
+      ]
+    },
+    "Nu6_1_sapling_0": {
+      "blocks": 91291,
+      "block_bytes": 238787533,
+      "counts": {
+        "transactions": 91731,
+        "non_coinbase_transactions": 440,
+        "transparent_inputs": 328,
+        "transparent_outputs": 93179,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 91296,
+        "sapling_spends": 160,
+        "sapling_outputs": 91444,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3537161,
+      "last_height": 4051966,
+      "sample_heights": [
+        3547356,
+        3756566,
+        3624291
+      ],
+      "largest_block_heights": [
+        3691902,
+        3689354,
+        3689418
+      ]
+    },
+    "Nu6_1_orchard_0": {
+      "blocks": 26386,
+      "block_bytes": 284943327,
+      "counts": {
+        "transactions": 34442,
+        "non_coinbase_transactions": 8056,
+        "transparent_inputs": 1458,
+        "transparent_outputs": 38745,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 26386,
+        "orchard_actions": 53060,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3537670,
+      "last_height": 4048312,
+      "sample_heights": [
+        3566316,
+        3573153,
+        3552562
+      ],
+      "largest_block_heights": [
+        4013835,
+        3974700,
+        3974744
+      ]
+    },
+    "Nu6_1_orchard_1": {
+      "blocks": 10531,
+      "block_bytes": 186823088,
+      "counts": {
+        "transactions": 25917,
+        "non_coinbase_transactions": 15386,
+        "transparent_inputs": 44617,
+        "transparent_outputs": 25515,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 15260,
+        "orchard_actions": 37822,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3540514,
+      "last_height": 4048481,
+      "sample_heights": [
+        3863386,
+        3897072,
+        3977070
+      ],
+      "largest_block_heights": [
+        3775591,
+        3775620,
+        3775778
+      ]
+    },
+    "Nu6_1_sapling-orchard_0": {
+      "blocks": 879,
+      "block_bytes": 10334790,
+      "counts": {
+        "transactions": 1745,
+        "non_coinbase_transactions": 866,
+        "transparent_inputs": 9,
+        "transparent_outputs": 1184,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 879,
+        "sapling_spends": 0,
+        "sapling_outputs": 879,
+        "orchard_bundles": 879,
+        "orchard_actions": 1749,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3548671,
+      "last_height": 3963098,
+      "sample_heights": [
+        3725603,
+        3680490,
+        3718230
+      ],
+      "largest_block_heights": [
+        3690132,
+        3691105,
+        3548671
+      ]
+    },
+    "Nu6_1_sapling-orchard_1": {
+      "blocks": 564,
+      "block_bytes": 9264654,
+      "counts": {
+        "transactions": 1302,
+        "non_coinbase_transactions": 738,
+        "transparent_inputs": 736,
+        "transparent_outputs": 1535,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 629,
+        "sapling_spends": 234,
+        "sapling_outputs": 976,
+        "orchard_bundles": 710,
+        "orchard_actions": 1629,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3548863,
+      "last_height": 4047523,
+      "sample_heights": [
+        3596288,
+        3785481,
+        3585014
+      ],
+      "largest_block_heights": [
+        3925517,
+        3925533,
+        3716563
+      ]
+    },
+    "Nu6_1_sapling_2": {
+      "blocks": 32,
+      "block_bytes": 618308,
+      "counts": {
+        "transactions": 272,
+        "non_coinbase_transactions": 240,
+        "transparent_inputs": 459,
+        "transparent_outputs": 144,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 174,
+        "sapling_spends": 173,
+        "sapling_outputs": 341,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3573836,
+      "last_height": 4049849,
+      "sample_heights": [
+        3842019,
+        3841935,
+        4035651
+      ],
+      "largest_block_heights": [
+        3841916,
+        3685646,
+        3842021
+      ]
+    },
+    "Nu6_1_sapling_1": {
+      "blocks": 257,
+      "block_bytes": 1554441,
+      "counts": {
+        "transactions": 789,
+        "non_coinbase_transactions": 532,
+        "transparent_inputs": 460,
+        "transparent_outputs": 750,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 479,
+        "sapling_spends": 397,
+        "sapling_outputs": 873,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3574939,
+      "last_height": 4051948,
+      "sample_heights": [
+        4051081,
+        4049295,
+        4050899
+      ],
+      "largest_block_heights": [
+        3841914,
+        3842004,
+        3841934
+      ]
+    },
+    "Nu6_1_orchard_2": {
+      "blocks": 1102,
+      "block_bytes": 30203000,
+      "counts": {
+        "transactions": 3340,
+        "non_coinbase_transactions": 2238,
+        "transparent_inputs": 28926,
+        "transparent_outputs": 3441,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 1889,
+        "orchard_actions": 5893,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3582153,
+      "last_height": 4048496,
+      "sample_heights": [
+        3883343,
+        3878992,
+        3995112
+      ],
+      "largest_block_heights": [
+        3937124,
+        3694991,
+        3832555
+      ]
+    },
+    "Nu6_1_orchard_3": {
+      "blocks": 297,
+      "block_bytes": 17986662,
+      "counts": {
+        "transactions": 1190,
+        "non_coinbase_transactions": 893,
+        "transparent_inputs": 33951,
+        "transparent_outputs": 1435,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 630,
+        "orchard_actions": 3361,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3586721,
+      "last_height": 4047527,
+      "sample_heights": [
+        3948441,
+        4012376,
+        3671720
+      ],
+      "largest_block_heights": [
+        3947344,
+        3869841,
+        4028728
+      ]
+    },
+    "Nu6_1_sapling-orchard_3": {
+      "blocks": 30,
+      "block_bytes": 3086727,
+      "counts": {
+        "transactions": 255,
+        "non_coinbase_transactions": 225,
+        "transparent_inputs": 2221,
+        "transparent_outputs": 248,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 209,
+        "sapling_spends": 767,
+        "sapling_outputs": 396,
+        "orchard_bundles": 174,
+        "orchard_actions": 488,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3588438,
+      "last_height": 4047559,
+      "sample_heights": [
+        3840108,
+        3836820,
+        3925276
+      ],
+      "largest_block_heights": [
+        3846995,
+        4047559,
+        3836820
+      ]
+    },
+    "Nu6_1_transparent_1": {
+      "blocks": 174,
+      "block_bytes": 658449,
+      "counts": {
+        "transactions": 598,
+        "non_coinbase_transactions": 424,
+        "transparent_inputs": 1122,
+        "transparent_outputs": 3629,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3624787,
+      "last_height": 4046787,
+      "sample_heights": [
+        3912456,
+        3863448,
+        3866458
+      ],
+      "largest_block_heights": [
+        3691695,
+        3684748,
+        3685641
+      ]
+    },
+    "Nu6_1_sapling-orchard_2": {
+      "blocks": 71,
+      "block_bytes": 4210877,
+      "counts": {
+        "transactions": 357,
+        "non_coinbase_transactions": 286,
+        "transparent_inputs": 280,
+        "transparent_outputs": 2817,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 238,
+        "sapling_spends": 482,
+        "sapling_outputs": 522,
+        "orchard_bundles": 281,
+        "orchard_actions": 786,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3656890,
+      "last_height": 3962125,
+      "sample_heights": [
+        3836945,
+        3846721,
+        3692204
+      ],
+      "largest_block_heights": [
+        3693471,
+        3847077,
+        3916922
+      ]
+    },
+    "Nu6_1_transparent_2": {
+      "blocks": 47,
+      "block_bytes": 701758,
+      "counts": {
+        "transactions": 827,
+        "non_coinbase_transactions": 780,
+        "transparent_inputs": 1304,
+        "transparent_outputs": 1727,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3684788,
+      "last_height": 4033808,
+      "sample_heights": [
+        3863421,
+        4033808,
+        3863828
+      ],
+      "largest_block_heights": [
+        3685496,
+        3685557,
+        3685644
+      ]
+    },
+    "Nu6_1_sapling_4": {
+      "blocks": 2,
+      "block_bytes": 108613,
+      "counts": {
+        "transactions": 4,
+        "non_coinbase_transactions": 2,
+        "transparent_inputs": 687,
+        "transparent_outputs": 3,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 3,
+        "sapling_spends": 0,
+        "sapling_outputs": 4,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3716487,
+      "last_height": 4046325,
+      "sample_heights": [
+        4046325,
+        3716487
+      ],
+      "largest_block_heights": [
+        4046325,
+        3716487
+      ]
+    },
+    "Nu6_1_orchard_4": {
+      "blocks": 46,
+      "block_bytes": 5004972,
+      "counts": {
+        "transactions": 230,
+        "non_coinbase_transactions": 184,
+        "transparent_inputs": 21988,
+        "transparent_outputs": 94,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 183,
+        "orchard_actions": 369,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3741963,
+      "last_height": 4047621,
+      "sample_heights": [
+        3947238,
+        3859323,
+        3913828
+      ],
+      "largest_block_heights": [
+        3947269,
+        3860235,
+        3947265
+      ]
+    },
+    "Nu6_1_sapling_3": {
+      "blocks": 7,
+      "block_bytes": 214917,
+      "counts": {
+        "transactions": 64,
+        "non_coinbase_transactions": 57,
+        "transparent_inputs": 462,
+        "transparent_outputs": 17,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 57,
+        "sapling_spends": 57,
+        "sapling_outputs": 114,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3841931,
+      "last_height": 3994646,
+      "sample_heights": [
+        3841931,
+        3994499,
+        3994619
+      ],
+      "largest_block_heights": [
+        3842011,
+        3841931,
+        3994619
+      ]
+    },
+    "Nu6_1_orchard_5": {
+      "blocks": 1,
+      "block_bytes": 348943,
+      "counts": {
+        "transactions": 22,
+        "non_coinbase_transactions": 21,
+        "transparent_inputs": 1050,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 21,
+        "orchard_actions": 42,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3859320,
+      "last_height": 3859320,
+      "sample_heights": [
+        3859320
+      ],
+      "largest_block_heights": [
+        3859320
+      ]
+    },
+    "Nu6_1_transparent_3": {
+      "blocks": 12,
+      "block_bytes": 261954,
+      "counts": {
+        "transactions": 250,
+        "non_coinbase_transactions": 238,
+        "transparent_inputs": 1264,
+        "transparent_outputs": 718,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3863433,
+      "last_height": 4033877,
+      "sample_heights": [
+        4013777,
+        4033877,
+        4013755
+      ],
+      "largest_block_heights": [
+        3863572,
+        3865527,
+        4013755
+      ]
+    },
+    "Nu6_1_transparent_4": {
+      "blocks": 2,
+      "block_bytes": 98511,
+      "counts": {
+        "transactions": 161,
+        "non_coinbase_transactions": 159,
+        "transparent_inputs": 565,
+        "transparent_outputs": 163,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 3863829,
+      "last_height": 4013913,
+      "sample_heights": [
+        3863829,
+        4013913
+      ],
+      "largest_block_heights": [
+        4013913,
+        3863829
+      ]
+    },
+    "Nu6_2_sapling_1": {
+      "blocks": 564,
+      "block_bytes": 3600150,
+      "counts": {
+        "transactions": 1691,
+        "non_coinbase_transactions": 1127,
+        "transparent_inputs": 27,
+        "transparent_outputs": 1140,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1136,
+        "sapling_spends": 1124,
+        "sapling_outputs": 2253,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4052000,
+      "last_height": 4133357,
+      "sample_heights": [
+        4057885,
+        4053648,
+        4057605
+      ],
+      "largest_block_heights": [
+        4055672,
+        4055665,
+        4055670
+      ]
+    },
+    "Nu6_2_transparent_0": {
+      "blocks": 51747,
+      "block_bytes": 84792759,
+      "counts": {
+        "transactions": 51810,
+        "non_coinbase_transactions": 63,
+        "transparent_inputs": 82,
+        "transparent_outputs": 103617,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4052001,
+      "last_height": 4133999,
+      "sample_heights": [
+        4083176,
+        4087067,
+        4132655
+      ],
+      "largest_block_heights": [
+        4089813,
+        4061427,
+        4091280
+      ]
+    },
+    "Nu6_2_sapling_0": {
+      "blocks": 4162,
+      "block_bytes": 11348906,
+      "counts": {
+        "transactions": 4507,
+        "non_coinbase_transactions": 345,
+        "transparent_inputs": 0,
+        "transparent_outputs": 4507,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 4162,
+        "sapling_spends": 345,
+        "sapling_outputs": 4507,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4052209,
+      "last_height": 4133305,
+      "sample_heights": [
+        4061583,
+        4070579,
+        4060686
+      ],
+      "largest_block_heights": [
+        4126176,
+        4126177,
+        4126277
+      ]
+    },
+    "Nu6_2_sapling-orchard_1": {
+      "blocks": 257,
+      "block_bytes": 5119280,
+      "counts": {
+        "transactions": 997,
+        "non_coinbase_transactions": 740,
+        "transparent_inputs": 165,
+        "transparent_outputs": 493,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 411,
+        "sapling_spends": 348,
+        "sapling_outputs": 774,
+        "orchard_bundles": 410,
+        "orchard_actions": 824,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4052241,
+      "last_height": 4133995,
+      "sample_heights": [
+        4121295,
+        4124586,
+        4120969
+      ],
+      "largest_block_heights": [
+        4122667,
+        4120805,
+        4122812
+      ]
+    },
+    "Nu6_2_orchard_2": {
+      "blocks": 447,
+      "block_bytes": 46647319,
+      "counts": {
+        "transactions": 5320,
+        "non_coinbase_transactions": 4873,
+        "transparent_inputs": 1309,
+        "transparent_outputs": 926,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 4872,
+        "orchard_actions": 10084,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4052305,
+      "last_height": 4133988,
+      "sample_heights": [
+        4094524,
+        4093928,
+        4095026
+      ],
+      "largest_block_heights": [
+        4093818,
+        4093921,
+        4093645
+      ]
+    },
+    "Nu6_2_orchard_1": {
+      "blocks": 1945,
+      "block_bytes": 54035112,
+      "counts": {
+        "transactions": 7412,
+        "non_coinbase_transactions": 5467,
+        "transparent_inputs": 1665,
+        "transparent_outputs": 3970,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 5473,
+        "orchard_actions": 11092,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4052353,
+      "last_height": 4133314,
+      "sample_heights": [
+        4095911,
+        4094265,
+        4093451
+      ],
+      "largest_block_heights": [
+        4122143,
+        4093815,
+        4093463
+      ]
+    },
+    "Nu6_2_orchard_0": {
+      "blocks": 22669,
+      "block_bytes": 180229810,
+      "counts": {
+        "transactions": 24658,
+        "non_coinbase_transactions": 1989,
+        "transparent_inputs": 299,
+        "transparent_outputs": 24738,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 22681,
+        "orchard_actions": 24694,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4052398,
+      "last_height": 4133337,
+      "sample_heights": [
+        4119011,
+        4102413,
+        4112458
+      ],
+      "largest_block_heights": [
+        4123468,
+        4123469,
+        4123489
+      ]
+    },
+    "Nu6_2_sapling-orchard_4": {
+      "blocks": 3,
+      "block_bytes": 331224,
+      "counts": {
+        "transactions": 17,
+        "non_coinbase_transactions": 14,
+        "transparent_inputs": 1520,
+        "transparent_outputs": 5,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 5,
+        "sapling_spends": 4,
+        "sapling_outputs": 9,
+        "orchard_bundles": 10,
+        "orchard_actions": 20,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4054156,
+      "last_height": 4123652,
+      "sample_heights": [
+        4068217,
+        4123652,
+        4054156
+      ],
+      "largest_block_heights": [
+        4123652,
+        4054156,
+        4068217
+      ]
+    },
+    "Nu6_2_orchard_3": {
+      "blocks": 36,
+      "block_bytes": 10799377,
+      "counts": {
+        "transactions": 614,
+        "non_coinbase_transactions": 578,
+        "transparent_inputs": 1020,
+        "transparent_outputs": 80,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 578,
+        "orchard_actions": 2833,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4054169,
+      "last_height": 4133979,
+      "sample_heights": [
+        4093678,
+        4133979,
+        4093570
+      ],
+      "largest_block_heights": [
+        4133958,
+        4123942,
+        4092939
+      ]
+    },
+    "Nu6_2_sapling-orchard_2": {
+      "blocks": 22,
+      "block_bytes": 1284953,
+      "counts": {
+        "transactions": 156,
+        "non_coinbase_transactions": 134,
+        "transparent_inputs": 97,
+        "transparent_outputs": 61,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 58,
+        "sapling_spends": 56,
+        "sapling_outputs": 130,
+        "orchard_bundles": 79,
+        "orchard_actions": 272,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4054313,
+      "last_height": 4132082,
+      "sample_heights": [
+        4059787,
+        4121105,
+        4060050
+      ],
+      "largest_block_heights": [
+        4123923,
+        4121105,
+        4121812
+      ]
+    },
+    "Nu6_2_orchard_4": {
+      "blocks": 3,
+      "block_bytes": 331742,
+      "counts": {
+        "transactions": 7,
+        "non_coinbase_transactions": 4,
+        "transparent_inputs": 1903,
+        "transparent_outputs": 7,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 4,
+        "orchard_actions": 11,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4056150,
+      "last_height": 4133993,
+      "sample_heights": [
+        4056173,
+        4133993,
+        4056150
+      ],
+      "largest_block_heights": [
+        4056150,
+        4133993,
+        4056173
+      ]
+    },
+    "Nu6_2_sapling-orchard_0": {
+      "blocks": 95,
+      "block_bytes": 1118753,
+      "counts": {
+        "transactions": 190,
+        "non_coinbase_transactions": 95,
+        "transparent_inputs": 0,
+        "transparent_outputs": 97,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 95,
+        "sapling_spends": 0,
+        "sapling_outputs": 95,
+        "orchard_bundles": 95,
+        "orchard_actions": 190,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4060615,
+      "last_height": 4122882,
+      "sample_heights": [
+        4122515,
+        4122586,
+        4122852
+      ],
+      "largest_block_heights": [
+        4069618,
+        4073182,
+        4069078
+      ]
+    },
+    "Nu6_2_transparent_1": {
+      "blocks": 4,
+      "block_bytes": 12233,
+      "counts": {
+        "transactions": 9,
+        "non_coinbase_transactions": 5,
+        "transparent_inputs": 22,
+        "transparent_outputs": 27,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4061431,
+      "last_height": 4131103,
+      "sample_heights": [
+        4093171,
+        4061431,
+        4125410
+      ],
+      "largest_block_heights": [
+        4131103,
+        4125410,
+        4093171
+      ]
+    },
+    "Nu6_2_orchard_5": {
+      "blocks": 2,
+      "block_bytes": 538323,
+      "counts": {
+        "transactions": 4,
+        "non_coinbase_transactions": 2,
+        "transparent_inputs": 3503,
+        "transparent_outputs": 4,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 2,
+        "orchard_actions": 4,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4091969,
+      "last_height": 4124606,
+      "sample_heights": [
+        4091969,
+        4124606
+      ],
+      "largest_block_heights": [
+        4124606,
+        4091969
+      ]
+    },
+    "Nu6_2_sapling-orchard_3": {
+      "blocks": 23,
+      "block_bytes": 4881622,
+      "counts": {
+        "transactions": 111,
+        "non_coinbase_transactions": 88,
+        "transparent_inputs": 354,
+        "transparent_outputs": 885,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 34,
+        "sapling_spends": 18,
+        "sapling_outputs": 852,
+        "orchard_bundles": 70,
+        "orchard_actions": 1187,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4092987,
+      "last_height": 4131725,
+      "sample_heights": [
+        4092988,
+        4093685,
+        4093012
+      ],
+      "largest_block_heights": [
+        4129814,
+        4093685,
+        4093015
+      ]
+    },
+    "Nu6_2_transparent_3": {
+      "blocks": 1,
+      "block_bytes": 31525,
+      "counts": {
+        "transactions": 2,
+        "non_coinbase_transactions": 1,
+        "transparent_inputs": 100,
+        "transparent_outputs": 12,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4111896,
+      "last_height": 4111896,
+      "sample_heights": [
+        4111896
+      ],
+      "largest_block_heights": [
+        4111896
+      ]
+    },
+    "Nu6_2_sapling_2": {
+      "blocks": 18,
+      "block_bytes": 241144,
+      "counts": {
+        "transactions": 53,
+        "non_coinbase_transactions": 35,
+        "transparent_inputs": 461,
+        "transparent_outputs": 41,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 35,
+        "sapling_spends": 206,
+        "sapling_outputs": 70,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4122215,
+      "last_height": 4133984,
+      "sample_heights": [
+        4126044,
+        4129954,
+        4122215
+      ],
+      "largest_block_heights": [
+        4126058,
+        4126066,
+        4122215
+      ]
+    },
+    "Nu6_2_orchard_6": {
+      "blocks": 1,
+      "block_bytes": 932704,
+      "counts": {
+        "transactions": 6,
+        "non_coinbase_transactions": 5,
+        "transparent_inputs": 6002,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 5,
+        "orchard_actions": 10,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4123688,
+      "last_height": 4123688,
+      "sample_heights": [
+        4123688
+      ],
+      "largest_block_heights": [
+        4123688
+      ]
+    },
+    "Nu6_2_sapling_3": {
+      "blocks": 1,
+      "block_bytes": 40942,
+      "counts": {
+        "transactions": 3,
+        "non_coinbase_transactions": 2,
+        "transparent_inputs": 0,
+        "transparent_outputs": 4,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2,
+        "sapling_spends": 100,
+        "sapling_outputs": 4,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4126072,
+      "last_height": 4126072,
+      "sample_heights": [
+        4126072
+      ],
+      "largest_block_heights": [
+        4126072
+      ]
+    },
+    "Nu6_3_transparent_0": {
+      "blocks": 224664,
+      "block_bytes": 371902317,
+      "counts": {
+        "transactions": 234117,
+        "non_coinbase_transactions": 9453,
+        "transparent_inputs": 9625,
+        "transparent_outputs": 478860,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4134000,
+      "last_height": 4465014,
+      "sample_heights": [
+        4143668,
+        4305220,
+        4430087
+      ],
+      "largest_block_heights": [
+        4188081,
+        4258925,
+        4179701
+      ]
+    },
+    "Nu6_3_ironwood_0": {
+      "blocks": 84613,
+      "block_bytes": 681149431,
+      "counts": {
+        "transactions": 101258,
+        "non_coinbase_transactions": 16645,
+        "transparent_inputs": 9383,
+        "transparent_outputs": 118531,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 86299,
+        "ironwood_actions": 94354
+      },
+      "first_height": 4134683,
+      "last_height": 4465025,
+      "sample_heights": [
+        4436672,
+        4421058,
+        4323380
+      ],
+      "largest_block_heights": [
+        4365151,
+        4365234,
+        4365260
+      ]
+    },
+    "Nu6_3_ironwood_3": {
+      "blocks": 836,
+      "block_bytes": 344455033,
+      "counts": {
+        "transactions": 27796,
+        "non_coinbase_transactions": 26960,
+        "transparent_inputs": 7541,
+        "transparent_outputs": 1850,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 27059,
+        "ironwood_actions": 83882
+      },
+      "first_height": 4140903,
+      "last_height": 4464728,
+      "sample_heights": [
+        4307714,
+        4350127,
+        4307182
+      ],
+      "largest_block_heights": [
+        4308168,
+        4307778,
+        4307752
+      ]
+    },
+    "Nu6_3_ironwood_4": {
+      "blocks": 279,
+      "block_bytes": 474458190,
+      "counts": {
+        "transactions": 43295,
+        "non_coinbase_transactions": 43016,
+        "transparent_inputs": 5811,
+        "transparent_outputs": 690,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 43012,
+        "ironwood_actions": 111021
+      },
+      "first_height": 4140904,
+      "last_height": 4455783,
+      "sample_heights": [
+        4307825,
+        4307882,
+        4308204
+      ],
+      "largest_block_heights": [
+        4313431,
+        4313352,
+        4307799
+      ]
+    },
+    "Nu6_3_orchard-ironwood_2": {
+      "blocks": 109,
+      "block_bytes": 10083054,
+      "counts": {
+        "transactions": 463,
+        "non_coinbase_transactions": 354,
+        "transparent_inputs": 82,
+        "transparent_outputs": 254,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 267,
+        "orchard_actions": 2178,
+        "ironwood_bundles": 271,
+        "ironwood_actions": 471
+      },
+      "first_height": 4140905,
+      "last_height": 4456199,
+      "sample_heights": [
+        4190155,
+        4190444,
+        4186798
+      ],
+      "largest_block_heights": [
+        4179672,
+        4169908,
+        4431582
+      ]
+    },
+    "Nu6_3_ironwood_2": {
+      "blocks": 3023,
+      "block_bytes": 390787171,
+      "counts": {
+        "transactions": 20499,
+        "non_coinbase_transactions": 17476,
+        "transparent_inputs": 6354,
+        "transparent_outputs": 7177,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 17682,
+        "ironwood_actions": 105934
+      },
+      "first_height": 4140910,
+      "last_height": 4464982,
+      "sample_heights": [
+        4306984,
+        4316334,
+        4398658
+      ],
+      "largest_block_heights": [
+        4319259,
+        4307199,
+        4320074
+      ]
+    },
+    "Nu6_3_ironwood_5": {
+      "blocks": 8,
+      "block_bytes": 1801796,
+      "counts": {
+        "transactions": 33,
+        "non_coinbase_transactions": 25,
+        "transparent_inputs": 10713,
+        "transparent_outputs": 27,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 22,
+        "ironwood_actions": 46
+      },
+      "first_height": 4142875,
+      "last_height": 4409738,
+      "sample_heights": [
+        4332417,
+        4142887,
+        4409738
+      ],
+      "largest_block_heights": [
+        4332417,
+        4409737,
+        4409736
+      ]
+    },
+    "Nu6_3_orchard_0": {
+      "blocks": 22,
+      "block_bytes": 260430,
+      "counts": {
+        "transactions": 44,
+        "non_coinbase_transactions": 22,
+        "transparent_inputs": 0,
+        "transparent_outputs": 60,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 22,
+        "orchard_actions": 51,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4142961,
+      "last_height": 4374615,
+      "sample_heights": [
+        4285906,
+        4331013,
+        4142961
+      ],
+      "largest_block_heights": [
+        4169492,
+        4170108,
+        4142961
+      ]
+    },
+    "Nu6_3_orchard-ironwood_1": {
+      "blocks": 375,
+      "block_bytes": 10625471,
+      "counts": {
+        "transactions": 1008,
+        "non_coinbase_transactions": 633,
+        "transparent_inputs": 31,
+        "transparent_outputs": 849,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 506,
+        "orchard_actions": 1171,
+        "ironwood_bundles": 621,
+        "ironwood_actions": 983
+      },
+      "first_height": 4143602,
+      "last_height": 4460298,
+      "sample_heights": [
+        4148793,
+        4300210,
+        4247813
+      ],
+      "largest_block_heights": [
+        4237601,
+        4239741,
+        4190001
+      ]
+    },
+    "Nu6_3_orchard_3": {
+      "blocks": 1,
+      "block_bytes": 212795,
+      "counts": {
+        "transactions": 2,
+        "non_coinbase_transactions": 1,
+        "transparent_inputs": 0,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 1,
+        "orchard_actions": 66,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4143982,
+      "last_height": 4143982,
+      "sample_heights": [
+        4143982
+      ],
+      "largest_block_heights": [
+        4143982
+      ]
+    },
+    "Nu6_3_ironwood_1": {
+      "blocks": 4594,
+      "block_bytes": 123871363,
+      "counts": {
+        "transactions": 14550,
+        "non_coinbase_transactions": 9956,
+        "transparent_inputs": 3451,
+        "transparent_outputs": 14662,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 9243,
+        "ironwood_actions": 28247
+      },
+      "first_height": 4144425,
+      "last_height": 4464998,
+      "sample_heights": [
+        4342212,
+        4424535,
+        4369259
+      ],
+      "largest_block_heights": [
+        4311019,
+        4315143,
+        4384469
+      ]
+    },
+    "Nu6_3_sapling_0": {
+      "blocks": 2458,
+      "block_bytes": 6840112,
+      "counts": {
+        "transactions": 2742,
+        "non_coinbase_transactions": 284,
+        "transparent_inputs": 166,
+        "transparent_outputs": 2891,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2458,
+        "sapling_spends": 123,
+        "sapling_outputs": 2728,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4147145,
+      "last_height": 4430127,
+      "sample_heights": [
+        4225646,
+        4333839,
+        4333222
+      ],
+      "largest_block_heights": [
+        4259826,
+        4365662,
+        4257936
+      ]
+    },
+    "Nu6_3_sapling_2": {
+      "blocks": 499,
+      "block_bytes": 3989521,
+      "counts": {
+        "transactions": 1119,
+        "non_coinbase_transactions": 620,
+        "transparent_inputs": 13383,
+        "transparent_outputs": 1139,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 592,
+        "sapling_spends": 21,
+        "sapling_outputs": 1186,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4147442,
+      "last_height": 4338408,
+      "sample_heights": [
+        4187944,
+        4208873,
+        4220964
+      ],
+      "largest_block_heights": [
+        4187962,
+        4187139,
+        4187130
+      ]
+    },
+    "Nu6_3_sapling-ironwood_2": {
+      "blocks": 1390,
+      "block_bytes": 51614063,
+      "counts": {
+        "transactions": 5763,
+        "non_coinbase_transactions": 4373,
+        "transparent_inputs": 19413,
+        "transparent_outputs": 4672,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 2797,
+        "sapling_spends": 2949,
+        "sapling_outputs": 5633,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 2922,
+        "ironwood_actions": 9951
+      },
+      "first_height": 4147471,
+      "last_height": 4430139,
+      "sample_heights": [
+        4162693,
+        4275928,
+        4152754
+      ],
+      "largest_block_heights": [
+        4315370,
+        4316170,
+        4317188
+      ]
+    },
+    "Nu6_3_sapling_3": {
+      "blocks": 117,
+      "block_bytes": 2776726,
+      "counts": {
+        "transactions": 478,
+        "non_coinbase_transactions": 361,
+        "transparent_inputs": 13414,
+        "transparent_outputs": 364,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 297,
+        "sapling_spends": 7,
+        "sapling_outputs": 594,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4147494,
+      "last_height": 4338563,
+      "sample_heights": [
+        4209386,
+        4259537,
+        4235117
+      ],
+      "largest_block_heights": [
+        4220382,
+        4295079,
+        4207259
+      ]
+    },
+    "Nu6_3_sapling-orchard-ironwood_5": {
+      "blocks": 1,
+      "block_bytes": 560689,
+      "counts": {
+        "transactions": 54,
+        "non_coinbase_transactions": 53,
+        "transparent_inputs": 2500,
+        "transparent_outputs": 8,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 52,
+        "sapling_spends": 7,
+        "sapling_outputs": 104,
+        "orchard_bundles": 1,
+        "orchard_actions": 10,
+        "ironwood_bundles": 3,
+        "ironwood_actions": 13
+      },
+      "first_height": 4147597,
+      "last_height": 4147597,
+      "sample_heights": [
+        4147597
+      ],
+      "largest_block_heights": [
+        4147597
+      ]
+    },
+    "Nu6_3_sapling_4": {
+      "blocks": 12,
+      "block_bytes": 813141,
+      "counts": {
+        "transactions": 97,
+        "non_coinbase_transactions": 85,
+        "transparent_inputs": 4231,
+        "transparent_outputs": 24,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 85,
+        "sapling_spends": 0,
+        "sapling_outputs": 170,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4147680,
+      "last_height": 4314245,
+      "sample_heights": [
+        4207271,
+        4220341,
+        4305671
+      ],
+      "largest_block_heights": [
+        4243951,
+        4314245,
+        4305671
+      ]
+    },
+    "Nu6_3_sapling-ironwood_4": {
+      "blocks": 59,
+      "block_bytes": 40594785,
+      "counts": {
+        "transactions": 2406,
+        "non_coinbase_transactions": 2347,
+        "transparent_inputs": 9383,
+        "transparent_outputs": 151,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 316,
+        "sapling_spends": 165,
+        "sapling_outputs": 632,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 2101,
+        "ironwood_actions": 10275
+      },
+      "first_height": 4147805,
+      "last_height": 4338370,
+      "sample_heights": [
+        4317378,
+        4236867,
+        4220349
+      ],
+      "largest_block_heights": [
+        4307932,
+        4307908,
+        4316163
+      ]
+    },
+    "Nu6_3_sapling-orchard-ironwood_4": {
+      "blocks": 3,
+      "block_bytes": 500721,
+      "counts": {
+        "transactions": 45,
+        "non_coinbase_transactions": 42,
+        "transparent_inputs": 1589,
+        "transparent_outputs": 15,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 35,
+        "sapling_spends": 4,
+        "sapling_outputs": 70,
+        "orchard_bundles": 3,
+        "orchard_actions": 40,
+        "ironwood_bundles": 6,
+        "ironwood_actions": 12
+      },
+      "first_height": 4147884,
+      "last_height": 4278553,
+      "sample_heights": [
+        4147884,
+        4278553,
+        4243948
+      ],
+      "largest_block_heights": [
+        4147884,
+        4243948,
+        4278553
+      ]
+    },
+    "Nu6_3_sapling-ironwood_5": {
+      "blocks": 4,
+      "block_bytes": 1615020,
+      "counts": {
+        "transactions": 168,
+        "non_coinbase_transactions": 164,
+        "transparent_inputs": 7141,
+        "transparent_outputs": 26,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 156,
+        "sapling_spends": 95,
+        "sapling_outputs": 315,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 15,
+        "ironwood_actions": 52
+      },
+      "first_height": 4147948,
+      "last_height": 4261019,
+      "sample_heights": [
+        4147959,
+        4261019,
+        4147948
+      ],
+      "largest_block_heights": [
+        4261019,
+        4147948,
+        4147985
+      ]
+    },
+    "Nu6_3_sapling-ironwood_3": {
+      "blocks": 376,
+      "block_bytes": 91932322,
+      "counts": {
+        "transactions": 7215,
+        "non_coinbase_transactions": 6839,
+        "transparent_inputs": 19298,
+        "transparent_outputs": 929,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1216,
+        "sapling_spends": 842,
+        "sapling_outputs": 2433,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 6028,
+        "ironwood_actions": 21713
+      },
+      "first_height": 4148149,
+      "last_height": 4341958,
+      "sample_heights": [
+        4316938,
+        4250941,
+        4275478
+      ],
+      "largest_block_heights": [
+        4316846,
+        4316824,
+        4317023
+      ]
+    },
+    "Nu6_3_sapling-orchard-ironwood_3": {
+      "blocks": 12,
+      "block_bytes": 1809737,
+      "counts": {
+        "transactions": 147,
+        "non_coinbase_transactions": 135,
+        "transparent_inputs": 636,
+        "transparent_outputs": 30,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 50,
+        "sapling_spends": 119,
+        "sapling_outputs": 100,
+        "orchard_bundles": 35,
+        "orchard_actions": 72,
+        "ironwood_bundles": 103,
+        "ironwood_actions": 296
+      },
+      "first_height": 4148670,
+      "last_height": 4316970,
+      "sample_heights": [
+        4148670,
+        4239777,
+        4214800
+      ],
+      "largest_block_heights": [
+        4316970,
+        4174426,
+        4315555
+      ]
+    },
+    "Nu6_3_sapling_1": {
+      "blocks": 1490,
+      "block_bytes": 7006207,
+      "counts": {
+        "transactions": 3128,
+        "non_coinbase_transactions": 1638,
+        "transparent_inputs": 8655,
+        "transparent_outputs": 3324,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1618,
+        "sapling_spends": 129,
+        "sapling_outputs": 3234,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4148678,
+      "last_height": 4430183,
+      "sample_heights": [
+        4295939,
+        4249118,
+        4299062
+      ],
+      "largest_block_heights": [
+        4375546,
+        4187078,
+        4187104
+      ]
+    },
+    "Nu6_3_sapling-ironwood_1": {
+      "blocks": 4671,
+      "block_bytes": 73296296,
+      "counts": {
+        "transactions": 13043,
+        "non_coinbase_transactions": 8372,
+        "transparent_inputs": 13283,
+        "transparent_outputs": 13772,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 7699,
+        "sapling_spends": 5250,
+        "sapling_outputs": 15385,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 5054,
+        "ironwood_actions": 10102
+      },
+      "first_height": 4148680,
+      "last_height": 4460226,
+      "sample_heights": [
+        4177989,
+        4288960,
+        4179464
+      ],
+      "largest_block_heights": [
+        4299855,
+        4419447,
+        4317827
+      ]
+    },
+    "Nu6_3_orchard_2": {
+      "blocks": 282,
+      "block_bytes": 16453036,
+      "counts": {
+        "transactions": 585,
+        "non_coinbase_transactions": 303,
+        "transparent_inputs": 4,
+        "transparent_outputs": 580,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 299,
+        "orchard_actions": 4796,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4149328,
+      "last_height": 4406930,
+      "sample_heights": [
+        4234489,
+        4197951,
+        4253898
+      ],
+      "largest_block_heights": [
+        4149328,
+        4151550,
+        4406930
+      ]
+    },
+    "Nu6_3_orchard_1": {
+      "blocks": 26,
+      "block_bytes": 667965,
+      "counts": {
+        "transactions": 59,
+        "non_coinbase_transactions": 33,
+        "transparent_inputs": 1,
+        "transparent_outputs": 64,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 32,
+        "orchard_actions": 169,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4150593,
+      "last_height": 4390998,
+      "sample_heights": [
+        4175169,
+        4175219,
+        4206943
+      ],
+      "largest_block_heights": [
+        4390998,
+        4390997,
+        4192363
+      ]
+    },
+    "Nu6_3_sapling-orchard-ironwood_1": {
+      "blocks": 122,
+      "block_bytes": 3569871,
+      "counts": {
+        "transactions": 436,
+        "non_coinbase_transactions": 314,
+        "transparent_inputs": 299,
+        "transparent_outputs": 353,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 184,
+        "sapling_spends": 98,
+        "sapling_outputs": 368,
+        "orchard_bundles": 127,
+        "orchard_actions": 284,
+        "ironwood_bundles": 216,
+        "ironwood_actions": 332
+      },
+      "first_height": 4150785,
+      "last_height": 4401910,
+      "sample_heights": [
+        4244282,
+        4237504,
+        4214949
+      ],
+      "largest_block_heights": [
+        4174427,
+        4176893,
+        4305013
+      ]
+    },
+    "Nu6_3_sapling-orchard-ironwood_2": {
+      "blocks": 175,
+      "block_bytes": 11111836,
+      "counts": {
+        "transactions": 802,
+        "non_coinbase_transactions": 627,
+        "transparent_inputs": 1258,
+        "transparent_outputs": 509,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 309,
+        "sapling_spends": 165,
+        "sapling_outputs": 618,
+        "orchard_bundles": 279,
+        "orchard_actions": 1898,
+        "ironwood_bundles": 370,
+        "ironwood_actions": 672
+      },
+      "first_height": 4151545,
+      "last_height": 4370591,
+      "sample_heights": [
+        4155702,
+        4199747,
+        4248520
+      ],
+      "largest_block_heights": [
+        4240460,
+        4324657,
+        4370591
+      ]
+    },
+    "Nu6_3_sapling-orchard_1": {
+      "blocks": 5,
+      "block_bytes": 80830,
+      "counts": {
+        "transactions": 12,
+        "non_coinbase_transactions": 7,
+        "transparent_inputs": 5,
+        "transparent_outputs": 10,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 5,
+        "sapling_spends": 1,
+        "sapling_outputs": 10,
+        "orchard_bundles": 5,
+        "orchard_actions": 15,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4155464,
+      "last_height": 4208603,
+      "sample_heights": [
+        4193308,
+        4155464,
+        4208603
+      ],
+      "largest_block_heights": [
+        4208603,
+        4176730,
+        4193499
+      ]
+    },
+    "Nu6_3_orchard-ironwood_0": {
+      "blocks": 582,
+      "block_bytes": 9772021,
+      "counts": {
+        "transactions": 1164,
+        "non_coinbase_transactions": 582,
+        "transparent_inputs": 0,
+        "transparent_outputs": 1164,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 582,
+        "orchard_actions": 1164,
+        "ironwood_bundles": 582,
+        "ironwood_actions": 582
+      },
+      "first_height": 4169910,
+      "last_height": 4430206,
+      "sample_heights": [
+        4211545,
+        4241887,
+        4199029
+      ],
+      "largest_block_heights": [
+        4304626,
+        4304627,
+        4348182
+      ]
+    },
+    "Nu6_3_transparent_1": {
+      "blocks": 70,
+      "block_bytes": 219724,
+      "counts": {
+        "transactions": 269,
+        "non_coinbase_transactions": 199,
+        "transparent_inputs": 445,
+        "transparent_outputs": 742,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4178707,
+      "last_height": 4428315,
+      "sample_heights": [
+        4360445,
+        4226250,
+        4226766
+      ],
+      "largest_block_heights": [
+        4179902,
+        4337380,
+        4338332
+      ]
+    },
+    "Nu6_3_transparent_4": {
+      "blocks": 2,
+      "block_bytes": 156986,
+      "counts": {
+        "transactions": 102,
+        "non_coinbase_transactions": 100,
+        "transparent_inputs": 1002,
+        "transparent_outputs": 105,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4179657,
+      "last_height": 4179661,
+      "sample_heights": [
+        4179657,
+        4179661
+      ],
+      "largest_block_heights": [
+        4179657,
+        4179661
+      ]
+    },
+    "Nu6_3_transparent_3": {
+      "blocks": 11,
+      "block_bytes": 286151,
+      "counts": {
+        "transactions": 248,
+        "non_coinbase_transactions": 237,
+        "transparent_inputs": 1467,
+        "transparent_outputs": 900,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4179685,
+      "last_height": 4199203,
+      "sample_heights": [
+        4187994,
+        4186754,
+        4187993
+      ],
+      "largest_block_heights": [
+        4188193,
+        4179685,
+        4187993
+      ]
+    },
+    "Nu6_3_transparent_2": {
+      "blocks": 19,
+      "block_bytes": 171252,
+      "counts": {
+        "transactions": 309,
+        "non_coinbase_transactions": 290,
+        "transparent_inputs": 611,
+        "transparent_outputs": 928,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4179689,
+      "last_height": 4390000,
+      "sample_heights": [
+        4337446,
+        4188186,
+        4187989
+      ],
+      "largest_block_heights": [
+        4179689,
+        4374633,
+        4198687
+      ]
+    },
+    "Nu6_3_sapling-orchard_2": {
+      "blocks": 14,
+      "block_bytes": 917000,
+      "counts": {
+        "transactions": 45,
+        "non_coinbase_transactions": 31,
+        "transparent_inputs": 77,
+        "transparent_outputs": 40,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 14,
+        "sapling_spends": 2,
+        "sapling_outputs": 28,
+        "orchard_bundles": 16,
+        "orchard_actions": 256,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4180820,
+      "last_height": 4247159,
+      "sample_heights": [
+        4198185,
+        4180820,
+        4240430
+      ],
+      "largest_block_heights": [
+        4240430,
+        4223039,
+        4197252
+      ]
+    },
+    "Nu6_3_orchard-ironwood_3": {
+      "blocks": 7,
+      "block_bytes": 2561295,
+      "counts": {
+        "transactions": 69,
+        "non_coinbase_transactions": 62,
+        "transparent_inputs": 2,
+        "transparent_outputs": 11,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 18,
+        "orchard_actions": 437,
+        "ironwood_bundles": 65,
+        "ironwood_actions": 296
+      },
+      "first_height": 4189441,
+      "last_height": 4315526,
+      "sample_heights": [
+        4189441,
+        4315526,
+        4315484
+      ],
+      "largest_block_heights": [
+        4190777,
+        4190756,
+        4315484
+      ]
+    },
+    "Nu6_3_sapling-orchard_3": {
+      "blocks": 1,
+      "block_bytes": 92469,
+      "counts": {
+        "transactions": 6,
+        "non_coinbase_transactions": 5,
+        "transparent_inputs": 200,
+        "transparent_outputs": 2,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 4,
+        "sapling_spends": 0,
+        "sapling_outputs": 8,
+        "orchard_bundles": 1,
+        "orchard_actions": 16,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4210718,
+      "last_height": 4210718,
+      "sample_heights": [
+        4210718
+      ],
+      "largest_block_heights": [
+        4210718
+      ]
+    },
+    "Nu6_3_orchard-ironwood_4": {
+      "blocks": 3,
+      "block_bytes": 5990632,
+      "counts": {
+        "transactions": 476,
+        "non_coinbase_transactions": 473,
+        "transparent_inputs": 4,
+        "transparent_outputs": 6,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 3,
+        "orchard_actions": 6,
+        "ironwood_bundles": 473,
+        "ironwood_actions": 1460
+      },
+      "first_height": 4307796,
+      "last_height": 4313458,
+      "sample_heights": [
+        4313458,
+        4307874,
+        4307796
+      ],
+      "largest_block_heights": [
+        4307874,
+        4313458,
+        4307796
+      ]
+    },
+    "Nu6_3_sapling-ironwood_0": {
+      "blocks": 91,
+      "block_bytes": 1074916,
+      "counts": {
+        "transactions": 182,
+        "non_coinbase_transactions": 91,
+        "transparent_inputs": 0,
+        "transparent_outputs": 94,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 91,
+        "sapling_spends": 0,
+        "sapling_outputs": 91,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 91,
+        "ironwood_actions": 182
+      },
+      "first_height": 4333328,
+      "last_height": 4384105,
+      "sample_heights": [
+        4340752,
+        4334252,
+        4334276
+      ],
+      "largest_block_heights": [
+        4334198,
+        4334238,
+        4333328
+      ]
+    },
+    "Nu7_ironwood_0": {
+      "blocks": 10677,
+      "block_bytes": 90957460,
+      "counts": {
+        "transactions": 20544,
+        "non_coinbase_transactions": 9867,
+        "transparent_inputs": 8669,
+        "transparent_outputs": 33683,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 11219,
+        "ironwood_actions": 12573
+      },
+      "first_height": 4465026,
+      "last_height": 4529880,
+      "sample_heights": [
+        4465168,
+        4469283,
+        4469047
+      ],
+      "largest_block_heights": [
+        4520156,
+        4522616,
+        4481742
+      ]
+    },
+    "Nu7_transparent_0": {
+      "blocks": 46169,
+      "block_bytes": 77962731,
+      "counts": {
+        "transactions": 52310,
+        "non_coinbase_transactions": 6141,
+        "transparent_inputs": 6152,
+        "transparent_outputs": 86292,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4465065,
+      "last_height": 4529879,
+      "sample_heights": [
+        4522308,
+        4486826,
+        4519033
+      ],
+      "largest_block_heights": [
+        4481060,
+        4480024,
+        4481039
+      ]
+    },
+    "Nu7_ironwood_2": {
+      "blocks": 1442,
+      "block_bytes": 159412439,
+      "counts": {
+        "transactions": 11513,
+        "non_coinbase_transactions": 10071,
+        "transparent_inputs": 4886,
+        "transparent_outputs": 14711,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 5899,
+        "ironwood_actions": 43988
+      },
+      "first_height": 4465071,
+      "last_height": 4529712,
+      "sample_heights": [
+        4499241,
+        4483759,
+        4475051
+      ],
+      "largest_block_heights": [
+        4486082,
+        4482558,
+        4475192
+      ]
+    },
+    "Nu7_ironwood_1": {
+      "blocks": 6071,
+      "block_bytes": 134440818,
+      "counts": {
+        "transactions": 26848,
+        "non_coinbase_transactions": 20777,
+        "transparent_inputs": 11679,
+        "transparent_outputs": 41281,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 12228,
+        "ironwood_actions": 27357
+      },
+      "first_height": 4465083,
+      "last_height": 4529861,
+      "sample_heights": [
+        4512830,
+        4520552,
+        4482975
+      ],
+      "largest_block_heights": [
+        4528039,
+        4523018,
+        4466791
+      ]
+    },
+    "Nu7_ironwood_3": {
+      "blocks": 59,
+      "block_bytes": 17396834,
+      "counts": {
+        "transactions": 698,
+        "non_coinbase_transactions": 639,
+        "transparent_inputs": 199,
+        "transparent_outputs": 649,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 464,
+        "ironwood_actions": 5043
+      },
+      "first_height": 4465148,
+      "last_height": 4520759,
+      "sample_heights": [
+        4506255,
+        4506249,
+        4474349
+      ],
+      "largest_block_heights": [
+        4506352,
+        4465348,
+        4482765
+      ]
+    },
+    "Nu7_sapling-ironwood_1": {
+      "blocks": 59,
+      "block_bytes": 1397982,
+      "counts": {
+        "transactions": 235,
+        "non_coinbase_transactions": 176,
+        "transparent_inputs": 85,
+        "transparent_outputs": 342,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 59,
+        "sapling_spends": 27,
+        "sapling_outputs": 125,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 117,
+        "ironwood_actions": 257
+      },
+      "first_height": 4465235,
+      "last_height": 4529126,
+      "sample_heights": [
+        4501205,
+        4522042,
+        4515337
+      ],
+      "largest_block_heights": [
+        4479519,
+        4488522,
+        4488610
+      ]
+    },
+    "Nu7_sapling-ironwood_2": {
+      "blocks": 107,
+      "block_bytes": 8230928,
+      "counts": {
+        "transactions": 683,
+        "non_coinbase_transactions": 576,
+        "transparent_inputs": 281,
+        "transparent_outputs": 1022,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 128,
+        "sapling_spends": 3,
+        "sapling_outputs": 333,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 348,
+        "ironwood_actions": 2108
+      },
+      "first_height": 4465237,
+      "last_height": 4528956,
+      "sample_heights": [
+        4488803,
+        4472158,
+        4489287
+      ],
+      "largest_block_heights": [
+        4472136,
+        4482847,
+        4473600
+      ]
+    },
+    "Nu7_ironwood_4": {
+      "blocks": 4,
+      "block_bytes": 2946573,
+      "counts": {
+        "transactions": 24,
+        "non_coinbase_transactions": 20,
+        "transparent_inputs": 792,
+        "transparent_outputs": 19,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 17,
+        "ironwood_actions": 879
+      },
+      "first_height": 4465347,
+      "last_height": 4509237,
+      "sample_heights": [
+        4509237,
+        4465360,
+        4501198
+      ],
+      "largest_block_heights": [
+        4465360,
+        4509237,
+        4465347
+      ]
+    },
+    "Nu7_orchard-ironwood_2": {
+      "blocks": 15,
+      "block_bytes": 1779740,
+      "counts": {
+        "transactions": 115,
+        "non_coinbase_transactions": 100,
+        "transparent_inputs": 44,
+        "transparent_outputs": 145,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 25,
+        "orchard_actions": 265,
+        "ironwood_bundles": 45,
+        "ironwood_actions": 224
+      },
+      "first_height": 4471037,
+      "last_height": 4528388,
+      "sample_heights": [
+        4504160,
+        4506302,
+        4506087
+      ],
+      "largest_block_heights": [
+        4506087,
+        4506107,
+        4506159
+      ]
+    },
+    "Nu7_transparent_1": {
+      "blocks": 148,
+      "block_bytes": 458499,
+      "counts": {
+        "transactions": 868,
+        "non_coinbase_transactions": 720,
+        "transparent_inputs": 761,
+        "transparent_outputs": 1708,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4471162,
+      "last_height": 4528204,
+      "sample_heights": [
+        4482800,
+        4475655,
+        4483214
+      ],
+      "largest_block_heights": [
+        4486333,
+        4483214,
+        4497611
+      ]
+    },
+    "Nu7_transparent_2": {
+      "blocks": 8,
+      "block_bytes": 54575,
+      "counts": {
+        "transactions": 163,
+        "non_coinbase_transactions": 155,
+        "transparent_inputs": 155,
+        "transparent_outputs": 315,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4472775,
+      "last_height": 4520243,
+      "sample_heights": [
+        4481730,
+        4498242,
+        4520107
+      ],
+      "largest_block_heights": [
+        4497586,
+        4498242,
+        4481730
+      ]
+    },
+    "Nu7_sapling_1": {
+      "blocks": 5,
+      "block_bytes": 23931,
+      "counts": {
+        "transactions": 21,
+        "non_coinbase_transactions": 16,
+        "transparent_inputs": 13,
+        "transparent_outputs": 55,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 5,
+        "sapling_spends": 5,
+        "sapling_outputs": 10,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4473497,
+      "last_height": 4490144,
+      "sample_heights": [
+        4480980,
+        4473497,
+        4479866
+      ],
+      "largest_block_heights": [
+        4479866,
+        4480980,
+        4490144
+      ]
+    },
+    "Nu7_sapling-ironwood_3": {
+      "blocks": 11,
+      "block_bytes": 2467247,
+      "counts": {
+        "transactions": 107,
+        "non_coinbase_transactions": 96,
+        "transparent_inputs": 30,
+        "transparent_outputs": 84,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 41,
+        "sapling_spends": 162,
+        "sapling_outputs": 152,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 68,
+        "ironwood_actions": 647
+      },
+      "first_height": 4473592,
+      "last_height": 4519909,
+      "sample_heights": [
+        4488414,
+        4481372,
+        4488395
+      ],
+      "largest_block_heights": [
+        4488414,
+        4488390,
+        4481379
+      ]
+    },
+    "Nu7_orchard-ironwood_1": {
+      "blocks": 68,
+      "block_bytes": 1951363,
+      "counts": {
+        "transactions": 287,
+        "non_coinbase_transactions": 219,
+        "transparent_inputs": 95,
+        "transparent_outputs": 331,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 71,
+        "orchard_actions": 151,
+        "ironwood_bundles": 151,
+        "ironwood_actions": 224
+      },
+      "first_height": 4479461,
+      "last_height": 4529497,
+      "sample_heights": [
+        4505779,
+        4505927,
+        4523473
+      ],
+      "largest_block_heights": [
+        4512293,
+        4513323,
+        4526336
+      ]
+    },
+    "Nu7_sapling-orchard-ironwood_1": {
+      "blocks": 1,
+      "block_bytes": 38695,
+      "counts": {
+        "transactions": 6,
+        "non_coinbase_transactions": 5,
+        "transparent_inputs": 4,
+        "transparent_outputs": 10,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1,
+        "sapling_spends": 0,
+        "sapling_outputs": 2,
+        "orchard_bundles": 1,
+        "orchard_actions": 5,
+        "ironwood_bundles": 1,
+        "ironwood_actions": 4
+      },
+      "first_height": 4479553,
+      "last_height": 4479553,
+      "sample_heights": [
+        4479553
+      ],
+      "largest_block_heights": [
+        4479553
+      ]
+    },
+    "Nu7_orchard_2": {
+      "blocks": 1,
+      "block_bytes": 108894,
+      "counts": {
+        "transactions": 5,
+        "non_coinbase_transactions": 4,
+        "transparent_inputs": 2,
+        "transparent_outputs": 7,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 2,
+        "orchard_actions": 32,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4506161,
+      "last_height": 4506161,
+      "sample_heights": [
+        4506161
+      ],
+      "largest_block_heights": [
+        4506161
+      ]
+    },
+    "Nu7_sapling_2": {
+      "blocks": 1,
+      "block_bytes": 11721,
+      "counts": {
+        "transactions": 3,
+        "non_coinbase_transactions": 2,
+        "transparent_inputs": 1,
+        "transparent_outputs": 5,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 1,
+        "sapling_spends": 22,
+        "sapling_outputs": 2,
+        "orchard_bundles": 0,
+        "orchard_actions": 0,
+        "ironwood_bundles": 0,
+        "ironwood_actions": 0
+      },
+      "first_height": 4519849,
+      "last_height": 4519849,
+      "sample_heights": [
+        4519849
+      ],
+      "largest_block_heights": [
+        4519849
+      ]
+    },
+    "Nu7_orchard-ironwood_3": {
+      "blocks": 1,
+      "block_bytes": 340575,
+      "counts": {
+        "transactions": 40,
+        "non_coinbase_transactions": 39,
+        "transparent_inputs": 9,
+        "transparent_outputs": 17,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 1,
+        "orchard_actions": 2,
+        "ironwood_bundles": 36,
+        "ironwood_actions": 71
+      },
+      "first_height": 4522706,
+      "last_height": 4522706,
+      "sample_heights": [
+        4522706
+      ],
+      "largest_block_heights": [
+        4522706
+      ]
+    },
+    "Nu7_orchard-ironwood_0": {
+      "blocks": 8,
+      "block_bytes": 134300,
+      "counts": {
+        "transactions": 16,
+        "non_coinbase_transactions": 8,
+        "transparent_inputs": 0,
+        "transparent_outputs": 8,
+        "sprout_phgr_proofs": 0,
+        "sprout_groth16_proofs": 0,
+        "sprout_signatures": 0,
+        "sapling_bundles": 0,
+        "sapling_spends": 0,
+        "sapling_outputs": 0,
+        "orchard_bundles": 8,
+        "orchard_actions": 16,
+        "ironwood_bundles": 8,
+        "ironwood_actions": 8
+      },
+      "first_height": 4523059,
+      "last_height": 4527224,
+      "sample_heights": [
+        4524153,
+        4525176,
+        4526657
+      ],
+      "largest_block_heights": [
+        4523059,
+        4523230,
+        4525176
+      ]
+    }
+  },
+  "total_cycle_estimate": null,
+  "consensus_verified": false,
+  "proof_generated": false,
+  "paid_jobs": 0,
+  "full_inventory_sha256": "313a6e46f374e6fc9e095dfe40cd5d04e5ff934f46f2383115d31a852f0a8ab6",
+  "completion": {
+    "ended_utc": "2026-10-23T01:55:27.149695+00:00",
+    "returncode": 0,
+    "observed_memory_peak_bytes": 98410496,
+    "cpu_quota_percent": 100,
+    "memory_max_bytes": 536870912,
+    "max_rate": 1000
+  },
+  "scope": "Complete native workload inventory of the pinned Testnet snapshot. Counts are not VM cycles or cryptographic source evidence.",
+  "implementation_commit": "a82e09b",
+  "compact_groups": true,
+  "groups_truncated": false
+}
