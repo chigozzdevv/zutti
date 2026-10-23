@@ -1,0 +1,18 @@
+{
+  "crate": "halo2_proofs",
+  "version": "0.4.0",
+  "upstream_archive_sha256": "f5af2a9457f494f862cd07b81c2e98a19f50b06a2057b7569450d7c26b167d1c",
+  "scope": "Select the existing sequential paths on target_os=zkvm; native configurations and verification equations remain unchanged.",
+  "changes": [
+    {
+      "file": "src/multicore.rs",
+      "upstream_sha256": "ec65ea5a455d2c4ef12097391850af1a98f44464652d55c24bc58d8e3214e1e8",
+      "patched_sha256": "132be89cf46002ebaaf01a87dae1153cc26e724d04100abbab7c3a120772567a"
+    },
+    {
+      "file": "src/plonk/verifier/batch.rs",
+      "upstream_sha256": "dd91b8e915794516665df699a3e8b63c81b8618d98d510ffb06d2c0b7bdd0f12",
+      "patched_sha256": "6a92f9cee5d9f95a168166d7c3fd2b70ced79fbeaa35053b30271112cd36569c"
+    }
+  ]
+}

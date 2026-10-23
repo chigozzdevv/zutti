@@ -1,0 +1,13 @@
+{
+  "crate": "maybe-rayon",
+  "version": "0.1.1",
+  "upstream_archive_sha256": "8ea1f30cedd69f0a2954655f7188c6a834246d2bcf1e315e2ac40c4b24dc9519",
+  "scope": "Select the existing sequential paths on target_os=zkvm; native configurations and verification equations remain unchanged.",
+  "changes": [
+    {
+      "file": "src/lib.rs",
+      "upstream_sha256": "06a316ff5d8f05549ecb40f08ff97ba9e569c937bc25c82ddfefcb121a145e76",
+      "patched_sha256": "92a0af5fc29158c8854bdc67fc1b11778ea7bf370f23125adba1f945c4b22e6a"
+    }
+  ]
+}

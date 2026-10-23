@@ -1591,8 +1591,6 @@ dependencies = [
 [[package]]
 name = "halo2_proofs"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5af2a9457f494f862cd07b81c2e98a19f50b06a2057b7569450d7c26b167d1c"
 dependencies = [
  "blake2b_simd",
  "ff 0.14.0",
@@ -2022,8 +2020,6 @@ dependencies = [
 [[package]]
 name = "maybe-rayon"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ea1f30cedd69f0a2954655f7188c6a834246d2bcf1e315e2ac40c4b24dc9519"
 dependencies = [
  "cfg-if",
  "rayon",
