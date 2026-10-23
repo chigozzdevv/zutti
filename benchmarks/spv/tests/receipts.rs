@@ -6,10 +6,10 @@ use zutti_source::spv::{HEADER_BYTES, HeaderClaim, Policy, Witness};
 use zutti_spv_prototype::{check_previous, read_receipt, verify};
 
 fn genuine_genesis() -> (Receipt, Digest, Vec<u8>) {
-    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/genesis");
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/genesis-v2");
     let receipt = read_receipt(&directory.join("receipt.bin")).unwrap();
     let image = Digest(
-        hex::decode("de286cb10a4a1e1e540a9f154962d4e9235500ccee85c653781f52ff82da39f4")
+        hex::decode("5b1db5eb5db64f783127cb2083c232a06e34c8a238e1aacb0a6c165c6b26b8bd")
             .unwrap()
             .try_into()
             .unwrap(),
@@ -101,4 +101,18 @@ fn continuation_requires_genuine_evidence_for_the_exact_predecessor() {
     };
     assert!(check_previous(&witness, None, Digest([1; 32])).is_err());
     assert!(check_previous(&witness, None, Digest([9; 32])).is_err());
+}
+
+#[test]
+fn legacy_receipt_verifies_only_its_old_statement_and_is_not_a_v2_prefix() {
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/genesis");
+    let receipt = read_receipt(&directory.join("receipt.bin")).unwrap();
+    let image = Digest(
+        hex::decode("de286cb10a4a1e1e540a9f154962d4e9235500ccee85c653781f52ff82da39f4")
+            .unwrap()
+            .try_into()
+            .unwrap(),
+    );
+    verify(&receipt, image, &receipt.journal.bytes).unwrap();
+    assert!(HeaderClaim::from_bytes(&receipt.journal.bytes).is_err());
 }

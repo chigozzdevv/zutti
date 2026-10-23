@@ -8,11 +8,14 @@ use zcash_protocol::consensus::{NetworkType, TEST_NETWORK};
 use zutti_protocol::{Digest, Secret32, encoding::Canonical};
 use zutti_source::{
     block::ParsedBlock,
-    spv::{Branch, HEADER_BYTES, HeaderClaim, Policy, WindowTerms, WindowWitness, Witness},
+    spv::{
+        AdmissionWitness, Branch, HEADER_BYTES, HeaderClaim, Policy, WindowTerms, WindowWitness,
+        Witness,
+    },
 };
 use zutti_spv_prototype::{
     DEFAULT_CYCLES, MAX_CYCLES, Result, RunOptions, audit, bounded, image, read_receipt, reject,
-    run, verify, verify_header_receipt, write_new,
+    run, run_admission, verify, verify_header_receipt, write_new,
 };
 
 #[derive(Debug, Parser)]
@@ -25,10 +28,24 @@ struct Args {
 #[derive(Debug, Subcommand)]
 enum Command {
     Build {
+        #[arg(long, value_enum, default_value = "source")]
+        kind: Guest,
         #[arg(long)]
         guest_target: PathBuf,
         #[arg(long)]
         out: PathBuf,
+    },
+    Admission {
+        #[arg(long)]
+        program: PathBuf,
+        #[arg(long)]
+        header_program: PathBuf,
+        #[arg(long)]
+        previous: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long)]
+        prove: bool,
     },
     Demo {
         #[arg(long)]
@@ -93,6 +110,12 @@ enum Case {
     WrongParent,
 }
 
+#[derive(Debug, Clone, Copy, ValueEnum)]
+enum Guest {
+    Source,
+    Admission,
+}
+
 fn root() -> Result<PathBuf> {
     Ok(PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
@@ -110,7 +133,7 @@ fn fixture(height: u32) -> Result<Vec<u8>> {
     )?)
 }
 
-fn build(target: &Path, out: &Path) -> Result<()> {
+fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
     if out.try_exists()? {
         return Err("build output already exists".into());
     }
@@ -124,6 +147,10 @@ fn build(target: &Path, out: &Path) -> Result<()> {
             flags.push(flag);
         }
     }
+    let name = match kind {
+        Guest::Source => "spv_source",
+        Guest::Admission => "spv_admission",
+    };
     let status = risc0_build::cargo_command("build", &flags)
         .env("CARGO_HOME", &cargo_home)
         .env("CARGO_NET_OFFLINE", "true")
@@ -134,7 +161,7 @@ fn build(target: &Path, out: &Path) -> Result<()> {
             "--offline",
             "--release",
             "--bin",
-            "spv_source",
+            name,
             "-j",
             "1",
             "--manifest-path",
@@ -147,7 +174,7 @@ fn build(target: &Path, out: &Path) -> Result<()> {
         return Err("SPV guest build failed".into());
     }
     let user = bounded(
-        &target.join("riscv32im-risc0-zkvm-elf/release/spv_source"),
+        &target.join("riscv32im-risc0-zkvm-elf/release").join(name),
         32 * 1024 * 1024,
     )?;
     let program =
@@ -156,7 +183,7 @@ fn build(target: &Path, out: &Path) -> Result<()> {
     fs::create_dir(out)?;
     write_new(&out.join("program.elf"), &program)?;
     let manifest = serde_json::json!({"schema":1,"image_id":image(&program)?.to_string(),
-        "program_sha256":hex::encode(Sha256::digest(&program)),"admitted":false,"network_scope":"Testnet prototype"});
+        "program_sha256":hex::encode(Sha256::digest(&program)),"admitted":false,"kind":name,"network_scope":"Testnet prototype"});
     write_new(
         &out.join("program.json"),
         &serde_json::to_vec_pretty(&manifest)?,
@@ -178,7 +205,7 @@ fn demo(
         return Err("composite demo mode supports only public genesis or headers".into());
     }
     if out.try_exists()?
-        || (matches!(case, Case::All | Case::Genesis | Case::FirstHeader) && previous.is_some())
+        || (matches!(case, Case::Genesis | Case::FirstHeader) && previous.is_some())
     {
         return Err("demo output exists or predecessor is unexpected".into());
     }
@@ -193,7 +220,7 @@ fn demo(
         }
     }
     fs::create_dir(out)?;
-    if matches!(case, Case::All | Case::Genesis) {
+    if matches!(case, Case::All | Case::Genesis) && receipt.is_none() {
         let witness = Witness::Genesis {
             policy,
             header: fixture(0)?[..HEADER_BYTES].to_vec(),
@@ -337,7 +364,42 @@ fn demo(
 
 fn main() -> Result<()> {
     match Args::parse().command {
-        Command::Build { guest_target, out } => build(&guest_target, &out),
+        Command::Build {
+            guest_target,
+            out,
+            kind,
+        } => build(&guest_target, &out, kind),
+        Command::Admission {
+            program,
+            header_program,
+            previous,
+            out,
+            prove,
+        } => {
+            let header_program = bounded(&header_program, 32 * 1024 * 1024)?;
+            let previous = read_receipt(&previous)?;
+            let prefix = verify_header_receipt(&header_program, &previous)?;
+            let policy = Policy::new(image(&header_program)?, NetworkType::Test, 1, 3, 4)?;
+            if prefix.to_bytes()?
+                != HeaderClaim::genesis(policy, &fixture(0)?[..HEADER_BYTES])?.to_bytes()?
+            {
+                return Err("admission demo requires its exact genesis predecessor".into());
+            }
+            let witness = AdmissionWitness::Advance {
+                previous: prefix,
+                stable_headers: (1..=3)
+                    .map(|h| fixture(h).map(|b| b[..HEADER_BYTES].to_vec()))
+                    .collect::<Result<_>>()?,
+                confirmations: vec![fixture(4)?[..HEADER_BYTES].to_vec()],
+            };
+            run_admission(
+                &bounded(&program, 32 * 1024 * 1024)?,
+                &witness,
+                &previous,
+                &out,
+                prove,
+            )
+        }
         Command::Demo {
             program,
             out,

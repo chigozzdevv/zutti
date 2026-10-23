@@ -285,3 +285,72 @@ pub fn audit(program: &[u8], receipt: &Receipt) -> Result<serde_json::Value> {
         "changed_proof_rejected":true,"development_mode":false,"settlement_authority":false}),
     )
 }
+
+pub fn run_admission(
+    program: &[u8],
+    witness: &zutti_source::spv::AdmissionWitness,
+    previous: &Receipt,
+    out: &Path,
+    prove: bool,
+) -> Result<()> {
+    let prefix = witness.predecessor();
+    verify(previous, prefix.policy().program(), &prefix.to_bytes()?)?;
+    let input = witness.to_bytes()?;
+    let claim = witness.evaluate()?;
+    let journal = claim.to_bytes()?;
+    let mut builder = ExecutorEnv::builder();
+    builder
+        .write_slice(&(input.len() as u32).to_le_bytes())
+        .write_slice(&input)
+        .add_assumption(previous.clone())
+        .session_limit(Some(DEFAULT_CYCLES))
+        .segment_limit_po2(20);
+    fs::create_dir(out)?;
+    write_new(&out.join("witness.bin"), &input)?;
+    write_new(&out.join("journal.bin"), &journal)?;
+    let image = image(program)?;
+    let started = Instant::now();
+    let prover = ExternalProver::new("zutti-spv-admission", "r0vm");
+    let cycles = if prove {
+        let result = prover.prove_with_ctx(
+            builder.build()?,
+            &VerifierContext::default().with_dev_mode(false),
+            program,
+            &ProverOpts::composite().with_dev_mode(false),
+        )?;
+        verify(&result.receipt, image, &journal)?;
+        if !matches!(result.receipt.inner, risc0_zkvm::InnerReceipt::Composite(_)) {
+            return Err("admission prover returned an unexpected receipt format".into());
+        }
+        write_new(
+            &out.join("receipt.bin"),
+            &codec().serialize(&result.receipt)?,
+        )?;
+        result.stats.user_cycles
+    } else {
+        let session = prover.execute(builder.build()?, program)?;
+        if session.exit_code != risc0_zkvm::ExitCode::Halted(0) || session.journal.bytes != journal
+        {
+            return Err("SPV admission execution failed or journal mismatch".into());
+        }
+        session.cycles()
+    };
+    let report = serde_json::json!({"image_id":image.to_string(),
+        "program_sha256":hex::encode(Sha256::digest(program)),"cycles":cycles,
+        "seconds":started.elapsed().as_secs_f64(),"journal_matches":true,
+        "journal_sha256":hex::encode(Sha256::digest(&journal)),"journal":hex::encode(&journal),
+        "predecessor_proof_verified":true,"proof_generated":prove,"proof_verified":prove,
+        "ethereum_wrapped":false,"deployment_admitted":false,"paid_jobs":0,
+        "stable":{"prefix":claim.stable.prefix.to_string(),"height":claim.stable.height,
+            "hash":claim.stable.hash.to_string(),"timestamp":claim.stable.timestamp,"work":hex::encode(claim.stable.work)},
+        "head":{"prefix":claim.head.prefix.to_string(),"height":claim.head.height,
+            "hash":claim.head.hash.to_string(),"timestamp":claim.head.timestamp,"work":hex::encode(claim.head.work)},
+        "policy":claim.policy.to_string(),"previous":claim.previous.to_string(),"kind":claim.kind as u8,
+        "maximum_time":claim.maximum_time});
+    write_new(
+        &out.join("result.json"),
+        &serde_json::to_vec_pretty(&report)?,
+    )?;
+    println!("{report}");
+    Ok(())
+}
