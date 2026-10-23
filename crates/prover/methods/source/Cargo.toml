@@ -15,6 +15,10 @@ path = "src/main.rs"
 name = "source_update"
 path = "src/update.rs"
 
+[[bin]]
+name = "spv_source"
+path = "src/spv.rs"
+
 [dependencies]
 zutti-source = { path = "../../../source", default-features = false, features = ["blocks", "windowed-inputs", "accelerated-trees", "accelerated-scripts", "accelerated-sapling-signatures"] }
 zutti-protocol = { path = "../../../protocol", default-features = false }
