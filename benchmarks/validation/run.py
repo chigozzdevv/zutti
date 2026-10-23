@@ -43,6 +43,16 @@ for kind, height, pool, actions in (
             "height": height, "pool": pool, "actions": actions,
             "repetitions": 1, "tamper": tamper,
         }
+for kind, height, pool, actions in (
+    ("orchard-original-2", 1886667, "orchard", 2),
+    ("orchard-fixed-1", 4119011, "orchard", 1),
+    ("ironwood-1", 4469047, "ironwood", 1),
+):
+    for repetitions in (1, 16):
+        CASES[f"context-{kind}-r{repetitions}"] = {
+            "height": height, "pool": pool, "actions": actions,
+            "repetitions": repetitions, "context": True,
+        }
 
 
 def fixture(height):
@@ -80,6 +90,8 @@ def run_case(args, name, program):
             command += ["--" + option, str(case[option])]
     if case.get("trees"):
         command.append("--trees")
+    if case.get("context"):
+        command.append("--context")
     if program:
         command += ["--program", str(program.resolve())]
     started = time.monotonic()
@@ -116,6 +128,7 @@ def main():
     parser.add_argument("--case", choices=sorted(CASES), action="append", required=True)
     parser.add_argument("--program", type=Path)
     parser.add_argument("--tree-program", type=Path)
+    parser.add_argument("--context-program", type=Path)
     parser.add_argument("--cycle-limit", type=int, default=1 << 38)
     parser.add_argument("--timeout", type=int, default=1800)
     args = parser.parse_args()
@@ -124,17 +137,17 @@ def main():
     if len(set(args.case)) != len(args.case):
         parser.error("measurement cases must be unique")
     args.out.mkdir(parents=True, exist_ok=False)
-    programs = {False: args.program, True: args.tree_program}
+    programs = {"authorization": args.program, "trees": args.tree_program, "context": args.context_program}
     reports = []
     for name in args.case:
-        trees = CASES[name].get("trees", False)
-        report = run_case(args, name, programs[trees])
+        kind = "trees" if CASES[name].get("trees") else "context" if CASES[name].get("context") else "authorization"
+        report = run_case(args, name, programs[kind])
         reports.append(report)
         (args.out / "measurements.json").write_text(json.dumps(reports, indent=2) + "\n")
         print(json.dumps(report), flush=True)
         if report["returncode"] or report["timed_out"]:
             raise SystemExit(1)
-        programs[trees] = args.out / name / "program.elf"
+        programs[kind] = args.out / name / "program.elf"
 
 
 if __name__ == "__main__":

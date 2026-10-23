@@ -54,6 +54,8 @@ struct Args {
     tamper: Option<Tamper>,
     #[arg(long, conflicts_with_all = ["tamper", "inspect"])]
     trees: bool,
+    #[arg(long, conflicts_with_all = ["tamper", "inspect", "trees"])]
+    context: bool,
 }
 
 fn main() -> Result<()> {
@@ -100,7 +102,18 @@ fn main() -> Result<()> {
                 && args.actions.is_none_or(|expected| count == expected)
         })
         .ok_or("no matching isolated public authorization workload in this block")?;
-    if !args.trees {
+    let coinbase = tx
+        .transparent_bundle()
+        .is_some_and(|bundle| bundle.is_coinbase());
+    if args.context {
+        zutti_source::transaction::check_context(
+            tx,
+            block.branch(),
+            block.claimed_height(),
+            block.header().time,
+            coinbase,
+        )?;
+    } else if !args.trees {
         authorization::verify(tx, &[])?;
     }
     if args.inspect {
@@ -148,7 +161,11 @@ fn main() -> Result<()> {
         }
     }
     let mut writer = Writer::default();
-    writer.fixed(b"ZUTTIVAL");
+    writer.fixed(if args.context {
+        b"ZUTTICX1"
+    } else {
+        b"ZUTTIVAL"
+    });
     writer.u8(match args.network {
         Network::Mainnet => 0,
         Network::Testnet => 1,
@@ -179,6 +196,8 @@ fn main() -> Result<()> {
     };
     let binary = if args.trees {
         "zutti-tree-profile"
+    } else if args.context {
+        "context"
     } else {
         "zutti-validation-profile"
     };
@@ -227,7 +246,8 @@ fn main() -> Result<()> {
         return Err("validation profile execution or journal mismatch".into());
     }
     let report = serde_json::json!({"schema":1,"network":format!("{:?}",args.network),
-        "pool":format!("{:?}",args.pool),"trees":args.trees,"height":block.claimed_height(),"transaction_index":index,
+        "pool":format!("{:?}",args.pool),"trees":args.trees,"context":args.context,"coinbase":coinbase,
+        "height":block.claimed_height(),"transaction_index":index,
         "txid":tx.txid().to_string(),"repetitions":args.repetitions,"cycles":session.cycles(),
         "segments":session.segments.len(),"padded_cycles":session.segments.iter().map(|s|1_u64 << s.po2).sum::<u64>(),
         "seconds":started.elapsed().as_secs_f64(),"image_id":risc0_binfmt::compute_image_id(&program)?.to_string(),

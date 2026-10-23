@@ -4413,7 +4413,10 @@ name = "zutti-validation-runner"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "halo2_proofs",
  "hex",
+ "orchard",
+ "pasta_curves",
  "risc0-binfmt",
  "risc0-build",
  "risc0-zkvm",

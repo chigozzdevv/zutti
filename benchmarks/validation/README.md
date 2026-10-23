@@ -56,6 +56,16 @@ Tree cases repeatedly append the entire block's public commitments to a syntheti
 
 A timeout provides no cycle count. A cycle-limit failure records only a lower bound. Neither is accepted by the estimator as a completed authorization measurement.
 
+`context-orchard-original-2-r1`, `context-orchard-fixed-1-r1` and `context-ironwood-1-r1` measure transaction-context checks, including the shielded coinbase recovery rules. Each also has an `r16` case. Context inputs use a separate domain tag, so an authorization guest cannot be silently substituted for a context guest.
+
+The native `key-cost` binary separates deterministic public-parameter construction from complete verifier-key construction:
+
+```sh
+benchmarks/validation/host/target/debug/key-cost --out /tmp/zutti-key-timings
+```
+
+It serializes and round-trips the 128 KiB public Vesta parameters, then constructs all three circuit keys. It creates no wallet keys or proving keys. Its wall times help locate setup work; they are not VM cycles or proving latency.
+
 ## Sequential guest compatibility
 
 The source guest's transitive dependencies enable Halo2 multicore features. The upstream threaded path attempts to initialize Rayon, which the guest cannot run. The vendored patches select the libraries' existing sequential paths only for `target_os = "zkvm"`. Native configurations and verification equations are unchanged. Each patch records its exact upstream archive and changed-file digests.

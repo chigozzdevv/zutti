@@ -27,6 +27,7 @@ pub fn program(binary: &str, path: Option<&Path>) -> Result<Vec<u8>> {
         "zutti-validation-profile",
         "zutti-tree-profile",
         "zutti-validation-batch",
+        "context",
     ]
     .contains(&binary)
     {
