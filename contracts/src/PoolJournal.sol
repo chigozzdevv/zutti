@@ -16,24 +16,26 @@ library PoolJournal {
         bytes32 outputs;
     }
 
-    function digest(Claim memory claim) internal pure returns (bytes32) {
-        return sha256(
-            abi.encodePacked(
-                bytes8("ZUTTIPOL"),
-                hex"0100",
-                claim.kind,
-                claim.domain,
-                claim.root,
-                claim.checkpoint,
-                claim.orderTag,
-                claim.order,
-                claim.reservation,
-                little64(claim.value),
-                claim.owner,
-                claim.nullifiers,
-                claim.outputs
-            )
+    function journal(Claim memory claim) internal pure returns (bytes memory) {
+        return abi.encodePacked(
+            bytes8("ZUTTIPOL"),
+            hex"0100",
+            claim.kind,
+            claim.domain,
+            claim.root,
+            claim.checkpoint,
+            claim.orderTag,
+            claim.order,
+            claim.reservation,
+            little64(claim.value),
+            claim.owner,
+            claim.nullifiers,
+            claim.outputs
         );
+    }
+
+    function digest(Claim memory claim) internal pure returns (bytes32) {
+        return sha256(journal(claim));
     }
 
     function deploymentDomain(
@@ -46,7 +48,15 @@ library PoolJournal {
         address token
     ) internal pure returns (bytes32) {
         bytes memory deployment = abi.encodePacked(
-            bytes8("ZUTTIDOM"), hex"0100", genesis, little64(chain), pool, token, paymentProfile, policy, proofProfile
+            bytes8("ZUTTIDOM"),
+            hex"0100",
+            genesis,
+            little64(chain),
+            pool,
+            token,
+            paymentProfile,
+            policy,
+            proofProfile
         );
         return sha256(
             abi.encodePacked(
