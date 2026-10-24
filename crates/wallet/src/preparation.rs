@@ -52,10 +52,10 @@ impl Canonical for PreparationClaim {
 }
 
 pub struct PreparationWitness {
-    terms: OrderTerms,
-    order_randomness: Secret32,
-    reservation_randomness: Secret32,
-    pczt: Zeroizing<Vec<u8>>,
+    pub(crate) terms: OrderTerms,
+    pub(crate) order_randomness: Secret32,
+    pub(crate) reservation_randomness: Secret32,
+    pub(crate) pczt: Zeroizing<Vec<u8>>,
 }
 impl core::fmt::Debug for PreparationWitness {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

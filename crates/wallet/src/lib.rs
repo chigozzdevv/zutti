@@ -3,6 +3,8 @@ extern crate self as zutti_wallet;
 
 #[cfg(feature = "native")]
 pub mod backup;
+#[cfg(feature = "spv")]
+pub mod binding;
 #[cfg(feature = "native")]
 pub mod payment;
 #[cfg(feature = "pool")]

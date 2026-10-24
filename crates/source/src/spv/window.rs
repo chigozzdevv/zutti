@@ -57,6 +57,24 @@ impl WindowTerms {
     pub const fn refund(&self) -> Digest {
         self.refund
     }
+    pub fn id(&self) -> zutti_protocol::Result<Digest> {
+        Ok(zutti_protocol::commitment::hash(
+            b"spv-window-terms",
+            &[&self.to_bytes()?],
+        ))
+    }
+    pub fn reservation(
+        &self,
+        policy: super::Policy,
+        txid: Digest,
+        randomness: &Secret32,
+    ) -> Result<Digest> {
+        Digest::nonzero(txid.0)?;
+        let mut bytes = policy.id()?.0.to_vec();
+        bytes.extend_from_slice(&self.to_bytes()?);
+        bytes.extend_from_slice(&txid.0);
+        Ok(commit(b"spv-reservation", self.domain, &bytes, randomness))
+    }
 }
 
 impl Canonical for WindowTerms {
@@ -158,15 +176,7 @@ impl WindowWitness {
         Ok(())
     }
     pub fn reservation(&self, policy: super::Policy) -> Result<Digest> {
-        let mut bytes = policy.id()?.0.to_vec();
-        bytes.extend_from_slice(&self.terms.to_bytes()?);
-        bytes.extend_from_slice(&self.txid.0);
-        Ok(commit(
-            b"spv-reservation",
-            self.terms.domain,
-            &bytes,
-            &self.randomness,
-        ))
+        self.terms.reservation(policy, self.txid, &self.randomness)
     }
     pub fn evaluate(&self, previous: &HeaderClaim) -> Result<WindowClaim> {
         self.check_bounds()?;

@@ -10,6 +10,7 @@ default = ["native"]
 native = ["zutti-protocol/entropy", "note-crypto", "pool", "dep:getrandom", "dep:tempfile", "dep:libc", "dep:rand", "pczt/signer", "pczt/tx-extractor"]
 note-crypto = ["zutti-protocol/notes", "dep:chacha20poly1305", "dep:k256", "dep:x25519-dalek", "dep:hkdf", "dep:sha2"]
 pool = ["note-crypto", "zutti-protocol/pool", "dep:zutti-source", "zutti-source/authenticated"]
+spv = ["dep:zutti-source", "zutti-source/blocks"]
 
 [dependencies]
 zutti-protocol.workspace = true
