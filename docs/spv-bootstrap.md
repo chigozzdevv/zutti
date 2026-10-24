@@ -24,7 +24,7 @@ Export the next range from the node when needed. The Rust preparation step indep
 
 ## Initialize and prepare
 
-Build the host and source guest using the [SPV harness](../benchmarks/spv/README.md). Set `SPV` to the built `zutti-spv-prototype` executable. Use the reviewed source-policy values; the small historical test policy is not a deployment policy.
+Build the host and source guest using the [SPV harness](../crates/prover/spv/README.md). Set `SPV` to the built `zutti-spv-prototype` executable. Use the reviewed source-policy values; the small historical test policy is not a deployment policy.
 
 ```sh
 "$SPV" bootstrap init \
@@ -48,7 +48,7 @@ Preparation saves the canonical witness, expected journal and manifest under `jo
 Local proof generation must run under explicit elapsed-time, memory and cycle bounds. It can be computationally expensive; this command is not a request to rent compute or spend marketplace funds.
 
 ```sh
-python3 benchmarks/spv/run.py --seconds 300 --rss-mib 4096 \
+python3 crates/prover/spv/run.py --seconds 300 --rss-mib 4096 \
   --log "$PROOF_LOG" -- \
   "$SPV" bootstrap prove --state "$STATE" --out "$PROOF_OUTPUT" \
   --cycle-limit 268435456
@@ -79,7 +79,7 @@ The runner uses exclusive file locking, owner-private initialization/staging, no
 
 The verified height is reported separately from pending height. `verified_tip` and `pending_tip` use the protocol digest's byte order; the export manifest uses RPC display order. `canonicality_admitted` and `settlement_authority` remain false.
 
-The [retained local run](../benchmarks/spv/results/2026-10-24-bootstrap/manifest.json) generated and accepted a genuine current-image genesis receipt. It then execution-tested four subsequent real headers using that genuine predecessor. The latter operation produced no new receipt, so restart correctly reports only height zero verified and height four pending. The run used the small historical test-policy parameters to test orchestration; it did not select deployment confirmation or freshness settings.
+The [retained local run](../crates/prover/spv/evidence.json) generated and accepted a genuine current-image genesis receipt. It then execution-tested four subsequent real headers using that genuine predecessor. The latter operation produced no new receipt, so restart correctly reports only height zero verified and height four pending. The run used the small historical test-policy parameters to test orchestration; it did not select deployment confirmation or freshness settings.
 
 ## Follow the existing node
 

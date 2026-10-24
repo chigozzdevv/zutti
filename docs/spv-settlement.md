@@ -43,7 +43,7 @@ The public journal omits the Zcash transaction ID, recipient, ZEC amount, memo a
 
 Private binding, intermediate coverage and pool dependencies must use genuine succinct or Groth16 receipts. Intermediate coverage diagnostics redact the private payment-presence state. The host rejects fabricated receipts and private composite receipts. Public header-prefix evidence may use a composite receipt. Development-mode verification is disabled.
 
-A private prover sees its witness. Reservation witnesses include inventory-note openings, nullifier material and operation-bound authorizations; these must not be uploaded as real user data to a public proving service. The measured examples use generated public inputs only.
+A prover sees its witness. The Testnet demo permits publishing its swap witnesses through Boundless/IPFS, including inventory-note openings, nullifier material and operation-bound authorizations. Those demo inputs are public and must not be represented as confidential from provers or other input readers. Wallet signing keys remain local. Confidential prover transport is deferred.
 
 ## Recovery and payment authorization
 
@@ -61,7 +61,7 @@ The separate Ethereum authorization adapter requires the funding seal to be reta
 
 ## Evidence and unfinished obligations
 
-The [recorded results](../benchmarks/spv/results/2026-10-24-settlement/manifest.json) distinguish native tests, contract mocks, guest execution and genuine proofs. The [coverage results](../benchmarks/spv/results/2026-10-24-coverage/manifest.json) separately record the source program and recursive cases. The positive conditional execution cases use unresolved assumptions and synthetic source observations. Negative guest cases check the exact missing dependency digest. They are not funded swaps or cryptographic payment proofs.
+The [retained evidence](../crates/prover/spv/evidence.json) distinguishes execution samples from genuine proofs and identifies the programs each result covers. The positive conditional execution cases use unresolved assumptions and synthetic source observations. Negative guest cases check the exact missing dependency digest. They are not funded swaps or cryptographic payment proofs.
 
 | Obligation | Current boundary |
 | --- | --- |

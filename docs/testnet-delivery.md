@@ -11,7 +11,7 @@ This file is the delivery sequence. The [settlement construction](spv-settlement
 - Prepare and bind the exact shielded payment before reserving USDC. Sign only after independently verifying the finalized reservation and retaining its funding certificate.
 - A payment within the valid window selects the agreed payout. Complete authenticated absence through inclusive expiry selects the agreed refund. A missing claim or elapsed destination timer selects neither.
 - Both outcomes consume one escrow nullifier and create the exact proof-bound output. A delayed paid claim remains eligible.
-- Public source history can be proved separately and reused. Private swap witnesses stay local; the currently authorized public proving transport accepts generated public demo inputs only.
+- Public source history can be proved separately and reused. The Testnet demo permits swap witnesses through the existing public Boundless/IPFS transport; those inputs are deliberately public. Wallet signing keys stay local. Confidential prover transport is deferred and production witness privacy is not established by the demo.
 - No new paid proving, GPU rental or proving-setup download is authorized by this plan. Compute availability and demonstrated proving throughput remain delivery dependencies.
 
 ## Work and completion evidence
@@ -19,7 +19,7 @@ This file is the delivery sequence. The [settlement construction](spv-settlement
 | Order | Work | Existing starting point | Required completion evidence |
 | --- | --- | --- | --- |
 | 1 | Resolve the bounded-refund security gate | `crates/wallet/src/binding.rs`, `prepare.rs`, `crates/source/src/spv/window.rs` | Written analysis and independent review of the actual lower-bound construction, explicit assumptions and resolved blocking findings; [review packet](refund-window-review.md) |
-| 2 | Freeze programs and produce genuine component proofs | Isolated binding/source/admission/pool guests; `benchmarks/spv/src/{binding,settlement,ethereum}.rs` | Exact release images, journals, closed proof dependencies, private zero-knowledge receipt formats, verified Ethereum seals and real-verifier rejection of tampering |
+| 2 | Freeze programs and produce genuine component proofs | Isolated binding/source/admission/pool guests; `crates/prover/spv/src/{binding,settlement,ethereum}.rs` | Exact release images, journals, closed proof dependencies, private zero-knowledge receipt formats, verified Ethereum seals and real-verifier rejection of tampering |
 | 3 | Bootstrap and maintain authenticated Testnet headers | `crates/source/src/spv/`, generic SPV witness execution/proving | A recoverable genesis-to-demo-height receipt chain, fresh accepted source updates and demonstrated ability to process subsequent blocks |
 | 4 | Deploy and admit the Sepolia contracts | `contracts/src/{SpvRegistry,SpvPool}.sol`, native Ethereum verifier | Pinned deployment manifest, actual Groth16 verification, accepted genuine source updates and independently verified finalized reservation storage |
 | 5 | Connect wallets and SDK fulfillment | `SpvPaymentJournal`, `spv_authorization.rs`, SDK/RFQ packages | Real funded source notes, native transaction proving/signing/broadcast, private USDC account operations and an operational `intent.accept()` lifecycle |

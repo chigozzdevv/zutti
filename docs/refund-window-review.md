@@ -66,7 +66,7 @@ The adversary may control either RFQ party, all locally chosen note/encryption r
 
 ## Evidence and its limits
 
-Existing mutation tests reject changed recipient, amount, expiry, anchor/hash, profile and output ciphertext. They check authorization stability and valid re-encryption under a changed anchor, and they reject reuse of the old binding. Source tests cover complete interval processing, boundary inclusion and forged continuation data. The [recorded binding results](../benchmarks/spv/results/2026-10-24-binding/manifest.json) and [coverage results](../benchmarks/spv/results/2026-10-24-coverage/manifest.json) label their actual evidence classes.
+Existing mutation tests reject changed recipient, amount, expiry, anchor/hash, profile and output ciphertext. They check authorization stability and valid re-encryption under a changed anchor, and they reject reuse of the old binding. Source tests cover complete interval processing, boundary inclusion and forged continuation data. The [retained evidence](../crates/prover/spv/evidence.json) labels binding and coverage execution separately from genuine proof verification.
 
 These tests do not demonstrate that a computationally bounded adversary cannot construct a commitment cycle. A genuine proof of the implemented predicate would not establish that theorem either. Existing conditional executions use unresolved assumptions; they are not genuine composed payment/refund proofs.
 
