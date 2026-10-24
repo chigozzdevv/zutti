@@ -158,6 +158,10 @@ fn missing_reordered_incomplete_and_unconfirmed_windows_fail() {
 }
 #[test]
 fn coverage_encoding_roundtrips_and_binds_its_exact_dependency_journal() {
+    assert_eq!(
+        format!("{:?}", partial(&start(txid(2)))),
+        format!("{:?}", partial(&start(txid(4)))),
+    );
     let initial = start(txid(4));
     let prior = partial(&initial);
     let bytes = prior.to_bytes().unwrap();

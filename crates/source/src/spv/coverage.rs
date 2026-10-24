@@ -8,7 +8,7 @@ use zutti_protocol::{
     encoding::{Canonical, Reader, Writer},
 };
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct CoverageClaim {
     pub terms: Digest,
     pub reservation: Digest,
@@ -17,6 +17,11 @@ pub struct CoverageClaim {
     pub expiry: u32,
     pub payment: u32,
     pub head: HeaderClaim,
+}
+impl core::fmt::Debug for CoverageClaim {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("CoverageClaim([REDACTED])")
+    }
 }
 impl Canonical for CoverageClaim {
     fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
