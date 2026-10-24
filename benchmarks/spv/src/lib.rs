@@ -1,5 +1,6 @@
 use bincode::Options;
 pub mod binding;
+pub mod bootstrap;
 pub mod ethereum;
 pub mod settlement;
 use risc0_zkvm::{

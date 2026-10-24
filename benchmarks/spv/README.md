@@ -4,11 +4,17 @@ This prototype verifies Zcash headers and transaction inclusion or complete abse
 
 The implementation is in [`crates/source/src/spv`](../../crates/source/src/spv), with a separate [guest](../../crates/prover/methods/source/src/spv.rs). The host runs independently of Zutti's admitted preparation, pool and full-validity programs.
 
+The [recoverable bootstrap workflow](../../docs/spv-bootstrap.md) exports bounded headers from the existing node, prepares durable jobs and advances only after genuine receipt verification. Its restart tests use the [current-image genesis proof](fixtures/genesis-coverage/README.md); current-chain catch-up and registry admission are not established by those tests.
+
 ## Measured status
+
+The [bootstrap results](results/2026-10-24-bootstrap/manifest.json) retain a genuine genesis proof under the current coverage-capable source image. Local proof generation took 122.988 seconds; the complete supervised job took 127.436 seconds and peaked at 1,581 MiB sampled process-group memory. The runner accepted the proof and reverified it after restart. All 71 isolated Rust tests, two header-export tests and two supervisor tests pass; clippy passes with warnings denied. No paid jobs or proving-setup downloads were used.
+
+The subsequent four-header continuation executed using that genuine predecessor in 23,105,898 cycles, with matching native/guest journals and no unresolved assumption. It generated no continuation proof. Durable status correctly remains verified at genesis with height four pending. The retained policy is a small public regression policy, not the current-chain deployment policy.
 
 The latest [settlement results](results/2026-10-24-settlement/manifest.json) and [recursive coverage results](results/2026-10-24-coverage/manifest.json) record 61 isolated Rust tests, 12 Ethereum finality/authorization tests, 39 contract tests and two process-supervisor tests passing. One existing preparation contract test remains skipped. Clippy passes with warnings denied. Conditional contract checks use mocks; conditional guest execution uses unresolved proof assumptions. These are not genuine conditional receipts or a funded swap.
 
-The table below preserves the earlier source/admission and binding measurements under their original program identities. The new coverage image requires a fresh matching bootstrap; the retained genesis receipt is historical regression evidence only.
+The table below preserves the earlier source/admission and binding measurements under their original program identities. The current coverage image has a genuine genesis proof under its small test policy; the older genesis receipt remains historical regression evidence only. Neither establishes current-chain catch-up.
 
 The [source/admission results](results/2026-10-23-admission/manifest.json) and [payment-binding results](results/2026-10-24-binding/manifest.json) use an Apple M1 Pro with bounded local execution and public inputs. No marketplace jobs, paid compute or new chain downloads were used. The [first baseline](results/2026-10-23/manifest.json) remains archived under its original program identity.
 
@@ -25,7 +31,7 @@ The [source/admission results](results/2026-10-23-admission/manifest.json) and [
 | Prepared Ironwood payment binding | 54,801,665 user cycles; 4.861 seconds execution; native journal matches; no proof generated |
 | Changed binding fields | Wrong recipient, amount, expiry, anchor hash and anchor height rejected by native and guest execution |
 
-The [version-2 genesis receipt](fixtures/genesis-v2/receipt.bin) authenticates only the fixed genesis. Its [audit](results/2026-10-23-admission/genesis-proof.json) rejects a wrong image, expected journal, changed journal and changed seal. Genuine non-genesis source/admission/window receipts, Ethereum wrapping and a practical current-chain bootstrap are not demonstrated. The original first-header CPU attempt timed out at 600 seconds; it used the earlier program. Small-input execution times do not predict complete proving time.
+The older [version-2 genesis receipt](fixtures/genesis-v2/receipt.bin) authenticates only the fixed genesis under its original image. Its [audit](results/2026-10-23-admission/genesis-proof.json) rejects a wrong image, expected journal, changed journal and changed seal. The [current-image audit](results/2026-10-24-bootstrap/genesis-audit.json) rejects those substitutions for the new genuine genesis receipt as well. Genuine non-genesis source/admission/window receipts, Ethereum wrapping and a practical current-chain bootstrap are not demonstrated. The original first-header CPU attempt timed out at 600 seconds; it used the earlier program. Small-input execution times do not predict complete proving time.
 
 ## Build and check
 

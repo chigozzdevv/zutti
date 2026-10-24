@@ -75,7 +75,7 @@ Implement the operational SPV path around the existing predicates:
 5. Produce source-admission receipts and advance the registry under its work, ancestry, observation and freshness rules.
 6. Continue proving fresh blocks while swaps are active. Build complete-block window witnesses from that same ancestry; use recursive coverage when an interval exceeds one input's byte limit.
 
-The current CLI accepts prepared witnesses; it is not yet this complete archive-to-current-chain service. The full-validity bootstrap tooling does not automatically implement the selected SPV pipeline.
+The [recoverable SPV bootstrap runner](spv-bootstrap.md) now exports bounded headers from the existing node, prepares immutable jobs, accepts only genuine exact-journal receipts and reverifies accepted work on restart. Automatic catch-up, source admission/submission, fork monitoring and demonstrated current-chain proving throughput remain unfinished. The full-validity bootstrap tooling does not automatically implement this selected SPV pipeline.
 
 Choose batch sizes, expiry, minimum remaining blocks and freshness limits from measured proof/update behavior and a reviewed source policy. Preserve the current `expiry + 2 * confirmations` supported-height requirement. Do not reduce confirmation or chain-observation protections merely to make a recording finish faster.
 

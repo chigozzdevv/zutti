@@ -1,0 +1,9 @@
+{
+  "changed_proof_rejected": true,
+  "changed_receipt_journal_rejected": true,
+  "development_mode": false,
+  "settlement_authority": false,
+  "valid_receipt_verified": true,
+  "wrong_expected_journal_rejected": true,
+  "wrong_image_rejected": true
+}

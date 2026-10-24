@@ -27,6 +27,10 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    Bootstrap {
+        #[command(subcommand)]
+        command: BootstrapCommand,
+    },
     Build {
         #[arg(long, value_enum, default_value = "source")]
         kind: Guest,
@@ -127,6 +131,106 @@ enum Command {
         #[arg(long)]
         out: PathBuf,
     },
+}
+
+#[derive(Debug, Subcommand)]
+enum BootstrapCommand {
+    Init {
+        #[arg(long)]
+        state: PathBuf,
+        #[arg(long)]
+        program: PathBuf,
+        #[arg(long)]
+        genesis: PathBuf,
+        #[arg(long)]
+        confirmations: u32,
+        #[arg(long)]
+        window_blocks: u32,
+        #[arg(long)]
+        valid_through: u32,
+    },
+    Prepare {
+        #[arg(long)]
+        state: PathBuf,
+        #[arg(long)]
+        headers: Option<PathBuf>,
+    },
+    Accept {
+        #[arg(long)]
+        state: PathBuf,
+        #[arg(long)]
+        batch: u32,
+        #[arg(long)]
+        receipt: PathBuf,
+    },
+    Status {
+        #[arg(long)]
+        state: PathBuf,
+    },
+    Prove {
+        #[arg(long)]
+        state: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long)]
+        public_header_receipt: bool,
+        #[arg(long, default_value_t=DEFAULT_CYCLES, value_parser=clap::value_parser!(u64).range(1..=MAX_CYCLES))]
+        cycle_limit: u64,
+    },
+}
+
+fn bootstrap(command: BootstrapCommand) -> Result<()> {
+    use zutti_spv_prototype::bootstrap::{Bootstrap, headers};
+    let status = match command {
+        BootstrapCommand::Init {
+            state,
+            program,
+            genesis,
+            confirmations,
+            window_blocks,
+            valid_through,
+        } => {
+            let program = bounded(&program, 32 * 1024 * 1024)?;
+            let policy = Policy::new(
+                image(&program)?,
+                NetworkType::Test,
+                confirmations,
+                window_blocks,
+                valid_through,
+            )?;
+            Bootstrap::init(&state, &program, &bounded(&genesis, HEADER_BYTES)?, policy)?
+                .status()?
+        }
+        BootstrapCommand::Prepare {
+            state,
+            headers: input,
+        } => {
+            let state = Bootstrap::open(&state)?;
+            let path = state.prepare(
+                input
+                    .as_deref()
+                    .map(headers)
+                    .transpose()?
+                    .unwrap_or_default(),
+            )?;
+            println!("{}", serde_json::json!({"prepared_batch":path}));
+            state.status()?
+        }
+        BootstrapCommand::Accept {
+            state,
+            batch,
+            receipt,
+        } => Bootstrap::open(&state)?.accept(batch, &receipt)?,
+        BootstrapCommand::Status { state } => Bootstrap::open(&state)?.status()?,
+        BootstrapCommand::Prove {
+            state,
+            out,
+            cycle_limit,
+            public_header_receipt,
+        } => Bootstrap::open(&state)?.prove(&out, cycle_limit, public_header_receipt)?,
+    };
+    println!("{}", serde_json::to_string(&status)?);
+    Ok(())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
@@ -406,6 +510,7 @@ fn demo(
 
 fn main() -> Result<()> {
     match Args::parse().command {
+        Command::Bootstrap { command } => bootstrap(command),
         Command::Build {
             guest_target,
             out,

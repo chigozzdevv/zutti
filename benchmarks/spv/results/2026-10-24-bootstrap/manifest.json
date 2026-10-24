@@ -1,0 +1,62 @@
+{
+  "schema": 1,
+  "date": "2026-10-24",
+  "platform": "Apple M1 Pro, 8 CPUs, 16 GiB RAM",
+  "parent_revision": "d5541655014aebcb4ea7ac5da45696beb2800bc2",
+  "source_scope": "Working-tree files hashed below; guest unchanged from the retained coverage release. Not a complete source archive.",
+  "source_sha256": {
+    "benchmarks/spv/src/bootstrap.rs": "9edc17de4ea24591663c05b57d4684a3454e1ca050ed387adfff62276fb904c0",
+    "benchmarks/spv/src/lib.rs": "3aaa74f0e10b2b16ed0594f1ad3b0a69bff0a383e2afd6a44a8ce9d87c59f5f3",
+    "benchmarks/spv/src/main.rs": "b3d3b67e3d0c1b682b4424433cefa527d065fd802b6070e53d45a093cc710d83",
+    "scripts/spv_headers.py": "acfa25b2a02dce1192f9a0ed788cbed00f9532fdc955482e37c1be8b69cdf1b8",
+    "crates/prover/methods/source/src/spv.rs": "d9715e1a37e5a177f8c9fead4a3f55582c971d1ef175c1a83fe240ed4182b165",
+    "crates/prover/methods/spv-source/Cargo.lock": "c20b2ac9ca5c59a45f2c8600e487a7c7e2347c278f9053af738cd69a513279bd"
+  },
+  "program_image": "29b1669b9a378dac4ca086083eb4610c8f2b5bf1a5f47d1abe86c6e60c04b104",
+  "policy": {
+    "network": "testnet",
+    "confirmations": 1,
+    "window_blocks": 3,
+    "valid_through": 4,
+    "scope": "small public regression policy, not a current-chain deployment policy"
+  },
+  "genesis_artifacts": "../../fixtures/genesis-coverage",
+  "artifact_sha256": {
+    "program.elf": "66ee3e05c4ed2b3f7449dbde7c32e4c7f734d6f58097aa0d384b2726cb42b575",
+    "witness.bin": "fda098d6a2770a9aa0e4b6cab526f52460b9e928375850a2ac1d082ef8944fc7",
+    "journal.bin": "c74d62c4fb3ea09f819f0b2896f3c611708faf2716bebb730c845b489118bb44",
+    "receipt.bin": "64b9176debbdc245f129d5c05686a0f5472761e3bb21e003f8dcae7239cbafcc"
+  },
+  "genesis_proof": "genesis-proof.json",
+  "proof_resources": "proof-resources.json",
+  "genesis_audit": "genesis-audit.json",
+  "continuation_execution": "continuation-execution.json",
+  "execution_resources": "execution-resources.json",
+  "restart_status": "restart-status.json",
+  "new_proofs_generated": 1,
+  "authenticated_height": 0,
+  "continuation_proof_generated": false,
+  "current_chain_bootstrap": false,
+  "ethereum_wrapped": false,
+  "funded_swap": false,
+  "security_review_complete": false,
+  "settlement_authority": false,
+  "paid_jobs": 0,
+  "chain_download_bytes": 0,
+  "proving_setup_download_bytes": 0,
+  "validation": {
+    "isolated_rust_tests_passed": 71,
+    "bootstrap_tests_passed": 10,
+    "clippy_warnings_denied": true,
+    "header_export_tests_passed": 2,
+    "resource_supervisor_tests_passed": 2
+  },
+  "remaining": [
+    "Practical current-chain header bootstrap and ongoing update throughput",
+    "Genuine source admission and Ethereum wrapping/integration",
+    "Genuine private binding, coverage, reservation and terminal proofs",
+    "Bounded-refund lower-bound review",
+    "Live wallet execution, funding and independent recovery",
+    "Permanent source-halt recovery remains unresolved"
+  ]
+}
