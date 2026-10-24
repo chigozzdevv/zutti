@@ -115,6 +115,7 @@ enum Guest {
     Source,
     Admission,
     Binding,
+    Pool,
 }
 
 fn root() -> Result<PathBuf> {
@@ -152,11 +153,12 @@ fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
         Guest::Source => "spv_source",
         Guest::Admission => "spv_admission",
         Guest::Binding => "payment_binding",
+        Guest::Pool => "spv_pool",
     };
-    let manifest = if matches!(kind, Guest::Binding) {
-        "crates/prover/methods/binding/Cargo.toml"
-    } else {
-        "crates/prover/methods/source/Cargo.toml"
+    let manifest = match kind {
+        Guest::Binding => "crates/prover/methods/binding/Cargo.toml",
+        Guest::Pool => "crates/prover/methods/spv-pool/Cargo.toml",
+        _ => "crates/prover/methods/source/Cargo.toml",
     };
     let mut command = risc0_build::cargo_command("build", &flags);
     let status = command
