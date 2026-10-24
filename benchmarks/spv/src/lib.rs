@@ -1,4 +1,5 @@
 use bincode::Options;
+pub mod binding;
 use risc0_zkvm::{
     Executor, ExecutorEnv, ExternalProver, Prover, ProverOpts, Receipt, ReceiptClaim,
     VerifierContext,

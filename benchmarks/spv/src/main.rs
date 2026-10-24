@@ -114,6 +114,7 @@ enum Case {
 enum Guest {
     Source,
     Admission,
+    Binding,
 }
 
 fn root() -> Result<PathBuf> {
@@ -150,8 +151,15 @@ fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
     let name = match kind {
         Guest::Source => "spv_source",
         Guest::Admission => "spv_admission",
+        Guest::Binding => "payment_binding",
     };
-    let status = risc0_build::cargo_command("build", &flags)
+    let manifest = if matches!(kind, Guest::Binding) {
+        "crates/prover/methods/binding/Cargo.toml"
+    } else {
+        "crates/prover/methods/source/Cargo.toml"
+    };
+    let mut command = risc0_build::cargo_command("build", &flags);
+    let status = command
         .env("CARGO_HOME", &cargo_home)
         .env("CARGO_NET_OFFLINE", "true")
         .env_remove("RUSTC_WRAPPER")
@@ -166,7 +174,7 @@ fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
             "1",
             "--manifest-path",
         ])
-        .arg(root.join("crates/prover/methods/source/Cargo.toml"))
+        .arg(root.join(manifest))
         .arg("--target-dir")
         .arg(target)
         .status()?;
