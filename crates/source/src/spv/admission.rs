@@ -113,6 +113,10 @@ impl Canonical for AdmissionClaim {
 
 #[derive(Debug, Clone)]
 pub enum AdmissionWitness {
+    Initialize {
+        stable: HeaderClaim,
+        confirmations: Vec<Vec<u8>>,
+    },
     Advance {
         previous: HeaderClaim,
         stable_headers: Vec<Vec<u8>>,
@@ -127,6 +131,7 @@ pub enum AdmissionWitness {
 impl AdmissionWitness {
     pub fn predecessor(&self) -> &HeaderClaim {
         match self {
+            Self::Initialize { stable, .. } => stable,
             Self::Advance { previous, .. } => previous,
             Self::Conflict { alternative, .. } => alternative,
         }
@@ -147,6 +152,21 @@ impl AdmissionWitness {
     pub fn evaluate(&self) -> Result<AdmissionClaim> {
         let policy = self.predecessor().policy();
         let (kind, previous, stable, head) = match self {
+            Self::Initialize {
+                stable,
+                confirmations,
+            } => {
+                Self::check_headers(&[confirmations])?;
+                if stable.height()? == 0 || confirmations.len() != policy.confirmations() as usize {
+                    return Err(Error::Confirmations);
+                }
+                (
+                    AdmissionKind::Advance,
+                    Digest::default(),
+                    stable.clone(),
+                    stable.advance(confirmations)?,
+                )
+            }
             Self::Advance {
                 previous,
                 stable_headers,
@@ -226,6 +246,15 @@ impl Canonical for AdmissionWitness {
         writer.fixed(b"ZUTTISAI");
         writer.u16(1);
         match self {
+            Self::Initialize {
+                stable,
+                confirmations,
+            } => {
+                Self::check_headers(&[confirmations]).map_err(|_| zutti_protocol::Error::Length)?;
+                writer.u8(3);
+                stable.encode(writer)?;
+                write_headers(writer, confirmations);
+            }
             Self::Advance {
                 previous,
                 stable_headers,
@@ -257,6 +286,10 @@ impl Canonical for AdmissionWitness {
             return Err(zutti_protocol::Error::Version);
         }
         let witness = match reader.u8()? {
+            3 => Self::Initialize {
+                stable: HeaderClaim::decode(reader)?,
+                confirmations: read_headers(reader)?,
+            },
             1 => Self::Advance {
                 previous: HeaderClaim::decode(reader)?,
                 stable_headers: read_headers(reader)?,

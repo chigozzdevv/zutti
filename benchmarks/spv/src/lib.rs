@@ -22,6 +22,7 @@ pub struct RunOptions {
     pub prove: bool,
     pub cycle_limit: u64,
     pub public_header_receipt: bool,
+    pub segment_po2: u32,
 }
 
 pub fn bounded(path: &Path, limit: usize) -> Result<Vec<u8>> {
@@ -109,11 +110,16 @@ pub fn run(
         prove,
         cycle_limit,
         public_header_receipt,
+        segment_po2,
     } = options;
     if public_header_receipt && (!prove || witness.is_private()) {
         return Err("composite mode is restricted to public header proving".into());
     }
-    if out.try_exists()? || cycle_limit == 0 || cycle_limit > MAX_CYCLES {
+    if out.try_exists()?
+        || cycle_limit == 0
+        || cycle_limit > MAX_CYCLES
+        || !(16..=22).contains(&segment_po2)
+    {
         return Err("output exists or cycle limit is invalid".into());
     }
     let image_id = image(program)?;
@@ -137,7 +143,7 @@ pub fn run(
     builder
         .write_slice(&stdin)
         .session_limit(Some(cycle_limit))
-        .segment_limit_po2(20);
+        .segment_limit_po2(segment_po2);
     if let Some(receipt) = previous {
         builder.add_assumption(receipt.clone());
     } else if let Some(previous) = witness.required_journal()? {
@@ -183,6 +189,7 @@ pub fn run(
         "schema":1,"image_id":image_id.to_string(),"program_sha256":hex::encode(Sha256::digest(program)),
         "witness_sha256":hex::encode(Sha256::digest(&input)),"journal_sha256":hex::encode(Sha256::digest(&journal)),
         "cycles":cycles,"segments":segments,"seconds":started.elapsed().as_secs_f64(),
+        "segment_po2":segment_po2,
         "journal_matches":true,"proof_generated":prove,"proof_verified":prove,
         "receipt_kind":if prove {Some(if public_header_receipt {"composite"} else {"succinct"})} else {None},
         "predecessor_proof_verified":previous.is_some(),"unresolved_execution_assumption":!prove && witness.required_journal()?.is_some() && previous.is_none(),

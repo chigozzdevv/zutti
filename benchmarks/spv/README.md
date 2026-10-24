@@ -8,6 +8,14 @@ The [recoverable bootstrap workflow](../../docs/spv-bootstrap.md) exports bounde
 
 ## Measured status
 
+The [source/funder results](results/2026-10-24-source-funding/manifest.json) add the registry initialization relation, a bounded source-worker loop, local funding consent and finalized Ethereum inventory verification. All 77 isolated Rust tests, 20 Ethereum tests and six source Python tests pass; clippy passes with warnings denied. Storage layouts are checked against the compiler for both pools and the registry. The worker integration uses a read-only local archive of real historical blocks and a genuine genesis receipt; it does not establish current-chain operation.
+
+Neither first-header proof attempt completed: segment size 20 hit the 4 GiB cap after 629.122 seconds at 4,176.906 MiB sampled memory; size 19 timed out after 1,200.668 seconds at 2,761.875 MiB. No non-genesis receipt was generated or accepted. The rebuilt header ELF/image is unchanged; the initialization-capable admission guest has a new image that is not yet cryptographically proved or deployed.
+
+The [local backend inspection](results/2026-10-24-source-funding/local-backend.json) found CPU/CUDA selection in the inspected RV32IM prover versions, with their Metal branch disabled. The SDK's `metal` feature alone does not establish Mac GPU acceleration for this proving path.
+
+Rebuilding the private guests from this source produced binding image `74e34893c2a8960f022d12597babd0620248f61a70c6feef8257c4074f545994` and pool image `720c8cf586161691b93a153a78be921435f377a146d19a9ab5e76ce49de914fc`. The pool ELF/image reproduced on a second final-source build. These differ from the earlier execution artifacts; the new images need their own genuine receipts and deployment profile. No current private proof is claimed here.
+
 The [bootstrap results](results/2026-10-24-bootstrap/manifest.json) retain a genuine genesis proof under the current coverage-capable source image. Local proof generation took 122.988 seconds; the complete supervised job took 127.436 seconds and peaked at 1,581 MiB sampled process-group memory. The runner accepted the proof and reverified it after restart. All 71 isolated Rust tests, two header-export tests and two supervisor tests pass; clippy passes with warnings denied. No paid jobs or proving-setup downloads were used.
 
 The subsequent four-header continuation executed using that genuine predecessor in 23,105,898 cycles, with matching native/guest journals and no unresolved assumption. It generated no continuation proof. Durable status correctly remains verified at genesis with height four pending. The retained policy is a small public regression policy, not the current-chain deployment policy.

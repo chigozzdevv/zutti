@@ -167,6 +167,71 @@ fn admission_binds_the_stable_prefix_exact_depth_and_next_work() {
 }
 
 #[test]
+fn initialization_can_admit_an_already_proved_prefix_without_a_recent_trust_anchor() {
+    use zutti_source::spv::{AdmissionClaim, AdmissionWitness};
+    let stable = prefix()
+        .advance(
+            &(1..=3)
+                .map(|h| raw(h)[..HEADER_BYTES].to_vec())
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+    let witness = AdmissionWitness::Initialize {
+        stable: stable.clone(),
+        confirmations: vec![raw(4)[..HEADER_BYTES].to_vec()],
+    };
+    let claim = witness.evaluate().unwrap();
+    assert_eq!(claim.previous, Digest::default());
+    assert_eq!(claim.stable.prefix, stable.id().unwrap());
+    assert_eq!(claim.stable.height, 3);
+    assert_eq!(claim.head.height, 4);
+    assert_eq!(
+        witness.predecessor().to_bytes().unwrap(),
+        stable.to_bytes().unwrap()
+    );
+    assert_eq!(
+        AdmissionWitness::from_bytes(&witness.to_bytes().unwrap())
+            .unwrap()
+            .evaluate()
+            .unwrap(),
+        claim
+    );
+    assert_eq!(
+        AdmissionClaim::from_bytes(&claim.to_bytes().unwrap()).unwrap(),
+        claim
+    );
+}
+
+#[test]
+fn initialization_rejects_genesis_missing_confirmations_and_wrong_ancestry() {
+    use zutti_source::spv::AdmissionWitness;
+    let stable = prefix()
+        .advance(&[raw(1)[..HEADER_BYTES].to_vec()])
+        .unwrap();
+    for (stable, confirmations) in [
+        (prefix(), vec![raw(1)[..HEADER_BYTES].to_vec()]),
+        (stable.clone(), vec![]),
+        (stable.clone(), vec![raw(3)[..HEADER_BYTES].to_vec()]),
+        (
+            stable,
+            vec![
+                raw(2)[..HEADER_BYTES].to_vec(),
+                raw(3)[..HEADER_BYTES].to_vec(),
+            ],
+        ),
+    ] {
+        assert!(
+            AdmissionWitness::Initialize {
+                stable,
+                confirmations
+            }
+            .evaluate()
+            .is_err()
+        );
+    }
+}
+
+#[test]
 fn conflicts_need_a_different_stable_prefix_and_confirmed_alternative() {
     use zutti_source::spv::{AdmissionKind, AdmissionWitness};
     let alternative = prefix()

@@ -1,0 +1,11 @@
+{
+  "status": "timeout",
+  "exit_code": -15,
+  "seconds": 1200.667994959047,
+  "sampled_peak_rss_mib": 2761.875,
+  "seconds_limit": 1200,
+  "rss_limit_mib": 4096,
+  "development_mode": false,
+  "paid_jobs": 0,
+  "error": null
+}

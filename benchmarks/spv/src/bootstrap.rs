@@ -42,11 +42,14 @@ struct Batch {
 pub struct Status {
     pub policy_id: String,
     pub image_id: String,
+    pub confirmations: u32,
+    pub valid_through: u32,
     pub verified_batches: u32,
     pub verified_height: Option<u32>,
     pub verified_tip: Option<String>,
     pub pending_batch: Option<u32>,
     pub pending_height: Option<u32>,
+    pub pending_tip: Option<String>,
     pub canonicality_admitted: bool,
     pub settlement_authority: bool,
 }
@@ -313,6 +316,8 @@ impl Bootstrap {
         Ok(Status {
             policy_id: self.policy.id()?.to_string(),
             image_id: self.policy.program().to_string(),
+            confirmations: self.policy.confirmations(),
+            valid_through: self.policy.valid_through(),
             verified_batches: snapshot.count,
             verified_height: snapshot
                 .previous
@@ -329,6 +334,13 @@ impl Bootstrap {
                 .pending
                 .as_ref()
                 .map(|p| -> Result<u32> { Ok(HeaderClaim::from_bytes(&p.journal)?.height()?) })
+                .transpose()?,
+            pending_tip: snapshot
+                .pending
+                .as_ref()
+                .map(|p| -> Result<String> {
+                    Ok(HeaderClaim::from_bytes(&p.journal)?.tip()?.to_string())
+                })
                 .transpose()?,
             canonicality_admitted: false,
             settlement_authority: false,
@@ -419,12 +431,10 @@ impl Bootstrap {
         self.status()
     }
 
-    pub fn prove(
-        &self,
-        out: &Path,
-        cycle_limit: u64,
-        public_header_receipt: bool,
-    ) -> Result<Status> {
+    pub fn prove(&self, out: &Path, options: RunOptions) -> Result<Status> {
+        if !options.prove {
+            return Err("bootstrap advancement requires proof generation".into());
+        }
         let snapshot = self.snapshot()?;
         let pending = snapshot.pending.ok_or("no prepared bootstrap batch")?;
         run(
@@ -432,11 +442,7 @@ impl Bootstrap {
             &pending.witness,
             snapshot.receipt.as_ref(),
             out,
-            RunOptions {
-                prove: true,
-                cycle_limit,
-                public_header_receipt,
-            },
+            options,
         )?
         .ok_or("prover did not return a genuine receipt")?;
         self.accept(snapshot.count, &out.join("receipt.bin"))

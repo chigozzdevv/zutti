@@ -1,0 +1,113 @@
+{
+  "schema": 1,
+  "date": "2026-10-24",
+  "parent_revision": "0ffdd179e13f9cade906ef489bdba1afae6e3be5",
+  "scope": "Funder consent/finalized inventory, genesis-proved initialization, bounded source worker and unsuccessful first-header proof measurements",
+  "programs": {
+    "source": {
+      "admitted": false,
+      "image_id": "29b1669b9a378dac4ca086083eb4610c8f2b5bf1a5f47d1abe86c6e60c04b104",
+      "kind": "spv_source",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "66ee3e05c4ed2b3f7449dbde7c32e4c7f734d6f58097aa0d384b2726cb42b575",
+      "schema": 1
+    },
+    "admission": {
+      "admitted": false,
+      "image_id": "e4908d457a2134d5e8b798cf4dd5ebb103fd0e74b31c522f854d15b0dcbcf933",
+      "kind": "spv_admission",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "a42d7a685e3ceb28a407b6ae0a97a6d8d260f7c354651f46e9c03b3ce79b5cf8",
+      "schema": 1
+    },
+    "pool": {
+      "admitted": false,
+      "image_id": "720c8cf586161691b93a153a78be921435f377a146d19a9ab5e76ce49de914fc",
+      "kind": "spv_pool",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "de47b2ecbed31dc300cdd53d9c61e46720ffbcf368c3428197279605959e5650",
+      "schema": 1
+    },
+    "binding": {
+      "admitted": false,
+      "image_id": "74e34893c2a8960f022d12597babd0620248f61a70c6feef8257c4074f545994",
+      "kind": "payment_binding",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "2e6e13215bb45440941eaed91aebc0fe651a8010333b8267238638ac389c5557",
+      "schema": 1
+    }
+  },
+  "source_image_and_elf_unchanged": true,
+  "first_header_attempts": [
+    {
+      "segment_po2": 20,
+      "resources": "first-header-po20.json",
+      "proof_generated": false
+    },
+    {
+      "segment_po2": 19,
+      "resources": "first-header-po19.json",
+      "proof_generated": false
+    }
+  ],
+  "authenticated_height": 0,
+  "policy_scope": "small regression policy: Testnet, confirmations 1, window 3, valid through 4; not a current-chain deployment policy",
+  "new_proofs_generated": 0,
+  "current_chain_bootstrap": false,
+  "source_admission_proved": false,
+  "ethereum_wrapped": false,
+  "live_funding_authorized": false,
+  "funded_swap": false,
+  "security_review_complete": false,
+  "settlement_authority": false,
+  "validation": {
+    "isolated_rust_tests_passed": 77,
+    "ethereum_tests_passed": 20,
+    "source_python_tests_passed": 6,
+    "source_worker_integration": "read-only local archive of real historical blocks and genuine genesis receipt; no fabricated proof",
+    "contract_storage_layouts_checked": [
+      "PrivatePool",
+      "SpvPool",
+      "SpvRegistry"
+    ],
+    "clippy_warnings_denied": true
+  },
+  "paid_jobs": 0,
+  "chain_download_bytes": 0,
+  "proving_setup_download_bytes": 0,
+  "source_sha256": {
+    "crates/source/src/spv/admission.rs": "af1765f7d56d582b1fc12de41a535be30a5f4f9b90423d96c4c1733ade47303e",
+    "benchmarks/spv/src/lib.rs": "1c4babc85bd4e3e57dd73334d30eacae28e0a9308ccfa302824b434be4974676",
+    "benchmarks/spv/src/bootstrap.rs": "6aaf9a7584729479a28f4eecf8afc708a644af071aab7eb1b6cf42cd2176f9f7",
+    "benchmarks/spv/src/main.rs": "366128e66277a58bce917c23e9451463380b24eed0c82c3ad76c736e5c044879",
+    "scripts/spv_source.py": "1c83a3a3e84766e9f5d25deea45dd6d795a260987ee0a74a113f03e4ece7ce48",
+    "scripts/test_spv_source.py": "3033075f10715949d20bb8cfbb2999719d23eefabd41d9279654cb9b17a0c903",
+    "crates/wallet/src/funding.rs": "07c27fa89bb05d2a3ae5582bb1522b968c5876aea22a5fb4ec61fd6f3e0354f8",
+    "crates/wallet/ethereum/src/inventory.rs": "057947478cb63ed878681773fffe98d188c4bd7a7dc988081bedca2462cd5d38",
+    "crates/wallet/ethereum/src/spv_funding.rs": "52c58c5bc94c5d2dc97f45828acdaa778885a558b1c270b44581ca9b9b1048cd",
+    "crates/prover/methods/source/src/spv_admission.rs": "f524287fcee62db217c87a4529830c934bca3b89cf1dcaa91d07fc276c4c6269",
+    "crates/prover/methods/spv-source/Cargo.lock": "c20b2ac9ca5c59a45f2c8600e487a7c7e2347c278f9053af738cd69a513279bd",
+    "crates/wallet/src/lib.rs": "33a529333d5c422640c7591a59d4ffb53c363caefd63913b0c0fcf9bba04542b",
+    "crates/prover/methods/spv-pool/Cargo.toml": "d9b7775127bf274464a2f4c4d7bd3f78a3c1f6a958f1246082dfc2a04b604e2c",
+    "crates/prover/methods/spv-pool/Cargo.lock": "6ddae10320b9f052170182d4838920bb7034c4017e39106ddd62f1aa1ea8791a"
+  },
+  "remaining": [
+    "Practical genuine non-genesis/current-chain proving and sustained updates",
+    "Genuine current-image admission and Ethereum wrapping",
+    "Genuine private binding, reservation, coverage and terminal proofs",
+    "Independent refund-window soundness review",
+    "Sepolia RPC/deployment, actual wallet execution and SDK fulfillment",
+    "Live paid, unpaid, delayed-claim and recovery acceptance cases"
+  ],
+  "retained_status": "retained-status.json",
+  "local_backend_inspection": "local-backend.json",
+  "pool_image_changed": true,
+  "pool_guest_rebuilt": true,
+  "pool_guest_execution_repeated": false,
+  "pool_rebuild": "pool-build.json",
+  "binding_guest_rebuilt": true,
+  "binding_image_changed": true,
+  "binding_rebuild": "binding-build.json",
+  "pool_rebuild_reproduced": true,
+  "pool_rebuild_reproduction": "pool-rebuild.json"
+}

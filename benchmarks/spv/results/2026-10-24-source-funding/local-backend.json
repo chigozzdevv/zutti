@@ -1,0 +1,15 @@
+{
+  "installed_r0vm_version": "3.0.5",
+  "inspected_circuit_versions": [
+    "4.0.4",
+    "4.0.5"
+  ],
+  "selection": "CUDA when compiled with cuda; otherwise CPU. The Metal branch is commented out and its HAL is not exposed here.",
+  "sdk_metal_feature": "enables prove only",
+  "interpretation": "No usable Metal acceleration path was established for the pinned RV32IM prover. This is a source inspection, not a GPU benchmark.",
+  "source_sha256": {
+    "risc0-circuit-rv32im-4.0.4/src/prove/mod.rs": "bc52e7d40036c5e1a47692cea0dc8249df87f224b3dbde66474544ea91e5ec3f",
+    "risc0-circuit-rv32im-4.0.5/src/prove/mod.rs": "bc52e7d40036c5e1a47692cea0dc8249df87f224b3dbde66474544ea91e5ec3f",
+    "risc0-zkvm-3.0.5/Cargo.toml": "71715c006f5819b69a9e30b92e36b86b5032584c49abbe0140505a86a400fc39"
+  }
+}

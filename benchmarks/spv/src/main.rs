@@ -27,6 +27,30 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    PrepareAdmission {
+        #[arg(long)]
+        header_program: PathBuf,
+        #[arg(long)]
+        previous: PathBuf,
+        #[arg(long)]
+        confirmations: PathBuf,
+        #[arg(long)]
+        stable_headers: Option<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    RunAdmission {
+        #[arg(long)]
+        program: PathBuf,
+        #[arg(long)]
+        witness: PathBuf,
+        #[arg(long)]
+        previous: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long)]
+        prove: bool,
+    },
     Bootstrap {
         #[command(subcommand)]
         command: BootstrapCommand,
@@ -52,6 +76,8 @@ enum Command {
         prove: bool,
     },
     Demo {
+        #[arg(long, default_value_t = 20, value_parser=clap::value_parser!(u32).range(16..=22))]
+        segment_po2: u32,
         #[arg(long)]
         program: PathBuf,
         #[arg(long)]
@@ -68,6 +94,8 @@ enum Command {
         cycle_limit: u64,
     },
     Run {
+        #[arg(long, default_value_t = 20, value_parser=clap::value_parser!(u32).range(16..=22))]
+        segment_po2: u32,
         #[arg(long)]
         program: PathBuf,
         #[arg(long)]
@@ -168,6 +196,8 @@ enum BootstrapCommand {
         state: PathBuf,
     },
     Prove {
+        #[arg(long, default_value_t = 20, value_parser=clap::value_parser!(u32).range(16..=22))]
+        segment_po2: u32,
         #[arg(long)]
         state: PathBuf,
         #[arg(long)]
@@ -227,7 +257,16 @@ fn bootstrap(command: BootstrapCommand) -> Result<()> {
             out,
             cycle_limit,
             public_header_receipt,
-        } => Bootstrap::open(&state)?.prove(&out, cycle_limit, public_header_receipt)?,
+            segment_po2,
+        } => Bootstrap::open(&state)?.prove(
+            &out,
+            RunOptions {
+                prove: true,
+                cycle_limit,
+                public_header_receipt,
+                segment_po2,
+            },
+        )?,
     };
     println!("{}", serde_json::to_string(&status)?);
     Ok(())
@@ -510,6 +549,70 @@ fn demo(
 
 fn main() -> Result<()> {
     match Args::parse().command {
+        Command::PrepareAdmission {
+            header_program,
+            previous,
+            confirmations,
+            stable_headers,
+            out,
+        } => {
+            let program = bounded(&header_program, 32 * 1024 * 1024)?;
+            let receipt = read_receipt(&previous)?;
+            let prefix = verify_header_receipt(&program, &receipt)?;
+            let confirmations = zutti_spv_prototype::bootstrap::headers(&confirmations)?;
+            let witness = if let Some(headers) = stable_headers {
+                AdmissionWitness::Advance {
+                    previous: prefix,
+                    stable_headers: zutti_spv_prototype::bootstrap::headers(&headers)?,
+                    confirmations,
+                }
+            } else {
+                AdmissionWitness::Initialize {
+                    stable: prefix,
+                    confirmations,
+                }
+            };
+            let claim = witness.evaluate()?;
+            if out.try_exists()? {
+                return Err("admission preparation already exists".into());
+            }
+            let parent = out
+                .parent()
+                .filter(|p| !p.as_os_str().is_empty())
+                .unwrap_or(Path::new("."));
+            let stage = tempfile::Builder::new()
+                .prefix(".spv-admission-")
+                .tempdir_in(parent)?;
+            write_new(&stage.path().join("witness.bin"), &witness.to_bytes()?)?;
+            write_new(&stage.path().join("journal.bin"), &claim.to_bytes()?)?;
+            fs::File::open(stage.path())?.sync_all()?;
+            fs::rename(stage.path(), &out)?;
+            fs::File::open(parent)?.sync_all()?;
+            println!(
+                "{}",
+                serde_json::json!({"prepared":true,"stable_height":claim.stable.height,
+                "head_height":claim.head.height,"predecessor_proof_verified":true,"proof_generated":false,
+                "deployment_admitted":false})
+            );
+            Ok(())
+        }
+        Command::RunAdmission {
+            program,
+            witness,
+            previous,
+            out,
+            prove,
+        } => {
+            let witness =
+                AdmissionWitness::from_bytes(&bounded(&witness, zutti_source::spv::MAX_WITNESS)?)?;
+            run_admission(
+                &bounded(&program, 32 * 1024 * 1024)?,
+                &witness,
+                &read_receipt(&previous)?,
+                &out,
+                prove,
+            )
+        }
         Command::Bootstrap { command } => bootstrap(command),
         Command::Build {
             guest_target,
@@ -548,6 +651,7 @@ fn main() -> Result<()> {
             )
         }
         Command::Demo {
+            segment_po2,
             program,
             out,
             prove,
@@ -559,6 +663,7 @@ fn main() -> Result<()> {
             &program,
             &out,
             RunOptions {
+                segment_po2,
                 prove,
                 cycle_limit,
                 public_header_receipt,
@@ -567,6 +672,7 @@ fn main() -> Result<()> {
             previous.as_deref(),
         ),
         Command::Run {
+            segment_po2,
             program,
             witness,
             previous,
@@ -584,6 +690,7 @@ fn main() -> Result<()> {
                 receipt.as_ref(),
                 &out,
                 RunOptions {
+                    segment_po2,
                     prove,
                     cycle_limit,
                     public_header_receipt,

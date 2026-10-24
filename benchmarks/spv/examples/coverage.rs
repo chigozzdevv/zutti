@@ -135,6 +135,7 @@ fn main() -> Result<()> {
             receipt.as_ref(),
             &args.out.join(format!("{name}-first")),
             RunOptions {
+                segment_po2: 20,
                 prove: args.prove,
                 cycle_limit: DEFAULT_CYCLES,
                 public_header_receipt: false,
@@ -158,6 +159,7 @@ fn main() -> Result<()> {
             proof.as_ref(),
             &args.out.join(format!("{name}-complete")),
             RunOptions {
+                segment_po2: 20,
                 prove: args.prove,
                 cycle_limit: DEFAULT_CYCLES,
                 public_header_receipt: false,
