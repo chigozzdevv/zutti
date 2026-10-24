@@ -1,3 +1,4 @@
+#![cfg(feature = "spv")]
 #![allow(clippy::unwrap_used)]
 #[path = "../../../tests/support/payment.rs"]
 mod payment;

@@ -18,7 +18,6 @@ use zutti_protocol::{
     encoding::{Canonical, Reader, Writer},
 };
 
-const MAX_PAYMENT_ARCHIVE: usize = MAX_PCZT + crate::swap::MAX_SWAP_RECORD + 256;
 const STAGES: [&str; 5] = [
     "signing.backup",
     "signed.backup",
@@ -37,26 +36,61 @@ pub enum PaymentState {
     Acknowledged,
 }
 
-pub struct PaymentJournal {
+mod sealed {
+    pub trait Sealed {}
+    impl Sealed for crate::swap::SwapRecord {}
+    #[cfg(feature = "spv-pool")]
+    impl Sealed for crate::spv_pool::recovery::SpvSwapRecord {}
+}
+pub trait PaymentRecord: Canonical + sealed::Sealed {
+    const MAX_BYTES: usize;
+    fn domain(&self) -> Digest;
+    fn id(&self) -> Result<Digest>;
+    fn inspect_payment(&self, pczt: &[u8]) -> Result<crate::prepare::InspectedPayment>;
+}
+impl PaymentRecord for SwapRecord {
+    const MAX_BYTES: usize = crate::swap::MAX_SWAP_RECORD;
+    fn domain(&self) -> Digest {
+        SwapRecord::domain(self)
+    }
+    fn id(&self) -> Result<Digest> {
+        SwapRecord::id(self)
+    }
+    fn inspect_payment(&self, pczt: &[u8]) -> Result<crate::prepare::InspectedPayment> {
+        SwapRecord::inspect_payment(self, pczt)
+    }
+}
+#[cfg(feature = "spv-pool")]
+impl PaymentRecord for crate::spv_pool::recovery::SpvSwapRecord {
+    const MAX_BYTES: usize = crate::spv_pool::MAX_SPV_POOL_WITNESS;
+    fn domain(&self) -> Digest {
+        Self::domain(self)
+    }
+    fn id(&self) -> Result<Digest> {
+        Ok(Self::id(self)?)
+    }
+    fn inspect_payment(&self, pczt: &[u8]) -> Result<crate::prepare::InspectedPayment> {
+        Self::inspect_payment(self, pczt)
+    }
+}
+pub type PaymentJournal = PaymentStateJournal<SwapRecord>;
+#[cfg(feature = "spv-pool")]
+pub type SpvPaymentJournal = PaymentStateJournal<crate::spv_pool::recovery::SpvSwapRecord>;
+pub struct PaymentStateJournal<R: PaymentRecord> {
     directory: PathBuf,
     key: Secret32,
-    record: SwapRecord,
+    record: R,
     prepared: Zeroizing<Vec<u8>>,
     binding: Digest,
     txid: Digest,
 }
-impl core::fmt::Debug for PaymentJournal {
+impl<R: PaymentRecord> core::fmt::Debug for PaymentStateJournal<R> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str("PaymentJournal([REDACTED])")
     }
 }
-impl PaymentJournal {
-    pub fn create(
-        directory: &Path,
-        key: Secret32,
-        record: SwapRecord,
-        pczt: Vec<u8>,
-    ) -> Result<Self> {
+impl<R: PaymentRecord> PaymentStateJournal<R> {
+    pub fn create(directory: &Path, key: Secret32, record: R, pczt: Vec<u8>) -> Result<Self> {
         let pczt = Zeroizing::new(pczt);
         let payment = record.inspect_payment(&pczt)?;
         let mut builder = fs::DirBuilder::new();
@@ -81,14 +115,16 @@ impl PaymentJournal {
     }
     pub fn open(directory: &Path, key: Secret32, domain: Digest, swap: Digest) -> Result<Self> {
         private_directory(directory)?;
-        let archive =
-            backup::read_private(&directory.join("prepared.backup"), MAX_PAYMENT_ARCHIVE)?;
+        let archive = backup::read_private(
+            &directory.join("prepared.backup"),
+            MAX_PCZT + R::MAX_BYTES + 256,
+        )?;
         let plaintext = backup::open(domain, &archive, &key)?;
         let mut reader = Reader::new(&plaintext);
         if reader.fixed::<8>()? != *b"ZUTTIPAY" || reader.u16()? != 1 {
             return Err(Error::Archive);
         }
-        let record = SwapRecord::from_bytes(reader.bytes(crate::swap::MAX_SWAP_RECORD)?)?;
+        let record = R::from_bytes(reader.bytes(R::MAX_BYTES)?)?;
         let pczt = Zeroizing::new(reader.bytes(MAX_PCZT)?.to_vec());
         reader.finish()?;
         if record.domain() != domain || record.id()? != swap {
@@ -102,7 +138,7 @@ impl PaymentJournal {
     fn assemble(
         directory: &Path,
         key: Secret32,
-        record: SwapRecord,
+        record: R,
         prepared: Zeroizing<Vec<u8>>,
         txid: Digest,
     ) -> Result<Self> {
@@ -116,7 +152,7 @@ impl PaymentJournal {
             txid,
         })
     }
-    pub fn record(&self) -> &SwapRecord {
+    pub fn record(&self) -> &R {
         &self.record
     }
     pub fn unsigned_pczt(&self) -> &[u8] {

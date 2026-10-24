@@ -46,6 +46,70 @@ impl PaymentBindingClaim {
     pub const fn source_reservation(&self) -> Digest {
         self.source_reservation
     }
+    pub fn require_payment(
+        &self,
+        policy: Policy,
+        terms: &zutti_protocol::order::OrderTerms,
+        order_randomness: &zutti_protocol::Secret32,
+        reservation_randomness: &zutti_protocol::Secret32,
+        txid: Digest,
+    ) -> Result<()> {
+        if *self
+            != Self::for_payment(
+                policy,
+                terms,
+                order_randomness,
+                reservation_randomness,
+                txid,
+            )?
+        {
+            return Err(Error::Payment);
+        }
+        Ok(())
+    }
+    fn for_payment(
+        policy: Policy,
+        terms: &zutti_protocol::order::OrderTerms,
+        order_randomness: &zutti_protocol::Secret32,
+        reservation_randomness: &zutti_protocol::Secret32,
+        txid: Digest,
+    ) -> Result<Self> {
+        let window = terms.window();
+        let policy_id = policy.id()?;
+        if terms.domain().payment_profile() != payment_profile()
+            || terms.domain().source_genesis()
+                != zutti_source::bootstrap::genesis_hash(policy.network())
+                    .map_err(|_| Error::Payment)?
+            || terms.domain().source_policy() != policy_id
+            || window.expiry() - window.anchor_height() > policy.window_blocks()
+            || u64::from(window.expiry()) + u64::from(policy.confirmations())
+                > u64::from(policy.valid_through())
+        {
+            return Err(Error::Payment);
+        }
+        let domain = terms.domain().id()?;
+        let order = terms.commitment(order_randomness)?;
+        let source = WindowTerms::new(
+            domain,
+            order,
+            window.anchor_height(),
+            window.anchor_hash(),
+            window.expiry(),
+            terms.payout().commitment(),
+            terms.refund().commitment(),
+        )?;
+        Ok(Self {
+            domain,
+            order,
+            reservation: ReservationOpening::bind(domain, order, txid, reservation_randomness)?,
+            policy: policy.id()?,
+            window: source.id()?,
+            source_reservation: source
+                .reservation(policy, txid, reservation_randomness)
+                .map_err(|_| Error::Payment)?,
+            profile: payment_profile(),
+        })
+    }
     pub fn require_window(&self, terms: &WindowTerms, claim: &WindowClaim) -> Result<()> {
         if terms.id()? != self.window
             || claim.policy != self.policy
@@ -114,56 +178,18 @@ impl PaymentBindingWitness {
         })
     }
     pub fn evaluate(&self) -> Result<PaymentBindingClaim> {
-        let terms = &self.preparation.terms;
-        let window = terms.window();
-        let policy = self.policy.id()?;
-        if terms.domain().payment_profile() != payment_profile()
-            || terms.domain().source_genesis()
-                != zutti_source::bootstrap::genesis_hash(self.policy.network())
-                    .map_err(|_| Error::Payment)?
-            || terms.domain().source_policy() != policy
-            || window.expiry() - window.anchor_height() > self.policy.window_blocks()
-            || u64::from(window.expiry()) + u64::from(self.policy.confirmations())
-                > u64::from(self.policy.valid_through())
-        {
-            return Err(Error::Payment);
-        }
         let payment = inspect_payment_effects(
             &self.preparation.pczt,
-            terms,
+            &self.preparation.terms,
             &self.preparation.order_randomness,
         )?;
-        let domain = terms.domain().id()?;
-        let order = terms.commitment(&self.preparation.order_randomness)?;
-        let source = WindowTerms::new(
-            domain,
-            order,
-            window.anchor_height(),
-            window.anchor_hash(),
-            window.expiry(),
-            terms.payout().commitment(),
-            terms.refund().commitment(),
-        )?;
-        Ok(PaymentBindingClaim {
-            domain,
-            order,
-            reservation: ReservationOpening::bind(
-                domain,
-                order,
-                payment.txid(),
-                &self.preparation.reservation_randomness,
-            )?,
-            policy,
-            window: source.id()?,
-            source_reservation: source
-                .reservation(
-                    self.policy,
-                    payment.txid(),
-                    &self.preparation.reservation_randomness,
-                )
-                .map_err(|_| Error::Payment)?,
-            profile: payment_profile(),
-        })
+        PaymentBindingClaim::for_payment(
+            self.policy,
+            &self.preparation.terms,
+            &self.preparation.order_randomness,
+            &self.preparation.reservation_randomness,
+            payment.txid(),
+        )
     }
 }
 impl Canonical for PaymentBindingWitness {
