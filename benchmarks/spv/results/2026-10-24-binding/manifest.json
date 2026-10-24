@@ -1,0 +1,86 @@
+{
+  "schema": 1,
+  "date": "2026-10-24",
+  "machine": {
+    "cpu": "Apple M1 Pro",
+    "memory_gib": 16,
+    "build_jobs": 2
+  },
+  "program": {
+    "admitted": false,
+    "image_id": "522000e63752551b28977b9713b2a23619bf71a970f051461a796024d7f187f5",
+    "kind": "payment_binding",
+    "network_scope": "Testnet prototype",
+    "program_sha256": "8a552c3157766a9050fd8caad05631a0e6b5457a1236a13026f127c867128ebd",
+    "schema": 1
+  },
+  "source_sha256": {
+    "crates/prover/methods/binding/Cargo.toml": "e97fd6e684d6a40aee7dc7cda97d897367166ee1d50b9162ac69dbbd35ebb668",
+    "crates/prover/methods/binding/Cargo.lock": "2eee384a73be5cbe8a4fd35fccb0b6639356082075dcd64c8901c4fd7649ded0",
+    "crates/prover/methods/binding/src/main.rs": "bd0e9118250f3c2f037a2688e82243ba54832f732c6fe22e91e5911e369ec624",
+    "crates/wallet/src/binding.rs": "2548a7dc9464acca85f05426c4878d94dc8db1487c8b6734473c247bd7c5d127",
+    "crates/wallet/src/preparation.rs": "bba0048ed701b953004adef01bcecfa93f13fb45fe2ea95ae10e1c0a9c6e42f0",
+    "crates/wallet/src/prepare.rs": "17c132cd7453c8653f583b46fda269f6fadafdc0c6a349a224bb357531d80598",
+    "crates/wallet/tests/binding.rs": "bd6cda729c7e33d1d076db60fc273879519dc6d947be6c3630c43dd6102c7ecb",
+    "crates/source/src/spv/window.rs": "ea8268b24261e5049a7cccc11748769c0a239ae3cd20aa34144bcf401d102250",
+    "crates/source/src/spv/header.rs": "8d877cc0de3ffa41fc51105ad9c8af934f4011859e0b605ff0db4757944821dd",
+    "crates/protocol/src/order.rs": "2022269a52e1d46b4cb9925c8a85a9cd3a51d1c9efb8c82ad6e641951701404b",
+    "crates/protocol/src/domain.rs": "363bac5f30a5e852ddf83e4c48dee59d9a2e4929f848f4c6af9a412745247a1b",
+    "crates/protocol/src/policy.rs": "a66a18bbf335fbcd827aea1a02b810db00151c47b807988476b46c1ab55e873c",
+    "benchmarks/spv/Cargo.toml": "b6d27977d428e6fe461cde192315bbeffeb71dcc37982fd3aa7f422cf46bc84a",
+    "benchmarks/spv/Cargo.lock": "a0b00c738b49a3cd6a8d7af47d9f0dd7208770858ca55d7d546cca87330447e4",
+    "benchmarks/spv/src/binding.rs": "c7613843f2fa38aa826f6cc833fa8ebe7c3641cc9b75a5f6ef703aacc27f9218",
+    "benchmarks/spv/examples/payment-binding.rs": "35733a8ba4e9cf40c0ab2621256f581528dd0c8a1195be7c1a5340f81f9cc39f"
+  },
+  "validation": {
+    "rust": {
+      "command": "cargo test --offline --locked --manifest-path benchmarks/spv/Cargo.toml --tests",
+      "passed": 38,
+      "failed": 0,
+      "binding_tests": 8,
+      "preparation_tests": 4
+    },
+    "clippy": {
+      "command": "cargo clippy --offline --locked --manifest-path benchmarks/spv/Cargo.toml --all-targets -- -D warnings",
+      "passed": true
+    },
+    "contracts": {
+      "command": "forge test --root contracts --offline -j 1",
+      "passed": 28,
+      "failed": 0,
+      "skipped": 1,
+      "spv_verification": "mock; unchanged contracts"
+    },
+    "guest_execution": {
+      "accepted": 1,
+      "rejected": 5,
+      "user_cycles_valid": 54801665,
+      "seconds_valid": 4.8609919999999995,
+      "report": "execution.json"
+    }
+  },
+  "cost": {
+    "paid_jobs": 0,
+    "paid_compute_usd": 0,
+    "new_chain_downloads": false,
+    "new_dependency_downloads": false
+  },
+  "security": {
+    "lower_bound": "Conditional anchor-hash dependency; no feasible commitment cycle or alternate output opening",
+    "security_review_complete": false,
+    "source_anchor_authenticated": false,
+    "proof_generated": false,
+    "proof_verified": false,
+    "ethereum_wrapped": false,
+    "settlement_authority": false,
+    "end_to_end_swap": false
+  },
+  "artifacts": {
+    "build": "build.json",
+    "execution": "execution.json",
+    "program": "program.json",
+    "guest_binary_committed": false,
+    "private_witnesses_committed": false
+  },
+  "measurement_note": "All six cases are bounded execution checks, not cryptographic proof generation. Inputs are generated public data and the source-program identity is a placeholder."
+}

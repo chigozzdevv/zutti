@@ -1,0 +1,11 @@
+{
+  "status": "completed",
+  "exit_code": 0,
+  "seconds": 102.47591762500815,
+  "sampled_peak_rss_mib": 686.234375,
+  "seconds_limit": 300,
+  "rss_limit_mib": 4096,
+  "development_mode": false,
+  "paid_jobs": 0,
+  "error": null
+}

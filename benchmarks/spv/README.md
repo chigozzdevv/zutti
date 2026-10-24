@@ -6,11 +6,11 @@ The implementation is in [`crates/source/src/spv`](../../crates/source/src/spv),
 
 ## Measured status
 
-The [latest results](results/2026-10-23-admission/manifest.json) use an Apple M1 Pro with two proving threads and public inputs. No marketplace jobs, paid compute or new chain downloads were used. The [first baseline](results/2026-10-23/manifest.json) remains archived under its original program identity.
+The [source/admission results](results/2026-10-23-admission/manifest.json) and [payment-binding results](results/2026-10-24-binding/manifest.json) use an Apple M1 Pro with bounded local execution and public inputs. No marketplace jobs, paid compute or new chain downloads were used. The [first baseline](results/2026-10-23/manifest.json) remains archived under its original program identity.
 
 | Check | Result |
 | --- | --- |
-| Native source, work and receipt tests | 26 passed; clippy reports no warnings |
+| Native source, work, receipt, preparation and binding tests | 38 passed; clippy reports no warnings |
 | Ethereum tests | 28 passed, one existing preparation test skipped; 10 SPV tests use mock proof verification |
 | Four-header zkVM execution | 23,101,146 user cycles; genuine genesis predecessor; no new proof |
 | Included / absent zkVM execution | 23,459,591 / 23,790,207 user cycles; genuine genesis predecessor; no new proof |
@@ -18,6 +18,8 @@ The [latest results](results/2026-10-23-admission/manifest.json) use an Apple M1
 | Admission zkVM execution | 23,113,855 user cycles; native and guest journals match |
 | Version-2 genesis composite receipt | Generated and verified in 159.417 seconds; no added headers |
 | Real shielded block coverage | Testnet block 282,757 has 1,634 non-coinbase Sapling transactions; Mainnet block 1,687,107 contains an Orchard transaction; omission fails |
+| Prepared Ironwood payment binding | 54,801,665 user cycles; 4.861 seconds execution; native journal matches; no proof generated |
+| Changed binding fields | Wrong recipient, amount, expiry, anchor hash and anchor height rejected by native and guest execution |
 
 The [version-2 genesis receipt](fixtures/genesis-v2/receipt.bin) authenticates only the fixed genesis. Its [audit](results/2026-10-23-admission/genesis-proof.json) rejects a wrong image, expected journal, changed journal and changed seal. Genuine non-genesis source/admission/window receipts, Ethereum wrapping and a practical current-chain bootstrap are not demonstrated. The original first-header CPU attempt timed out at 600 seconds; it used the earlier program. Small-input execution times do not predict complete proving time.
 
@@ -127,6 +129,27 @@ cargo run --offline --locked --manifest-path benchmarks/spv/Cargo.toml --example
 
 Individual block inspection verifies parsing, the complete transaction root and that header's work. It explicitly reports `chain_authenticated: false` because it supplies no genesis-bound prefix.
 
+## Prepared payment binding
+
+The isolated [binding guest](../../crates/prover/methods/binding/src/main.rs) checks the existing preparation relation directly and links its reservation to the SPV window reservation using the same private transaction ID. Its `ZUTTIBND` journal omits the transaction ID, recipient, amount and memo. The [construction and assumptions](../../docs/payment-window-binding.md) explain the conditional lower bound. The program is not admitted for settlement and does not authenticate an anchor by itself.
+
+```sh
+python3 benchmarks/spv/run.py --seconds 300 --rss-mib 4096 \
+  --log /tmp/spv-binding-build.log -- \
+  "$CARGO_TARGET_DIR/debug/zutti-spv-prototype" build --kind binding \
+  --guest-target /tmp/spv-binding-target --out /tmp/spv-binding-program
+
+cargo build --offline --locked --manifest-path benchmarks/spv/Cargo.toml \
+  --example payment-binding
+
+python3 benchmarks/spv/run.py --seconds 180 --rss-mib 4096 \
+  --log /tmp/spv-binding-execute.log -- \
+  "$CARGO_TARGET_DIR/debug/examples/payment-binding" \
+  --program /tmp/spv-binding-program/program.elf --out /tmp/spv-binding-execute
+```
+
+The example uses generated public Ironwood effects, test-only keys, synthetic terms and a placeholder source-program identity. It broadcasts nothing. Execution accepts the matching journal and rejects five changed fields. Native tests also check policy/profile substitution, ciphertext mutation, valid re-encryption with a different anchor and authorization stability. `--prove` requests a genuine succinct receipt for the positive case, with development mode disabled; it was not used in the recorded run. Execution time is not proof-generation time.
+
 ## Limits and remaining work
 
 Inputs are capped at 16 MiB, blocks at 2,000,000 bytes, header batches at 4,096 headers and windows at 128 blocks. Dense windows may exceed the byte cap; composable interval proofs remain necessary before arbitrary windows can be funded reliably.
@@ -135,6 +158,6 @@ The generated demo uses real Testnet heights 0 through 4, coinbase-only transact
 
 The separate admission prototype below implements candidate comparison, observation, freshness and stable-prefix advancement. It requires proof verification and is not connected to the funded pool. Relevant competing histories must reach it; unseen higher-work chains cannot be ruled out cryptographically. Confirmation descendants and observation time alone do not establish finality.
 
-Absence is conditional on the supplied interval covering every possible inclusion height. Preparation and cryptographic birth after the lower boundary are not proved here. A memo containing an anchor is not a consensus-enforced creation timestamp. This must be resolved before a window observation can authorize a refund.
+Absence is conditional on the supplied interval covering every possible inclusion height. The separate binding prototype implements the proposed anchor-hash dependency relation, but no genuine binding receipt or independent review of its lower-bound assumption is complete. A memo containing an anchor is not a consensus-enforced creation timestamp. The window program alone cannot justify a refund.
 
 A current-chain bootstrap, later-upgrade/dense-block measurements, private reservation/settlement composition, Ethereum wrapping and independent funded recovery remain. Execution time is not proving time or a complete bootstrap quote. See the [source-verification review](../../docs/source-verification.md).

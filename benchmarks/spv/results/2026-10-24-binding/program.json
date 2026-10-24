@@ -1,0 +1,8 @@
+{
+  "admitted": false,
+  "image_id": "522000e63752551b28977b9713b2a23619bf71a970f051461a796024d7f187f5",
+  "kind": "payment_binding",
+  "network_scope": "Testnet prototype",
+  "program_sha256": "8a552c3157766a9050fd8caad05631a0e6b5457a1236a13026f127c867128ebd",
+  "schema": 1
+}

@@ -1,6 +1,6 @@
 # Source-verification review
 
-Reviewed 2026-10-23. Scope: public Zcash Testnet and Ethereum Sepolia.
+Reviewed 2026-10-24. Scope: public Zcash Testnet and Ethereum Sepolia.
 
 ## Decision
 
@@ -14,11 +14,13 @@ This is an architecture recommendation, not a demonstrated affordable bootstrap 
 
 ## Implemented prototype
 
-The [isolated SPV program and harness](../benchmarks/spv/README.md) implement genesis-bound header transitions, complete bounded inclusion/absence and source-admission statements. Twenty-six Rust tests pass, including real shielded-block coverage. Source and admission guests execute using a genuine genesis predecessor; adversarial absence/coverage/parent cases fail. The retained version-2 receipt authenticates genesis only. [Measured evidence](../benchmarks/spv/results/2026-10-23-admission/manifest.json)
+The [isolated SPV program and harness](../benchmarks/spv/README.md) implement genesis-bound header transitions, complete bounded inclusion/absence and source-admission statements. Source and admission guests execute using a genuine genesis predecessor; adversarial absence/coverage/parent cases fail. The retained version-2 receipt authenticates genesis only. [Source evidence](../benchmarks/spv/results/2026-10-23-admission/manifest.json)
+
+The separate [payment-window binding prototype](payment-window-binding.md) checks the exact prepared Ironwood output, encrypted anchor memo and expiry, connecting the existing reservation to the SPV window reservation. Its guest execution accepts generated public payment effects and rejects five altered cases. The combined suite now has 38 passing Rust tests. No genuine binding receipt was generated. Its proposed lower bound depends on the explicit no-feasible-commitment-cycle assumption described below; independent review and accepted source ancestry remain required. [Binding evidence](../benchmarks/spv/results/2026-10-24-binding/manifest.json)
 
 The separate, undeployed `SpvRegistry` compares work, observes competing candidates, checks freshness and the maximum timestamp across the prefix, advances only the accepted stable ancestry, and can halt on proved heavier stable-history conflicts. Ten SPV contract tests use mock verification; their journal bytes match Rust guest execution. A genuine admission receipt and Ethereum wrapping have not been demonstrated. No trust committee or privileged checkpoint setter is introduced.
 
-The window program directly checks complete block bodies; the reusable public interval index described below is not implemented. Its version-2 journal binds the exact ending checkpoint, ready for explicit admission composition. Justified payment birth, preparation binding and funded Ethereum settlement remain outside its authority. Existing deployment-policy gates have not been relaxed.
+The window program directly checks complete block bodies; the reusable public interval index described below is not implemented. Its version-2 journal binds the exact ending checkpoint, ready for explicit admission composition. It cannot establish the payment's lower bound by itself. Binding/source receipt composition, review of the lower-bound construction and funded Ethereum settlement remain outside its authority. Existing deployment-policy gates have not been relaxed.
 
 ## Required behavior
 
@@ -74,7 +76,7 @@ This program does not verify every historical shielded proof, signature or ledge
 
 Completeness cannot be obtained from an arbitrary list of 32-byte values. The proof must bind transaction parsing, list boundaries, canonical tree shape, duplicate/padding behavior and applicable block commitments. A collapsed Merkle subtree must not be accepted as a fabricated transaction. Skipping one block or one genuine transaction must fail.
 
-The lower window boundary also needs justification. The current preparation code binds the order and source anchor in an encrypted memo. A memo is not a consensus-enforced creation timestamp. Before narrowing the refund search, the construction must establish why the exact committed payment cannot predate that boundary. Fresh contributions from both parties after an authenticated anchor are a candidate protocol argument; they are not a proven replacement for this obligation.
+The lower window boundary also needs justification. The [implemented binding prototype](payment-window-binding.md) reconstructs the encrypted memo containing the exact anchor hash and derives the effect-committing transaction ID. If that payment occurred in the anchor's ancestry, the composed encryption, transaction and block commitments would form a dependency cycle. The candidate assumes that constructing this cycle or a different opening of the same committed output is infeasible. This is a conditional cryptographic argument, not a consensus creation timestamp or a theorem established by collision resistance alone. Mutation tests do not prove that assumption. Independent cryptographic review and genuine binding/source receipt composition remain necessary before this boundary can authorize refunds.
 
 ### 3. Prove payment or absence privately
 

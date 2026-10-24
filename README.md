@@ -6,6 +6,8 @@ This repository implements Rust protocol components, native Zcash transaction va
 
 Full-history proving with the current source implementation is paused after the execution-cost review. The approved [SPV prototype](benchmarks/spv/README.md) verifies headers and bounded transaction history while relying on miners for transaction validity. [Source-verification review](docs/source-verification.md) records its assumptions and remaining admission requirements. No replacement deployment policy is admitted.
 
+The isolated [payment-window binding prototype](docs/payment-window-binding.md) connects exact Ironwood payment effects to both reservation commitments. Native tests and guest execution pass; its conditional lower-bound argument still needs independent review, genuine receipt composition and accepted source evidence before it can authorize a refund.
+
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
 | `rfq` | Strict shared schemas, native Rust amount/fee bindings, HPKE/Ed25519 messaging, encrypted owner journals, client/maker SDK quote flow and a bounded HTTP relay | Live wallet adapters, pricing/inventory providers, admitted deployments, SDK accounts and swap execution |
