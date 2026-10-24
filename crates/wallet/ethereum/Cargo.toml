@@ -12,7 +12,10 @@ resolver = "3"
 default = []
 fulfillment = ["dep:zutti-wallet", "dep:zutti-prover", "dep:zutti-protocol", "dep:zutti-source", "dep:pczt"]
 
+spv-fulfillment = ["dep:zutti-wallet", "zutti-wallet/spv-pool", "dep:zutti-protocol", "dep:zutti-source", "dep:pczt", "dep:risc0-zkvm"]
+
 [dependencies]
+risc0-zkvm = { version = "=3.0.5", default-features = false, features = ["std"], optional = true }
 zutti-wallet = { path = "..", optional = true }
 zutti-prover = { path = "../../prover", optional = true }
 zutti-protocol = { path = "../../protocol", optional = true }

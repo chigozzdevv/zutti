@@ -1,5 +1,7 @@
 #[cfg(feature = "fulfillment")]
 pub mod authorization;
+#[cfg(feature = "spv-fulfillment")]
+pub mod spv_authorization;
 
 use alloy::{
     consensus::{Header, TrieAccount},
