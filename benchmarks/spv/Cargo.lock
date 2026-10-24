@@ -4705,6 +4705,7 @@ dependencies = [
  "zcash_encoding",
  "zcash_primitives",
  "zcash_protocol",
+ "zeroize",
  "zutti-protocol",
  "zutti-source",
  "zutti-wallet",

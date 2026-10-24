@@ -9,12 +9,12 @@ pub mod binding;
 pub mod payment;
 #[cfg(feature = "pool")]
 pub mod pool;
-#[cfg(feature = "spv-pool")]
-pub mod spv_pool;
 pub mod preparation;
 pub mod prepare;
 #[cfg(feature = "note-crypto")]
 pub mod private_note;
+#[cfg(feature = "spv-pool")]
+pub mod spv_pool;
 #[cfg(feature = "native")]
 pub mod swap;
 

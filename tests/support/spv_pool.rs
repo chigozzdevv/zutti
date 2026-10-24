@@ -57,6 +57,13 @@ pub fn unverified_anchor(policy: Policy) -> HeaderClaim {
     HeaderClaim::from_bytes(&writer.finish()).unwrap()
 }
 pub fn reservation(binding_program: Digest, source_program: Digest) -> SpvPoolWitness {
+    reservation_for_program(binding_program, source_program, support::digest(60))
+}
+pub fn reservation_for_program(
+    binding_program: Digest,
+    source_program: Digest,
+    pool_program: Digest,
+) -> SpvPoolWitness {
     let policy = Policy::new(source_program, NetworkType::Test, 2, 128, 4_465_200).unwrap();
     let domain = Domain::new(
         zutti_protocol::network::ZCASH_TESTNET_GENESIS,
@@ -124,6 +131,7 @@ pub fn reservation(binding_program: Digest, source_program: Digest) -> SpvPoolWi
     let claim = SpvPoolClaim {
         policy: policy.id().unwrap(),
         binding_program,
+        pool_program,
         expiry: reservation.terms.window().expiry(),
         pool: PoolClaim {
             kind: OperationKind::Reserve,
@@ -190,6 +198,7 @@ pub fn terminal(funding: &SpvPoolWitness, paid: bool) -> SpvPoolWitness {
     let claim = SpvPoolClaim {
         policy: funding.claim.policy,
         binding_program: funding.claim.binding_program,
+        pool_program: funding.claim.pool_program,
         expiry: 0,
         pool: PoolClaim {
             kind: OperationKind::Settle,
@@ -211,6 +220,11 @@ pub fn terminal(funding: &SpvPoolWitness, paid: bool) -> SpvPoolWitness {
         inputs: vec![],
         outputs: vec![output],
         action: SpvAction::Settle {
+            funded_outputs: vec![
+                reservation.binding().unwrap(),
+                funding.outputs[0].binding().unwrap(),
+            ],
+            funding: Box::new(funding.claim.clone()),
             reservation: Box::new(reservation),
             path: Box::new(tree.prove(1).unwrap()),
             window: Box::new(window),

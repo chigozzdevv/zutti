@@ -17,6 +17,7 @@ pub const MAX_SPV_POOL_WITNESS: usize = 262_144;
 pub struct SpvPoolClaim {
     pub policy: Digest,
     pub binding_program: Digest,
+    pub pool_program: Digest,
     pub expiry: u32,
     pub pool: PoolClaim,
 }
@@ -25,6 +26,7 @@ impl SpvPoolClaim {
         self.pool.validate()?;
         Digest::nonzero(self.policy.0)?;
         Digest::nonzero(self.binding_program.0)?;
+        Digest::nonzero(self.pool_program.0)?;
         if (self.pool.kind == OperationKind::Reserve) != (self.expiry != 0)
             || self.expiry >= 500_000_000
         {
@@ -41,19 +43,21 @@ impl Canonical for SpvPoolClaim {
     fn encode(&self, writer: &mut Writer) -> Result<()> {
         self.validate()?;
         writer.fixed(b"ZUTTISPC");
-        writer.u16(1);
+        writer.u16(2);
         writer.fixed(&self.policy.0);
         writer.fixed(&self.binding_program.0);
+        writer.fixed(&self.pool_program.0);
         writer.u32(self.expiry);
         self.pool.encode(writer)
     }
     fn decode(reader: &mut Reader<'_>) -> Result<Self> {
-        if reader.fixed::<8>()? != *b"ZUTTISPC" || reader.u16()? != 1 {
+        if reader.fixed::<8>()? != *b"ZUTTISPC" || reader.u16()? != 2 {
             return Err(Error::Version);
         }
         let claim = Self {
             policy: Digest(reader.fixed()?),
             binding_program: Digest(reader.fixed()?),
+            pool_program: Digest(reader.fixed()?),
             expiry: reader.u32()?,
             pool: PoolClaim::decode(reader)?,
         };
@@ -99,6 +103,11 @@ impl SpvReservation {
         ))
     }
     pub fn validate(&self, policy: Policy, domain: Digest) -> Result<()> {
+        if u64::from(self.terms.window().expiry()) + 2 * u64::from(policy.confirmations())
+            > u64::from(policy.valid_through())
+        {
+            return Err(Error::Invalid("SPV settlement admission horizon"));
+        }
         self.binding
             .require_payment(
                 policy,
@@ -171,6 +180,8 @@ pub enum SpvAction {
     Reserve(Box<SpvReservation>),
     Settle {
         reservation: Box<SpvReservation>,
+        funding: Box<SpvPoolClaim>,
+        funded_outputs: Vec<(Digest, Digest)>,
         path: Box<PoolPath>,
         window: Box<WindowClaim>,
     },
@@ -208,11 +219,9 @@ impl SpvPoolWitness {
                 (self.policy.program(), reservation.anchor.to_bytes()?),
             ],
             SpvAction::Settle {
-                reservation,
-                window,
-                ..
+                funding, window, ..
             } => vec![
-                (self.claim.binding_program, reservation.binding.to_bytes()?),
+                (self.claim.pool_program, funding.to_bytes()?),
                 (self.policy.program(), window.to_bytes()?),
             ],
             _ => vec![],
@@ -296,6 +305,8 @@ impl SpvPoolWitness {
             }
             SpvAction::Settle {
                 reservation,
+                funding,
+                funded_outputs,
                 path,
                 window,
             } => {
@@ -303,6 +314,24 @@ impl SpvPoolWitness {
                     return Err(Error::Invalid("SPV settlement shape"));
                 }
                 reservation.validate(self.policy, claim.domain)?;
+                funding.validate()?;
+                if funding.pool.kind != OperationKind::Reserve
+                    || funding.policy != self.claim.policy
+                    || funding.binding_program != self.claim.binding_program
+                    || funding.pool_program != self.claim.pool_program
+                    || funding.expiry != reservation.terms.window().expiry()
+                    || funding.pool.domain != claim.domain
+                    || funding.pool.checkpoint != reservation.anchor.id()?
+                    || funding.pool.order_tag != reservation.terms.use_tag()?
+                    || funding.pool.order != reservation.binding.order()
+                    || funding.pool.reservation != reservation.binding.reservation()
+                    || funded_outputs.is_empty()
+                    || funded_outputs.len() > 8
+                    || funded_outputs[0] != reservation.binding()?
+                    || output_digest(funded_outputs)? != funding.pool.outputs
+                {
+                    return Err(Error::Invalid("SPV funding certificate binding"));
+                }
                 reservation
                     .binding
                     .require_window(&reservation.window()?, window)
@@ -344,7 +373,7 @@ impl Canonical for SpvPoolWitness {
             return Err(Error::Length);
         }
         writer.fixed(b"ZUTTISPV");
-        writer.u16(1);
+        writer.u16(2);
         self.policy.encode(writer)?;
         self.claim.encode(writer)?;
         writer.u8(self.inputs.len() as u8);
@@ -360,10 +389,21 @@ impl Canonical for SpvPoolWitness {
             SpvAction::Reserve(reservation) => reservation.encode(writer)?,
             SpvAction::Settle {
                 reservation,
+                funding,
+                funded_outputs,
                 path,
                 window,
             } => {
                 reservation.encode(writer)?;
+                funding.encode(writer)?;
+                if funded_outputs.is_empty() || funded_outputs.len() > 8 {
+                    return Err(Error::Length);
+                }
+                writer.u8(funded_outputs.len() as u8);
+                for (commitment, ciphertext) in funded_outputs {
+                    writer.fixed(&commitment.0);
+                    writer.fixed(&ciphertext.0);
+                }
                 path.encode(writer)?;
                 window.encode(writer)?;
             }
@@ -372,7 +412,7 @@ impl Canonical for SpvPoolWitness {
         Ok(())
     }
     fn decode(reader: &mut Reader<'_>) -> Result<Self> {
-        if reader.fixed::<8>()? != *b"ZUTTISPV" || reader.u16()? != 1 {
+        if reader.fixed::<8>()? != *b"ZUTTISPV" || reader.u16()? != 2 {
             return Err(Error::Version);
         }
         let policy = Policy::decode(reader)?;
@@ -398,11 +438,25 @@ impl Canonical for SpvPoolWitness {
             OperationKind::Transfer => SpvAction::Transfer,
             OperationKind::Withdraw => SpvAction::Withdraw,
             OperationKind::Reserve => SpvAction::Reserve(Box::new(SpvReservation::decode(reader)?)),
-            OperationKind::Settle => SpvAction::Settle {
-                reservation: Box::new(SpvReservation::decode(reader)?),
-                path: Box::new(PoolPath::decode(reader)?),
-                window: Box::new(WindowClaim::decode(reader)?),
-            },
+            OperationKind::Settle => {
+                let reservation = Box::new(SpvReservation::decode(reader)?);
+                let funding = Box::new(SpvPoolClaim::decode(reader)?);
+                let count = reader.u8()?;
+                if count == 0 || count > 8 {
+                    return Err(Error::Length);
+                }
+                let mut funded_outputs = Vec::new();
+                for _ in 0..count {
+                    funded_outputs.push((Digest(reader.fixed()?), Digest(reader.fixed()?)));
+                }
+                SpvAction::Settle {
+                    reservation,
+                    funding,
+                    funded_outputs,
+                    path: Box::new(PoolPath::decode(reader)?),
+                    window: Box::new(WindowClaim::decode(reader)?),
+                }
+            }
         };
         Ok(Self {
             policy,

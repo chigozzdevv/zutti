@@ -75,6 +75,7 @@ fn terminal_rejects_window_policy_ancestry_checkpoint_and_output_substitutions()
             window,
             path,
             reservation,
+            ..
         } = &mut bad.action
         else {
             unreachable!()
@@ -225,4 +226,85 @@ fn reauthorized_funding_cannot_create_more_value_than_the_input_note() {
         )
         .unwrap();
     assert!(witness.evaluate().is_err());
+}
+
+#[test]
+fn reservations_leave_supported_headers_for_window_and_registry_confirmations() {
+    let witness = funding();
+    let SpvAction::Reserve(reservation) = &witness.action else {
+        unreachable!()
+    };
+    let short = zutti_source::spv::Policy::new(
+        witness.policy.program(),
+        witness.policy.network(),
+        witness.policy.confirmations(),
+        witness.policy.window_blocks(),
+        reservation.terms.window().expiry() + witness.policy.confirmations(),
+    )
+    .unwrap();
+    assert_eq!(
+        reservation
+            .validate(short, witness.claim.pool.domain)
+            .unwrap_err(),
+        zutti_protocol::Error::Invalid("SPV settlement admission horizon")
+    );
+    reservation
+        .validate(witness.policy, witness.claim.pool.domain)
+        .unwrap();
+}
+
+#[test]
+fn settlement_requires_the_exact_verified_funding_certificate() {
+    let funding = funding();
+    let original = fixture::terminal(&funding, true);
+    let assumptions = original.assumptions().unwrap();
+    assert_eq!(assumptions[0].0, funding.claim.pool_program);
+    assert_eq!(assumptions[0].1, funding.claim.to_bytes().unwrap());
+    for field in 0..10 {
+        let mut bad = copy(&original);
+        let SpvAction::Settle {
+            funding,
+            funded_outputs,
+            ..
+        } = &mut bad.action
+        else {
+            unreachable!()
+        };
+        match field {
+            0 => funding.pool_program = support::digest(110),
+            1 => funding.binding_program = support::digest(111),
+            2 => funding.policy = support::digest(112),
+            3 => funding.expiry -= 1,
+            4 => funding.pool.checkpoint = support::digest(113),
+            5 => funding.pool.order = support::digest(114),
+            6 => funding.pool.reservation = support::digest(115),
+            7 => funded_outputs.reverse(),
+            8 => {
+                funded_outputs.pop();
+            }
+            _ => funding.pool.order_tag = support::digest(116),
+        }
+        assert!(bad.evaluate().is_err(), "field {field}");
+    }
+}
+#[test]
+fn recovery_retains_the_public_funding_seal_without_treating_it_as_verified() {
+    use zutti_wallet::spv_pool::recovery::SpvSwapRecord;
+    let funding = funding();
+    let record = SpvSwapRecord::from_reservation(&funding).unwrap();
+    assert_eq!(record.funding_seal(), None);
+    let expected = record.id().unwrap();
+    assert!(
+        SpvSwapRecord::from_reservation(&funding)
+            .unwrap()
+            .with_funding_seal(vec![0; 259])
+            .is_err()
+    );
+    let retained = record.with_funding_seal(vec![0; 260]).unwrap();
+    let restored = SpvSwapRecord::from_bytes(&retained.to_bytes().unwrap()).unwrap();
+    assert_eq!(restored.id().unwrap(), expected);
+    assert_eq!(restored.funding_seal(), Some(&[0; 260][..]));
+    let mut legacy = retained.to_bytes().unwrap();
+    legacy[8] = 1;
+    assert!(SpvSwapRecord::from_bytes(&legacy).is_err());
 }

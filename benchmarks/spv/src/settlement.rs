@@ -47,6 +47,10 @@ pub fn run(
     out: &Path,
     prove: bool,
 ) -> Result<()> {
+    let image = image(program)?;
+    if witness.claim.pool_program != image {
+        return Err("SPV pool witness targets another program".into());
+    }
     let claim = witness.evaluate()?;
     let required = witness.assumptions()?;
     let negative = matches!(
@@ -107,7 +111,6 @@ pub fn run(
     write_new(&out.join("journal.bin"), &journal)?;
     let started = Instant::now();
     let prover = ExternalProver::new("zutti-spv-pool", "r0vm");
-    let image = image(program)?;
     let mut cycles = None;
     if prove {
         let result = prover.prove_with_ctx(

@@ -13,6 +13,7 @@ pub struct SpvSwapRecord {
     funding: SpvPoolClaim,
     outputs: Vec<(Digest, Digest)>,
     reservation: SpvReservation,
+    funding_seal: Option<Vec<u8>>,
 }
 impl core::fmt::Debug for SpvSwapRecord {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -32,6 +33,7 @@ impl SpvSwapRecord {
         let record = Self {
             policy: witness.policy,
             funding,
+            funding_seal: None,
             outputs,
             reservation: SpvReservation::from_bytes(&reservation.to_bytes()?)?,
         };
@@ -40,6 +42,13 @@ impl SpvSwapRecord {
     }
     fn validate(&self) -> Result<()> {
         self.funding.validate()?;
+        if self
+            .funding_seal
+            .as_ref()
+            .is_some_and(|seal| seal.len() != 260)
+        {
+            return Err(Error::Length);
+        }
         self.reservation
             .validate(self.policy, self.funding.pool.domain)?;
         let claim = &self.funding.pool;
@@ -65,6 +74,7 @@ impl SpvSwapRecord {
             b"spv-swap-record",
             &[
                 &self.funding.pool.domain.0,
+                &self.funding.pool_program.0,
                 &self.funding.pool.order.0,
                 &self.funding.pool.reservation.0,
                 &self.reservation.escrow.commitment()?.0,
@@ -88,6 +98,17 @@ impl SpvSwapRecord {
             return Err(crate::Error::Payment);
         }
         Ok(payment)
+    }
+    pub fn with_funding_seal(mut self, seal: Vec<u8>) -> Result<Self> {
+        if seal.len() != 260 {
+            return Err(Error::Length);
+        }
+        self.funding_seal = Some(seal);
+        self.validate()?;
+        Ok(self)
+    }
+    pub fn funding_seal(&self) -> Option<&[u8]> {
+        self.funding_seal.as_deref()
     }
     pub fn funding(&self) -> &SpvPoolClaim {
         &self.funding
@@ -113,6 +134,7 @@ impl SpvSwapRecord {
         let claim = SpvPoolClaim {
             policy: self.funding.policy,
             binding_program: self.funding.binding_program,
+            pool_program: self.funding.pool_program,
             expiry: 0,
             pool: PoolClaim {
                 kind: OperationKind::Settle,
@@ -134,6 +156,8 @@ impl SpvSwapRecord {
             inputs: vec![],
             outputs: vec![output],
             action: SpvAction::Settle {
+                funding: Box::new(self.funding.clone()),
+                funded_outputs: self.outputs.clone(),
                 reservation: Box::new(SpvReservation::from_bytes(&self.reservation.to_bytes()?)?),
                 path: Box::new(path),
                 window: Box::new(window),
@@ -174,7 +198,7 @@ impl Canonical for SpvSwapRecord {
     fn encode(&self, writer: &mut Writer) -> Result<()> {
         self.validate()?;
         writer.fixed(b"ZUTTISPR");
-        writer.u16(1);
+        writer.u16(2);
         self.policy.encode(writer)?;
         self.funding.encode(writer)?;
         writer.u8(self.outputs.len() as u8);
@@ -182,10 +206,18 @@ impl Canonical for SpvSwapRecord {
             writer.fixed(&commitment.0);
             writer.fixed(&ciphertext.0);
         }
-        self.reservation.encode(writer)
+        self.reservation.encode(writer)?;
+        match &self.funding_seal {
+            Some(seal) => {
+                writer.u8(1);
+                writer.bytes(seal)?;
+            }
+            None => writer.u8(0),
+        }
+        Ok(())
     }
     fn decode(reader: &mut Reader<'_>) -> Result<Self> {
-        if reader.fixed::<8>()? != *b"ZUTTISPR" || reader.u16()? != 1 {
+        if reader.fixed::<8>()? != *b"ZUTTISPR" || reader.u16()? != 2 {
             return Err(Error::Version);
         }
         let policy = Policy::decode(reader)?;
@@ -198,11 +230,18 @@ impl Canonical for SpvSwapRecord {
         for _ in 0..count {
             outputs.push((Digest(reader.fixed()?), Digest(reader.fixed()?)));
         }
+        let reservation = SpvReservation::decode(reader)?;
+        let funding_seal = match reader.u8()? {
+            0 => None,
+            1 => Some(reader.bytes(260)?.to_vec()),
+            _ => return Err(Error::Version),
+        };
         let record = Self {
             policy,
             funding,
             outputs,
-            reservation: SpvReservation::decode(reader)?,
+            reservation,
+            funding_seal,
         };
         record.validate()?;
         Ok(record)
@@ -215,5 +254,41 @@ impl Canonical for SpvSwapRecord {
         let record = Self::decode(&mut reader)?;
         reader.finish()?;
         Ok(record)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct SpvSettlementEvidence {
+    pub root: Digest,
+    pub path: PoolPath,
+    pub window: WindowClaim,
+}
+impl Canonical for SpvSettlementEvidence {
+    fn encode(&self, writer: &mut Writer) -> Result<()> {
+        Digest::nonzero(self.root.0)?;
+        writer.fixed(b"ZUTTISPE");
+        writer.u16(1);
+        writer.fixed(&self.root.0);
+        self.path.encode(writer)?;
+        self.window.encode(writer)
+    }
+    fn decode(reader: &mut Reader<'_>) -> Result<Self> {
+        if reader.fixed::<8>()? != *b"ZUTTISPE" || reader.u16()? != 1 {
+            return Err(Error::Version);
+        }
+        Ok(Self {
+            root: Digest::nonzero(reader.fixed()?)?,
+            path: PoolPath::decode(reader)?,
+            window: WindowClaim::decode(reader)?,
+        })
+    }
+    fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        if bytes.is_empty() || bytes.len() > 4096 {
+            return Err(Error::Length);
+        }
+        let mut reader = Reader::new(bytes);
+        let evidence = Self::decode(&mut reader)?;
+        reader.finish()?;
+        Ok(evidence)
     }
 }

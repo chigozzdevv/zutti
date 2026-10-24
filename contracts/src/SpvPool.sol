@@ -204,6 +204,7 @@ contract SpvPool {
         return SpvPoolJournal.digest(
             source.policy(),
             bindingImage,
+            imageId,
             op.expiry,
             PoolJournal.Claim(
                 op.kind,

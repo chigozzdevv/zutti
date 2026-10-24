@@ -45,6 +45,7 @@ contract SpvPoolJournalTest {
             bytes32 digest = SpvPoolJournal.digest(
                 word(data, string.concat(p, "policy")),
                 word(data, string.concat(p, "binding_image")),
+                word(data, string.concat(p, "pool_image")),
                 uint32(vm.parseJsonUint(data, string.concat(p, "expiry"))),
                 claim
             );

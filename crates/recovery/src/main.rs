@@ -2,6 +2,8 @@ mod archive;
 mod args;
 mod prepare;
 mod restore;
+#[cfg(feature = "spv")]
+mod spv;
 
 use args::{ArchiveArgs, Args, Command};
 use clap::Parser;
@@ -25,6 +27,12 @@ fn run(args: Args) -> Result<()> {
                 plaintext.len()
             );
         }
+        #[cfg(feature = "spv")]
+        Command::SpvExport(args) => spv::export(args)?,
+        #[cfg(feature = "spv")]
+        Command::SpvRestore(args) => spv::restore(args)?,
+        #[cfg(feature = "spv")]
+        Command::SpvPrepare(args) => spv::prepare(args)?,
         Command::Export(args) => restore::export(args)?,
         Command::Restore(args) => restore::restore(args)?,
         Command::PrepareClaim(args) => prepare::prepare(args, SettlementAction::Claim)?,

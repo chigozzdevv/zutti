@@ -23,6 +23,12 @@ pub enum Command {
     },
     Export(ExportArgs),
     Restore(RestoreArgs),
+    #[cfg(feature = "spv")]
+    SpvExport(ExportArgs),
+    #[cfg(feature = "spv")]
+    SpvRestore(RestoreArgs),
+    #[cfg(feature = "spv")]
+    SpvPrepare(PrepareArgs),
     PrepareClaim(PrepareArgs),
     PrepareRefund(PrepareArgs),
     Claim,

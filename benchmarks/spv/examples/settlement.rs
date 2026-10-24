@@ -12,7 +12,7 @@ use zutti_protocol::{
     pool::{OperationKind, PoolClaim, nullifier_digest, output_digest},
 };
 use zutti_spv_prototype::{
-    Result, bounded,
+    Result, bounded, image,
     settlement::{Dependencies, run},
     write_new,
 };
@@ -30,7 +30,11 @@ fn main() -> Result<()> {
     let args = Args::parse();
     fs::create_dir(&args.out)?;
     let program = bounded(&args.program, 32 * 1024 * 1024)?;
-    let funding = fixture::reservation(support::digest(52), support::digest(51));
+    let funding = fixture::reservation_for_program(
+        support::digest(52),
+        support::digest(51),
+        image(&program)?,
+    );
     let output = fixture::output(
         funding.claim.pool.domain,
         &fixture::keys(20),
@@ -42,6 +46,7 @@ fn main() -> Result<()> {
         claim: SpvPoolClaim {
             policy: funding.claim.policy,
             binding_program: funding.claim.binding_program,
+            pool_program: funding.claim.pool_program,
             expiry: 0,
             pool: PoolClaim {
                 kind: OperationKind::Deposit,
@@ -83,9 +88,9 @@ fn main() -> Result<()> {
             )?;
         }
         for (name, mode) in [
-            ("missing-binding", Dependencies::Missing(0)),
+            ("missing-reservation", Dependencies::Missing(0)),
             ("missing-source", Dependencies::Missing(1)),
-            ("wrong-binding-image", Dependencies::WrongImage),
+            ("wrong-reservation-image", Dependencies::WrongImage),
             ("wrong-source-journal", Dependencies::WrongJournal),
         ] {
             run(
@@ -97,6 +102,14 @@ fn main() -> Result<()> {
             )?;
         }
     }
+    if !args.prove_deposit {
+        for (name, mode) in [
+            ("reservation-missing-binding", Dependencies::Missing(0)),
+            ("reservation-missing-anchor", Dependencies::Missing(1)),
+        ] {
+            run(&program, &funding, mode, &args.out.join(name), false)?;
+        }
+    }
     let mut cases = serde_json::Map::new();
     for (name, witness) in [
         ("reservation", &funding),
@@ -104,7 +117,7 @@ fn main() -> Result<()> {
         ("unpaid", &fixture::terminal(&funding, false)),
     ] {
         let claim = &witness.claim.pool;
-        cases.insert(name.into(),serde_json::json!({"journal":hex::encode(witness.claim.to_bytes()?),"journal_digest":witness.claim.journal_digest()?.to_string(),"kind":claim.kind as u8,"domain":claim.domain.to_string(),"policy":witness.claim.policy.to_string(),"binding_image":witness.claim.binding_program.to_string(),"expiry":witness.claim.expiry,"root":claim.root.to_string(),"checkpoint":claim.checkpoint.to_string(),"order_tag":claim.order_tag.to_string(),"order":claim.order.to_string(),"reservation":claim.reservation.to_string(),"value":claim.value,"owner":hex::encode(claim.owner),"nullifiers":claim.nullifiers.to_string(),"outputs":claim.outputs.to_string()}));
+        cases.insert(name.into(),serde_json::json!({"journal":hex::encode(witness.claim.to_bytes()?),"journal_digest":witness.claim.journal_digest()?.to_string(),"kind":claim.kind as u8,"domain":claim.domain.to_string(),"policy":witness.claim.policy.to_string(),"binding_image":witness.claim.binding_program.to_string(),"pool_image":witness.claim.pool_program.to_string(),"expiry":witness.claim.expiry,"root":claim.root.to_string(),"checkpoint":claim.checkpoint.to_string(),"order_tag":claim.order_tag.to_string(),"order":claim.order.to_string(),"reservation":claim.reservation.to_string(),"value":claim.value,"owner":hex::encode(claim.owner),"nullifiers":claim.nullifiers.to_string(),"outputs":claim.outputs.to_string()}));
     }
     write_new(
         &args.out.join("journals.json"),

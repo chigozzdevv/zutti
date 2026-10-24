@@ -6512,7 +6512,12 @@ name = "zutti-recovery"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "incrementalmerkletree",
+ "orchard",
+ "pczt",
+ "rand 0.10.3",
  "tempfile",
+ "zcash_primitives",
  "zcash_protocol",
  "zebra-test",
  "zeroize",
