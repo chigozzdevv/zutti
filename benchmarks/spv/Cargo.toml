@@ -72,3 +72,8 @@ required-features = ["recovery"]
 name = "spv-recovery"
 path = "../../crates/recovery/tests/spv.rs"
 required-features = ["recovery"]
+
+[[test]]
+name = "spv-funding"
+path = "../../crates/wallet/tests/funding.rs"
+required-features = ["recovery"]

@@ -1,7 +1,10 @@
 #[cfg(feature = "fulfillment")]
 pub mod authorization;
+pub mod inventory;
 #[cfg(feature = "spv-fulfillment")]
 pub mod spv_authorization;
+#[cfg(feature = "spv-fulfillment")]
+pub mod spv_funding;
 
 use alloy::{
     consensus::{Header, TrieAccount},
@@ -245,7 +248,24 @@ fn verify_reserved_storage(
     proof: &EIP1186AccountProofResponse,
     state_root: B256,
 ) -> Result<()> {
-    if proof.address != expected.pool || proof.code_hash != expected.pool_code_hash {
+    verify_account(expected.pool, expected.pool_code_hash, proof, state_root)?;
+    verify_storage(
+        proof,
+        &[
+            (mapping_key(expected.escrow, 70), U256::from(1)),
+            (mapping_key(expected.order_tag, 71), U256::from(1)),
+            (mapping_key(expected.nullifier, 69), U256::ZERO),
+        ],
+    )
+}
+
+fn verify_account(
+    address: Address,
+    code_hash: B256,
+    proof: &EIP1186AccountProofResponse,
+    state_root: B256,
+) -> Result<()> {
+    if proof.address != address || proof.code_hash != code_hash {
         return Err(Error::Account);
     }
     bound_nodes(&proof.account_proof)?;
@@ -262,11 +282,13 @@ fn verify_reserved_storage(
         &proof.account_proof,
     )
     .map_err(|_| Error::Account)?;
-    let expected_slots = [
-        (mapping_key(expected.escrow, 70), U256::from(1)),
-        (mapping_key(expected.order_tag, 71), U256::from(1)),
-        (mapping_key(expected.nullifier, 69), U256::ZERO),
-    ];
+    Ok(())
+}
+
+fn verify_storage(
+    proof: &EIP1186AccountProofResponse,
+    expected_slots: &[(B256, U256)],
+) -> Result<()> {
     if proof.storage_proof.len() != expected_slots.len() {
         return Err(Error::Storage);
     }
@@ -303,5 +325,7 @@ fn bound_nodes(nodes: &[alloy::primitives::Bytes]) -> Result<()> {
     Ok(())
 }
 
+#[cfg(all(test, feature = "spv-fulfillment"))]
+mod test_support;
 #[cfg(test)]
 mod tests;

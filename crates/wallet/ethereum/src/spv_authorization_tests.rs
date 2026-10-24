@@ -1,11 +1,6 @@
 #![allow(clippy::unwrap_used)]
-#[path = "../../../../tests/support/spv_pool.rs"]
-mod fixture;
-#[path = "../../../../tests/support/payment.rs"]
-mod payment;
-#[path = "../../../../tests/support/mod.rs"]
-mod support;
 use super::*;
+use crate::test_support::{fixture, support};
 use risc0_zkvm::{FakeReceipt, ReceiptClaim};
 
 fn record() -> SpvSwapRecord {

@@ -15,6 +15,14 @@ struct Args {
 }
 #[derive(Debug, Subcommand)]
 enum Command {
+    Inventory {
+        #[arg(long)]
+        config: PathBuf,
+        #[arg(long)]
+        request: PathBuf,
+        #[arg(long)]
+        evidence: PathBuf,
+    },
     Finality {
         #[arg(long)]
         config: PathBuf,
@@ -46,6 +54,22 @@ fn read<T: serde::de::DeserializeOwned>(
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     match Args::parse().command {
+        Command::Inventory {
+            config,
+            request,
+            evidence,
+        } => {
+            use zutti_ethereum::inventory::{InventoryEvidence, InventoryRequest, verify};
+            println!(
+                "{}",
+                serde_json::to_string(&verify(
+                    &read::<ConsensusConfig>(&config, 65_536)?,
+                    &read::<InventoryRequest>(&request, 16_384)?,
+                    &read::<InventoryEvidence>(&evidence, 16_777_216)?,
+                    now,
+                )?)?
+            );
+        }
         Command::Finality { config, evidence } => {
             let config: ConsensusConfig = read(&config, 65_536)?;
             let evidence: FinalityEvidence = read(&evidence, 16_777_216)?;
