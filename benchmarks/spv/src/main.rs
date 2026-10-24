@@ -333,7 +333,7 @@ fn demo(
         )?;
         let witness = Witness::Window {
             previous: prefix.clone(),
-            window,
+            window: Box::new(window),
         };
         run(
             &program,
@@ -381,14 +381,14 @@ fn demo(
             };
             Witness::Window {
                 previous: prefix.clone(),
-                window: WindowWitness::new(
+                window: Box::new(WindowWitness::new(
                     terms,
                     target,
                     Secret32::from_bytes([6; 32])?,
                     Branch::Absent,
                     headers,
                     blocks,
-                )?,
+                )?),
             }
         };
         reject(&program, &witness, receipt.as_ref(), &out.join(name))?;

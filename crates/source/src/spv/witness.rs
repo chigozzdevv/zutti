@@ -20,7 +20,7 @@ pub enum Witness {
     },
     Window {
         previous: HeaderClaim,
-        window: WindowWitness,
+        window: Box<WindowWitness>,
     },
 }
 
@@ -171,7 +171,7 @@ impl Canonical for Witness {
             }
             3 => Ok(Self::Window {
                 previous: HeaderClaim::decode(reader)?,
-                window: WindowWitness::decode(reader)?,
+                window: Box::new(WindowWitness::decode(reader)?),
             }),
             _ => Err(zutti_protocol::Error::Version),
         }

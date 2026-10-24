@@ -1,3 +1,4 @@
+#![allow(clippy::unwrap_used)]
 use zcash_protocol::consensus::NetworkType;
 use zutti_protocol::{Digest, Secret32, encoding::Canonical};
 use zutti_source::spv::{

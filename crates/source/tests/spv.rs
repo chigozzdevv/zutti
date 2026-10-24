@@ -414,7 +414,7 @@ fn policy_window_and_full_validity_encodings_are_separate() {
     assert!(SourceReceiptClaim::from_bytes(&prefix().to_bytes().unwrap()).is_err());
     let witness = Witness::Window {
         previous: prefix(),
-        window: query(Digest([77; 32]), Branch::Absent, &[1, 2], 3),
+        window: Box::new(query(Digest([77; 32]), Branch::Absent, &[1, 2], 3)),
     };
     let bytes = witness.to_bytes().unwrap();
     assert_eq!(
