@@ -12,14 +12,15 @@ fn secret() -> Secret32 {
     Secret32::from_bytes([7; 32]).unwrap()
 }
 fn block(height: u32) -> Vec<u8> {
-    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let root = root.join("../..");
-    let file = if height == 0 {
-        root.join("tests/fixtures/block-test-0.txt")
-    } else {
-        root.join(format!("tests/fixtures/spv/testnet-{height}.hex"))
+    let block = match height {
+        0 => include_str!("../../../tests/fixtures/block-test-0.txt"),
+        1 => include_str!("../../../tests/fixtures/spv/testnet-1.hex"),
+        2 => include_str!("../../../tests/fixtures/spv/testnet-2.hex"),
+        3 => include_str!("../../../tests/fixtures/spv/testnet-3.hex"),
+        4 => include_str!("../../../tests/fixtures/spv/testnet-4.hex"),
+        _ => panic!("unsupported coverage fixture"),
     };
-    hex::decode(std::fs::read_to_string(file).unwrap().trim()).unwrap()
+    hex::decode(block.trim()).unwrap()
 }
 fn prefix() -> HeaderClaim {
     let genesis = block(0);

@@ -105,7 +105,7 @@ fn source_receipt_verification_uses_genuine_evidence_and_rejects_substitution() 
         .with_fixint_encoding()
         .reject_trailing_bytes()
         .deserialize(include_bytes!(
-            "../../../../benchmarks/spv/fixtures/genesis-coverage/receipt.bin"
+            "../../../../crates/prover/spv/fixtures/genesis-coverage/receipt.bin"
         ))
         .unwrap();
     let claim = HeaderClaim::from_bytes(&receipt.journal.bytes).unwrap();

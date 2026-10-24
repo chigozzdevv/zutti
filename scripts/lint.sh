@@ -7,12 +7,14 @@ cargo fmt --manifest-path crates/prover/methods/guest/Cargo.toml --check
 cargo fmt --manifest-path crates/prover/methods/source/Cargo.toml --check
 cargo fmt --manifest-path crates/prover/methods/pool/Cargo.toml --check
 cargo fmt --manifest-path crates/boundless/Cargo.toml --check
+cargo fmt --manifest-path crates/prover/spv/Cargo.toml --check
 cargo clippy --locked --workspace --all-targets -- -D warnings
 cargo clippy --locked --manifest-path crates/boundless/Cargo.toml --all-targets -- -D warnings
+cargo clippy --locked --manifest-path crates/prover/spv/Cargo.toml --features recovery --all-targets -- -D warnings
 forge fmt --check contracts/src contracts/test
 pnpm exec eslint tests --max-warnings=0
 pnpm exec prettier --check package.json pnpm-workspace.yaml tsconfig.base.json eslint.config.js prettier.config.js 'tests/**/*.mjs'
 cargo fmt --manifest-path crates/wallet/ethereum/Cargo.toml --check
-cargo clippy --locked --manifest-path crates/wallet/ethereum/Cargo.toml --features fulfillment --all-targets -- -D warnings
+cargo clippy --locked --manifest-path crates/wallet/ethereum/Cargo.toml --features fulfillment,spv-fulfillment --all-targets -- -D warnings
 pnpm lint:ts
 pnpm exec prettier --check packages server tsconfig.json tsconfig.base.json tests/support/rfq.mjs

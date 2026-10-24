@@ -63,7 +63,7 @@ mod tests {
     #[test]
     fn compatible_verifier_matches_real_outputs_and_rejects_changed_statements() {
         let fixtures: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../../benchmarks/authorization/sapling-outputs.json"
+            "../../../../tests/fixtures/sapling-outputs.json"
         ))
         .unwrap();
         let key = read_key(include_bytes!("../../parameters/sapling-output.vk")).unwrap();

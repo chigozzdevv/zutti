@@ -99,7 +99,7 @@ def run(args, rpc):
             if seconds < 1:
                 break
             attempt = Path(tempfile.mkdtemp(prefix=f"proof-{current['pending_batch']:08}-", dir=args.work))
-            command = [sys.executable, str(Path(__file__).parent.parent / "benchmarks/spv/run.py"),
+            command = [sys.executable, str(Path(__file__).parent.parent / "crates/prover/spv/run.py"),
                        "--seconds", str(seconds), "--rss-mib", str(args.rss_mib), "--log", str(attempt / "prove.log"),
                        "--", str(args.binary), "bootstrap", "prove", "--state", str(args.state),
                        "--out", str(attempt / "result"), "--cycle-limit", str(args.cycle_limit),

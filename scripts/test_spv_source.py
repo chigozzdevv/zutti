@@ -77,7 +77,7 @@ class ArchiveIntegrationTests(unittest.TestCase):
                 state = directory / "state"
                 genesis = directory / "genesis.bin"
                 genesis.write_bytes(blocks[0][:1487])
-                fixture = root / "benchmarks/spv/fixtures/genesis-coverage"
+                fixture = root / "crates/prover/spv/fixtures/genesis-coverage"
                 def invoke(*args):
                     result = subprocess.run([str(binary), *map(str, args)], check=True, capture_output=True, text=True, timeout=90)
                     return json.loads(result.stdout.strip().splitlines()[-1])
