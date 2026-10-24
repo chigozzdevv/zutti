@@ -2,6 +2,8 @@
 
 This is an isolated Testnet construction. No deployment profile admits these programs, no SPV pool is deployed, and no funded cross-chain swap has been demonstrated. The SPV mining-validity assumption remains explicit. The [payment-window lower-bound argument](payment-window-binding.md) is conditional and has not received independent cryptographic review.
 
+The [Testnet delivery plan](testnet-delivery.md) fixes the remaining work and acceptance evidence. The [refund review packet](refund-window-review.md) separates the proposed cryptographic claim from what the existing tests establish.
+
 ## One reservation, two fixed outcomes
 
 The wallet prepares an exact Ironwood payment before USDC is reserved. Its binding claim connects the private order and transaction ID to the ordinary reservation commitment and the SPV window reservation commitment. Both fixed private-USDC notes are part of the order. A quote deadline is not the Zcash transaction expiry or a payout-claim deadline.

@@ -4,6 +4,8 @@ Full-history proving is paused. A separate [SPV prototype](benchmarks/spv/README
 
 The [payment-window binding prototype](docs/payment-window-binding.md) implements the prepared Ironwood relation and records its conditional anchor-hash lower-bound argument. The separate [SPV settlement path](docs/spv-settlement.md) now composes proof dependencies and pool/recovery predicates. Genuine binding/window/settlement receipts, current-chain bootstrap, lower-bound review and funded live execution remain unfinished.
 
+The [Testnet delivery plan](docs/testnet-delivery.md) fixes the work sequence and real-proof completion criteria. The [refund review packet](docs/refund-window-review.md) records the first security gate.
+
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 
 Specification draft · 21 October 2026

@@ -10,6 +10,8 @@ The isolated [payment-window binding prototype](docs/payment-window-binding.md) 
 
 The separate [SPV settlement path](docs/spv-settlement.md) now implements proof dependency composition, backed private reservations, fixed payout/refund operations, encrypted recovery records and an Ethereum authorization adapter. Its conditional guest execution uses unresolved assumptions, and its contract tests use mock proofs. It is not an admitted deployment or a funded end-to-end swap.
 
+The [Testnet delivery plan](docs/testnet-delivery.md) fixes the remaining work, dependencies and genuine-proof acceptance cases. Its first security gate is the [bounded-refund review](docs/refund-window-review.md).
+
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
 | `rfq` | Strict shared schemas, native Rust amount/fee bindings, HPKE/Ed25519 messaging, encrypted owner journals, client/maker SDK quote flow and a bounded HTTP relay | Live wallet adapters, pricing/inventory providers, admitted deployments, SDK accounts and swap execution |

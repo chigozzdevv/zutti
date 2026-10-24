@@ -2,6 +2,8 @@
 
 This is an isolated prototype for native shielded ZEC on Testnet. It introduces no committee, custodian or operator-selected history root. It does not authorize funded settlement. The lower-bound construction is conditional on the cryptographic argument below; independent review is still required.
 
+The [review packet](refund-window-review.md) fixes the proposition, attacker control and unresolved questions. The [Testnet delivery plan](testnet-delivery.md) records the implementation and evidence gates.
+
 ## Checked statement
 
 `PaymentBindingWitness` contains the existing redacted preparation witness and an exact SPV policy. Its evaluator runs the existing Ironwood preparation checks directly. It does not accept a server's payment description or an unverified preparation claim.
