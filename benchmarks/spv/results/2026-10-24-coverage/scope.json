@@ -1,0 +1,11 @@
+{
+  "end_to_end_swap": false,
+  "ethereum_wrapped": false,
+  "inputs": "Public historical Testnet blocks one through four and generated commitments",
+  "paid_jobs": 0,
+  "prepared_ironwood_payment": false,
+  "proof_generated": false,
+  "settlement_authority": false,
+  "source_anchor_authenticated": false,
+  "unresolved_execution_assumptions": true
+}

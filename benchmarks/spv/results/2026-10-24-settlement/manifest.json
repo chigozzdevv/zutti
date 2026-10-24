@@ -1,0 +1,80 @@
+{
+  "build": "build.json",
+  "cases": {
+    "deposit": "deposit.json",
+    "missing-reservation": "missing-reservation.json",
+    "missing-source": "missing-source.json",
+    "paid": "paid.json",
+    "reservation": "reservation.json",
+    "reservation-missing-anchor": "reservation-missing-anchor.json",
+    "reservation-missing-binding": "reservation-missing-binding.json",
+    "unpaid": "unpaid.json",
+    "wrong-reservation-image": "wrong-reservation-image.json",
+    "wrong-source-journal": "wrong-source-journal.json"
+  },
+  "code_revision": "13ddb8130bd2ebed883e357cc78aa8828b699608",
+  "conditional_dependencies": "unresolved execution assumptions",
+  "current_chain_bootstrap": false,
+  "date": "2026-10-24",
+  "ethereum_wrapped": false,
+  "execution": "execution.json",
+  "existing_cryptographic_fixtures": "Legacy genesis composite and pool Groth16 receipts are verified as regression evidence only; neither authenticates the new conditional programs.",
+  "funded_swap": false,
+  "network_usage": {
+    "cached_dependencies_used": true,
+    "chain_download_bytes": 0,
+    "earlier_exact_helios_git_pack_bytes": 1217882,
+    "earlier_missing_dependency_archives_bytes": 6762883,
+    "excludes": "HTTP and index overhead",
+    "proving_setup_download_bytes": 0
+  },
+  "new_proofs_generated": false,
+  "paid_jobs": 0,
+  "platform": "Apple M1 Pro, 8 CPUs, 16 GiB RAM",
+  "program": {
+    "admitted": false,
+    "image_id": "5e1e8d9fb8c2670b54446c4f80ce6facbfe479ee4713880b6e88bb4fe995d9a4",
+    "kind": "spv_pool",
+    "network_scope": "Testnet prototype",
+    "program_sha256": "19ff1067561f1034828c1e5891e2ed306deda73888b8f86f6d4603b4b048c67c",
+    "schema": 1
+  },
+  "remaining": [
+    "Independent cryptographic review of payment lower boundary",
+    "Genuine binding, current-chain header, coverage/window, reservation and terminal receipts",
+    "Genuine new-program Ethereum wrapping",
+    "Admitted deployment and finality policy",
+    "Live funded payout, delayed-claim, refund and independent recovery tests",
+    "Current-chain proving latency, throughput and cost",
+    "Permanent source-halt recovery remains unresolved"
+  ],
+  "schema": 1,
+  "scope": "scope.json",
+  "security_review_complete": false,
+  "settlement_authority": false,
+  "source_anchor_authenticated": false,
+  "source_hash_scope": "Construction files listed here, with dependency versions pinned in guest lockfiles; this is not a complete source archive.",
+  "source_sha256": {
+    "benchmarks/spv/examples/settlement.rs": "51cbe72d285eb1637260e3f371877787e738f1992f8e7cab2e797dbb3d9e57be",
+    "benchmarks/spv/src/settlement.rs": "61775d4375f3272dfbaf3581582643ba5d334ed24d191aa7121a323fb8c9afd5",
+    "contracts/src/SpvPool.sol": "965330bbb0f2864ff91cf8e0db826f4f2fc4babde1aff6c4f98ff33c99506c89",
+    "contracts/src/SpvPoolJournal.sol": "da158899d46b556d56da48230c2dd5f7145e6e22b37ed6356a811211d7e79041",
+    "crates/prover/methods/spv-pool/Cargo.lock": "6ddae10320b9f052170182d4838920bb7034c4017e39106ddd62f1aa1ea8791a",
+    "crates/prover/methods/spv-pool/Cargo.toml": "d9b7775127bf274464a2f4c4d7bd3f78a3c1f6a958f1246082dfc2a04b604e2c",
+    "crates/prover/methods/spv-pool/src/main.rs": "7bc79829e52ceb86ad2b2c3d1dce2937d4440e5450938e9b58fc01d0d81e0df7",
+    "crates/recovery/src/spv.rs": "19647be7a2a004e863358c16038b2054956432d3b5e64b2bd1e412204da7e2c9",
+    "crates/wallet/ethereum/src/spv_authorization.rs": "1cada786c7d602194148973b99719d6932c5698409cdb78dcef51cc571f3356d",
+    "crates/wallet/src/spv_pool.rs": "292b38b0963bfdfc2002225d42243fc1726d51d82ad2291e217b6e68fe3ac99e",
+    "crates/wallet/src/spv_pool/recovery.rs": "5b12c35634711cd76720e810965b342ee3e75c822a35b1d7d14d698d2a1d6a37"
+  },
+  "validation": {
+    "clippy_warnings_denied": true,
+    "contract_tests_passed": 39,
+    "contract_tests_skipped": 1,
+    "ethereum_verifier_tests_passed": 12,
+    "isolated_rust_tests_passed": 61,
+    "resource_supervisor_tests_passed": 2,
+    "root_recovery_spv_clippy_warnings_denied": true,
+    "root_recovery_spv_tests_typechecked": true
+  }
+}

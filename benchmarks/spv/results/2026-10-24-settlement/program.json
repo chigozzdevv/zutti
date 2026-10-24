@@ -1,0 +1,8 @@
+{
+  "admitted": false,
+  "image_id": "5e1e8d9fb8c2670b54446c4f80ce6facbfe479ee4713880b6e88bb4fe995d9a4",
+  "kind": "spv_pool",
+  "network_scope": "Testnet prototype",
+  "program_sha256": "19ff1067561f1034828c1e5891e2ed306deda73888b8f86f6d4603b4b048c67c",
+  "schema": 1
+}

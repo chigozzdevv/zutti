@@ -38,7 +38,7 @@ Under that assumption, an authenticated matching transaction cannot occur at or 
 
 ## Composition required for settlement
 
-A funded transition must verify both genuine receipts under the pinned binding and source programs. It must match the source policy and `Rw`, the exact window terms, and the selected fixed output. `PaymentBindingClaim::require_window` checks this field relation; it is not a receipt verifier.
+The separate [SPV pool prototype](spv-settlement.md) now implements the composition relation and requires verified dependencies in its guest. Its recorded conditional executions still use unresolved assumptions. A reservation transition must verify the genuine binding and source-anchor receipts. Terminal settlement composes that verified reservation certificate with the genuine source-window receipt under the pinned pool and source programs. It must match the source policy and `Rw`, the exact window terms, and the selected fixed output. `PaymentBindingClaim::require_window` checks this field relation; it is not a receipt verifier.
 
 The source window receipt authenticates the anchor and consecutive history, selects inclusion or complete absence, and binds the exact ending checkpoint. The destination must admit that checkpoint through the source registry. Funding must also check source freshness and remaining inclusion time.
 

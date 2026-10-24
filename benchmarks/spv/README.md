@@ -6,12 +6,16 @@ The implementation is in [`crates/source/src/spv`](../../crates/source/src/spv),
 
 ## Measured status
 
+The latest [settlement results](results/2026-10-24-settlement/manifest.json) and [recursive coverage results](results/2026-10-24-coverage/manifest.json) record 61 isolated Rust tests, 12 Ethereum finality/authorization tests, 39 contract tests and two process-supervisor tests passing. One existing preparation contract test remains skipped. Clippy passes with warnings denied. Conditional contract checks use mocks; conditional guest execution uses unresolved proof assumptions. These are not genuine conditional receipts or a funded swap.
+
+The table below preserves the earlier source/admission and binding measurements under their original program identities. The new coverage image requires a fresh matching bootstrap; the retained genesis receipt is historical regression evidence only.
+
 The [source/admission results](results/2026-10-23-admission/manifest.json) and [payment-binding results](results/2026-10-24-binding/manifest.json) use an Apple M1 Pro with bounded local execution and public inputs. No marketplace jobs, paid compute or new chain downloads were used. The [first baseline](results/2026-10-23/manifest.json) remains archived under its original program identity.
 
 | Check | Result |
 | --- | --- |
 | Native source, work, receipt, preparation and binding tests | 38 passed; clippy reports no warnings |
-| Ethereum tests | 28 passed, one existing preparation test skipped; 10 SPV tests use mock proof verification |
+| Earlier contract tests | 28 passed, one existing preparation test skipped; 10 SPV tests use mock proof verification |
 | Four-header zkVM execution | 23,101,146 user cycles; genuine genesis predecessor; no new proof |
 | Included / absent zkVM execution | 23,459,591 / 23,790,207 user cycles; genuine genesis predecessor; no new proof |
 | False absence, missing block and wrong parent | Rejected by native and guest execution |
@@ -102,7 +106,7 @@ Any participant can submit verified candidates. A strictly heavier candidate rep
 
 A separately proved heavier fork that contradicts the current stable block can permanently halt admission and make `accepted()` return false. There is no administrator resume or history-root override. This is a safety halt; it does not reverse prior payouts or refund locked funds. Recovery following such a halt remains unresolved.
 
-Source-prefix proving and admission proving are separate programs. Admission currently rechecks the suffix after consuming its predecessor receipt; optimized composition is not measured. Existing preparation, pool and full-validity images remain unchanged. The old pool cannot consume the new journals.
+Source-prefix proving and admission proving are separate programs. Admission currently rechecks the suffix after consuming its predecessor receipt; optimized composition is not measured. Recorded preparation, pool and full-validity fixtures retain their original identities. The old pool cannot consume the new SPV journals.
 
 ```sh
 "$CARGO_TARGET_DIR/debug/zutti-spv-prototype" build --kind admission \
@@ -150,14 +154,71 @@ python3 benchmarks/spv/run.py --seconds 180 --rss-mib 4096 \
 
 The example uses generated public Ironwood effects, test-only keys, synthetic terms and a placeholder source-program identity. It broadcasts nothing. Execution accepts the matching journal and rejects five changed fields. Native tests also check policy/profile substitution, ciphertext mutation, valid re-encryption with a different anchor and authorization stability. `--prove` requests a genuine succinct receipt for the positive case, with development mode disabled; it was not used in the recorded run. Execution time is not proof-generation time.
 
+## Combined SPV pool execution
+
+The [SPV settlement construction](../../docs/spv-settlement.md) has a separate guest, journal and contract. It does not alter admission of the older pool or full-validity programs. The [results](results/2026-10-24-settlement/manifest.json) explicitly mark synthetic source observations and unresolved dependencies.
+
+```sh
+"$CARGO_TARGET_DIR/debug/zutti-spv-prototype" build --kind pool \
+  --guest-target /tmp/spv-pool-target --out /tmp/spv-pool-program
+cargo build --offline --locked --manifest-path benchmarks/spv/Cargo.toml --example settlement
+python3 benchmarks/spv/run.py --seconds 180 --rss-mib 4096 \
+  --log /tmp/spv-pool-execute.log -- \
+  "$CARGO_TARGET_DIR/debug/examples/settlement" \
+  --program /tmp/spv-pool-program/program.elf --out /tmp/spv-pool-execute
+cargo test --offline --locked --manifest-path benchmarks/spv/Cargo.toml --features recovery --tests
+```
+
+The example executes a deposit and the reservation/paid/unpaid predicates. Conditional positive cases supply unresolved claims for execution only. Six negative cases omit or alter proof dependencies and must fail on the exact expected verification digest. Genuine conditional proving requires cryptographically verified matching dependency receipts; fabricated or missing receipts fail before proving. `--prove-deposit` requests a genuine succinct proof for the generated deposit only, with no conditional proof dependencies. It has not been run in the recorded measurement.
+
+The recovery feature additionally tests authenticated files and payment-journal restarts. The public fixture export checks Rust/Solidity agreement and contains no genuine payment evidence.
+
 ## Limits and remaining work
 
-Inputs are capped at 16 MiB, blocks at 2,000,000 bytes, header batches at 4,096 headers and windows at 128 blocks. Dense windows may exceed the byte cap; composable interval proofs remain necessary before arbitrary windows can be funded reliably.
+Inputs are capped at 16 MiB, blocks at 2,000,000 bytes, header batches at 4,096 headers and windows at 128 blocks. Dense windows may exceed the byte cap; the recursive coverage witness processes consecutive complete-block chunks and carries the exact previous coverage receipt. Each chunk must fit the cap. Genuine recursive coverage proofs and representative dense-window proving costs remain unmeasured.
 
 The generated demo uses real Testnet heights 0 through 4, coinbase-only transaction fixtures and public generated order terms. The inclusion and absence cases exercise source observations, not a prepared shielded swap payment. Its one-descendant setting is not an accepted finality policy. Real private witnesses must not be uploaded to public proving services. Newly generated inputs and receipts use owner-only permissions. The committed genesis fixture contains only public data; Git does not preserve owner-only file modes.
 
-The separate admission prototype below implements candidate comparison, observation, freshness and stable-prefix advancement. It requires proof verification and is not connected to the funded pool. Relevant competing histories must reach it; unseen higher-work chains cannot be ruled out cryptographically. Confirmation descendants and observation time alone do not establish finality.
+The separate admission prototype implements candidate comparison, observation, freshness and stable-prefix advancement. The new SPV pool checks its accepted checkpoints; no funded deployment connects these components yet. Relevant competing histories must reach it; unseen higher-work chains cannot be ruled out cryptographically. Confirmation descendants and observation time alone do not establish finality.
 
 Absence is conditional on the supplied interval covering every possible inclusion height. The separate binding prototype implements the proposed anchor-hash dependency relation, but no genuine binding receipt or independent review of its lower-bound assumption is complete. A memo containing an anchor is not a consensus-enforced creation timestamp. The window program alone cannot justify a refund.
 
-A current-chain bootstrap, later-upgrade/dense-block measurements, private reservation/settlement composition, Ethereum wrapping and independent funded recovery remain. Execution time is not proving time or a complete bootstrap quote. See the [source-verification review](../../docs/source-verification.md).
+A current-chain bootstrap, later-upgrade/dense-block measurements, genuine private reservation/settlement composition, Ethereum wrapping and independent funded recovery remain. Execution time is not proving time or a complete bootstrap quote. See the [source-verification review](../../docs/source-verification.md).
+
+
+## Recursive complete-block coverage
+
+`ZUTTISPG` identifies an intermediate coverage claim. It binds the exact window terms, salted target reservation, original anchor, first height, inclusive expiry, earliest matching payment height and ending header prefix. Each continuation verifies the exact previous coverage journal under the source image, processes the next consecutive complete blocks and preserves an earlier payment. Changing the target, salt, terms or predecessor cannot splice coverage from another swap. Finalization requires every block through expiry and the required confirmation descendants, then emits `ZUTTISPW` rather than a second settlement format. Direct inclusion remains available before expiry.
+
+Coverage journals and witnesses are private. Their proof dependencies must be genuine succinct or Groth16 receipts. A public composite prefix is allowed only for the initial header dependency; private coverage predecessors cannot use composite receipts. The terminal pool consumes only the final window certificate. [Recorded execution](results/2026-10-24-coverage/manifest.json)
+
+```sh
+cargo build --manifest-path benchmarks/spv/Cargo.toml --offline --locked --example coverage
+python3 benchmarks/spv/run.py --seconds 180 --rss-mib 4096 \
+  --log /tmp/spv-coverage.log -- \
+  "$CARGO_TARGET_DIR/debug/examples/coverage" \
+  --program /tmp/spv-program/program.elf --out /tmp/spv-coverage
+```
+
+The execution example uses real historical blocks 1 through 4 and generated public commitments. Six positive chunk cases and four negative cases exercise paid, paid-at-expiry, absent, missing predecessor, forgotten earlier payment, missing last block and changed target behavior. Its unresolved execution assumptions are not cryptographic receipts. The coverage source image differs from the retained genesis fixture, which cannot authenticate this new program. A fresh matching bootstrap is required.
+
+## Proof and recovery commands
+
+The isolated host accepts bounded canonical witness files independently of the generated examples:
+
+```sh
+"$CARGO_TARGET_DIR/debug/zutti-spv-prototype" binding \
+  --program /tmp/binding-program/program.elf --witness /tmp/binding-witness.bin \
+  --out /tmp/binding-proof --prove
+
+"$CARGO_TARGET_DIR/debug/zutti-spv-prototype" pool \
+  --program /tmp/spv-pool-program/program.elf --witness /tmp/reservation-witness.bin \
+  --receipt /tmp/binding-proof/receipt.bin --receipt /tmp/source-prefix/receipt.bin \
+  --out /tmp/reservation-proof --prove
+```
+
+Terminal pool proving instead consumes the exact reservation receipt followed by the source-window receipt. The pool image is part of its signed journal and must match the executing program. Missing, fake, mismatched and private composite dependencies fail before proving. Omitting `--prove` with no dependency receipts is an explicitly unresolved execution check, not evidence of funding.
+
+`wrap --image <expected-image> --receipt <receipt.bin> --journal <journal.bin> --out <new-directory>` first verifies the receipt, requests local Groth16 compression with development mode disabled, verifies the resulting receipt and exports the selector-prefixed Ethereum seal. Actual compression requires the external prover and its supported wrapping setup. This work tested export and unchanged-format wrapping using an existing genuine Groth16 fixture; it did not generate a new Groth16 proof or run succinct-to-Groth16 compression on this Mac. Fake receipts, wrong images, wrong journals and altered seals fail.
+
+Build the recovery CLI with `--features spv` in its core crate, or `--features recovery --bin zutti-recovery` in this isolated harness. `spv-export` takes an encrypted reservation witness; `spv-restore` requires the expected domain and swap ID; `spv-prepare` takes an encrypted `SpvSettlementEvidence` and writes the exact encrypted terminal witness. These commands preserve no-overwrite behavior and never submit a transaction. The live flow still needs genuine proofs and an admitted deployment. [Recovery construction](../../docs/spv-settlement.md#recovery-and-payment-authorization)

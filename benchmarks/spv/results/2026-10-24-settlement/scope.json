@@ -1,0 +1,10 @@
+{
+  "binding_program": "placeholder",
+  "end_to_end_swap": false,
+  "inputs": "Generated public Ironwood effects, synthetic unverified header context and source observations",
+  "paid_jobs": 0,
+  "proofs_for_conditional_operations": false,
+  "settlement_authority": false,
+  "source_anchor_authenticated": false,
+  "source_program": "placeholder"
+}

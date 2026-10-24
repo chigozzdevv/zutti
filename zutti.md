@@ -2,7 +2,7 @@
 
 Full-history proving is paused. A separate [SPV prototype](benchmarks/spv/README.md) is approved for evaluation with the mining-validity assumption recorded in the [source-verification review](docs/source-verification.md). No replacement deployment policy or settlement evidence is admitted; the full-validity construction below is retained as a reference.
 
-The [payment-window binding prototype](docs/payment-window-binding.md) implements the prepared Ironwood relation and records its conditional anchor-hash lower-bound argument. Guest execution is measured; a genuine binding receipt, independent review and funded composition remain unfinished.
+The [payment-window binding prototype](docs/payment-window-binding.md) implements the prepared Ironwood relation and records its conditional anchor-hash lower-bound argument. The separate [SPV settlement path](docs/spv-settlement.md) now composes proof dependencies and pool/recovery predicates. Genuine binding/window/settlement receipts, current-chain bootstrap, lower-bound review and funded live execution remain unfinished.
 
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 

@@ -1,0 +1,19 @@
+{
+  "cycles": null,
+  "ethereum_wrapped": false,
+  "guest_rejected": true,
+  "image_id": "5e1e8d9fb8c2670b54446c4f80ce6facbfe479ee4713880b6e88bb4fe995d9a4",
+  "journal_matches": false,
+  "journal_sha256": "b7cda80a50721bdd934e447a6e6a2f9ddc357d3e583a9c5c18e48fe03df5a5b9",
+  "paid_jobs": 0,
+  "program_sha256": "19ff1067561f1034828c1e5891e2ed306deda73888b8f86f6d4603b4b048c67c",
+  "proof_generated": false,
+  "proof_verified": false,
+  "schema": 1,
+  "seconds": 0.43598125,
+  "security_review_complete": false,
+  "settlement_authority": false,
+  "source_anchor_authenticated": false,
+  "unresolved_execution_assumptions": true,
+  "witness_sha256": "b46807cfc329f84063dbafb07748060698221999fd02a7d36cfb2c866bb231b7"
+}

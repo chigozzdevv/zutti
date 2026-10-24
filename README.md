@@ -8,6 +8,8 @@ Full-history proving with the current source implementation is paused after the 
 
 The isolated [payment-window binding prototype](docs/payment-window-binding.md) connects exact Ironwood payment effects to both reservation commitments. Native tests and guest execution pass; its conditional lower-bound argument still needs independent review, genuine receipt composition and accepted source evidence before it can authorize a refund.
 
+The separate [SPV settlement path](docs/spv-settlement.md) now implements proof dependency composition, backed private reservations, fixed payout/refund operations, encrypted recovery records and an Ethereum authorization adapter. Its conditional guest execution uses unresolved assumptions, and its contract tests use mock proofs. It is not an admitted deployment or a funded end-to-end swap.
+
 | Component | Implemented now | Remaining boundary |
 | --- | --- | --- |
 | `rfq` | Strict shared schemas, native Rust amount/fee bindings, HPKE/Ed25519 messaging, encrypted owner journals, client/maker SDK quote flow and a bounded HTTP relay | Live wallet adapters, pricing/inventory providers, admitted deployments, SDK accounts and swap execution |
@@ -20,7 +22,7 @@ The isolated [payment-window binding prototype](docs/payment-window-binding.md) 
 | `contracts` | Actual Groth16 preparation verification; source-update registry and private-pool execution state machines; Rust/Solidity journal agreement | Current-chain bootstrap, cross-chain composition, finality and network deployment |
 | `recovery` | Encrypted swap-record export/restoration and private claim/refund witness preparation with exact domain/swap binding | Accepted current-chain evidence, settlement proving and independent on-chain submission |
 
-The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source and pool evidence under its pinned programs. Current-chain source bootstrap, cross-chain composition and verified Ethereum finality remain unfinished.
+The SHA-256 commitment/index suite is explicitly a **development profile**. It is not an admitted production circuit suite. Native note ownership and encryption alone do not issue backed USDC. The pool execution contract requires source and pool evidence under its pinned programs. Current-chain source bootstrap, genuine conditional receipt composition and live finalized Ethereum reservation evidence remain unfinished.
 
 ## Development
 
@@ -141,8 +143,8 @@ These artifacts were generated for the preceding development image, not the curr
 
 | Case | Observed time | Public artifact bytes | Evidence |
 | --- | ---: | ---: | --- |
-| Paid | 256.46 s | 224,256 | [timing](.data/proof-evidence/run-1Rwsszl8/paid.json), [proof](.data/proof-evidence/run-1Rwsszl8/paid.proof) |
-| Expired and absent | 277.22 s | 224,256 | [timing](.data/proof-evidence/absence-cli-check/expired_absent.json), [proof](.data/proof-evidence/absence-cli-check/expired_absent.proof) |
+| Paid | 256.46 s | 224,256 | Historical local record; not versioned |
+| Expired and absent | 277.22 s | 224,256 | Historical local record; not versioned |
 
 Program image: `115e817a997cb003c29a150e77757b7f8a38daee10d9830211a6273e10174195`. Each envelope is 223,885 bytes; the public journal is 274 bytes. These are local test-driver observations including proving and client verification, excluding compilation. The paid case uses the native API; the absence case includes encrypted CLI input and artifact creation. They do not measure full Zcash consensus/bootstrap proving, Ethereum verification or an executed swap. Cross-machine reproducible release images and production profile admission remain deployment work.
 
@@ -216,7 +218,7 @@ The generated two-action preparation benchmark on 17 October 2026 produced a gen
 
 Capacity excludes gas, pending requests and other PNLX spending from the shared account. The sampled ETH/USD quote was $2,402.85103033. These timings include market waiting, proving, aggregation and on-chain fulfillment; they are not isolated GPU timings or full-source/swap measurements.
 
-Evidence: [on-chain fulfillment](https://basescan.org/tx/0x58cad63b8ff9ec739490d1b00e03321e9877610f750af517037b73249cac6891), [retained timing/cost record](.data/public-preparation-20261017/evidence.json), [verified preparation artifact](.data/public-preparation-20261017/preparation.proof). Program image: `f97aeb93b4066460d372b433a89bd07d6be30934a55fa5de6a5e4c421d9b3916`. The market result alone is not treated as cryptographic verification: import reconstructs the expected receipt claim and independently verifies the Groth16 proof with pinned parameters.
+Evidence: [on-chain fulfillment](https://basescan.org/tx/0x58cad63b8ff9ec739490d1b00e03321e9877610f750af517037b73249cac6891). The raw timing/cost record and preparation artifact are not versioned in this checkout. Program image: `f97aeb93b4066460d372b433a89bd07d6be30934a55fa5de6a5e4c421d9b3916`. The market result alone is not treated as cryptographic verification: import reconstructs the expected receipt claim and independently verifies the Groth16 proof with pinned parameters.
 
 ## Native private notes
 
