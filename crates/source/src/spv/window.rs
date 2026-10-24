@@ -48,6 +48,9 @@ impl WindowTerms {
     pub const fn anchor_height(&self) -> u32 {
         self.anchor_height
     }
+    pub const fn anchor_hash(&self) -> Digest {
+        self.anchor_hash
+    }
     pub const fn expiry(&self) -> u32 {
         self.expiry
     }

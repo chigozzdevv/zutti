@@ -17,12 +17,11 @@ fn main() {
     let mut bytes = vec![0; length];
     env::read_slice(&mut bytes);
     let witness = Witness::from_bytes(&bytes).expect("invalid SPV witness");
-    if let Some(previous) = witness.assumption() {
-        env::verify(
-            previous.policy().program().0,
-            &previous.to_bytes().expect("invalid SPV predecessor"),
-        )
-        .expect("unverified SPV predecessor");
+    if let Some(previous) = witness
+        .required_journal()
+        .expect("invalid SPV predecessor journal")
+    {
+        env::verify(witness.policy().program().0, &previous).expect("unverified SPV predecessor");
     }
     let evaluation = witness.evaluate().expect("invalid SPV source transition");
     env::commit_slice(&evaluation.journal().expect("invalid SPV journal"));

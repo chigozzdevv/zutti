@@ -1,0 +1,25 @@
+[package]
+name = "zutti-spv-source-guest"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.93"
+publish = false
+[workspace]
+[[bin]]
+name = "spv_source"
+path = "../source/src/spv.rs"
+[[bin]]
+name = "spv_admission"
+path = "../source/src/spv_admission.rs"
+[dependencies]
+zutti-source = { path = "../../../source", default-features = false, features = ["blocks"] }
+zutti-protocol = { path = "../../../protocol", default-features = false }
+risc0-zkvm = { version = "=3.0.5", default-features = false, features = ["std", "getrandom"] }
+[profile.release]
+overflow-checks = true
+lto = "thin"
+codegen-units = 1
+[lints.rust]
+unsafe_code = "forbid"
+[patch.crates-io]
+dirs = { path = "../source/vendor/dirs" }

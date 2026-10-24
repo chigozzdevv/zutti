@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/protocol", "crates/wallet", "crates/source", "crates/prover", "crates/prover/methods", "crates/recovery"]
-exclude = ["crates/prover/methods/guest", "crates/prover/methods/source", "crates/prover/methods/pool", "crates/prover/methods/binding", "crates/prover/methods/spv-pool", "crates/wallet/ethereum", "crates/boundless"]
+exclude = ["crates/prover/methods/guest", "crates/prover/methods/source", "crates/prover/methods/pool", "crates/prover/methods/binding", "crates/prover/methods/spv-pool", "crates/prover/methods/spv-source", "crates/wallet/ethereum", "crates/boundless"]
 resolver = "3"
 
 [workspace.package]

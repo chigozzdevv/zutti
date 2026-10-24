@@ -1,10 +1,14 @@
-use super::{HEADER_BYTES, HeaderClaim, MAX_HEADERS, Policy, Result, WindowClaim, WindowWitness};
+use super::{
+    CoverageClaim, CoverageWitness, HEADER_BYTES, HeaderClaim, MAX_HEADERS, Policy, Result,
+    WindowClaim, WindowWitness,
+};
 use zutti_protocol::encoding::{Canonical, Reader, Writer};
 
 pub const MAX_WITNESS: usize = 16 * 1024 * 1024;
 
 #[derive(Debug)]
 pub enum Witness {
+    Coverage(Box<CoverageWitness>),
     Genesis {
         policy: Policy,
         header: Vec<u8>,
@@ -22,6 +26,7 @@ pub enum Witness {
 
 #[derive(Debug)]
 pub enum Evaluation {
+    Coverage(CoverageClaim),
     Headers(HeaderClaim),
     Window(WindowClaim),
 }
@@ -30,6 +35,7 @@ impl Evaluation {
     pub fn journal(&self) -> zutti_protocol::Result<Vec<u8>> {
         match self {
             Self::Headers(claim) => claim.to_bytes(),
+            Self::Coverage(claim) => claim.to_bytes(),
             Self::Window(claim) => claim.to_bytes(),
         }
     }
@@ -39,17 +45,25 @@ impl Witness {
     pub fn policy(&self) -> Policy {
         match self {
             Self::Genesis { policy, .. } => *policy,
+            Self::Coverage(witness) => witness.previous.head().policy(),
             Self::Headers { previous, .. } | Self::Window { previous, .. } => previous.policy(),
         }
     }
-    pub fn assumption(&self) -> Option<&HeaderClaim> {
+    pub fn required_journal(&self) -> zutti_protocol::Result<Option<Vec<u8>>> {
         match self {
-            Self::Genesis { .. } => None,
-            Self::Headers { previous, .. } | Self::Window { previous, .. } => Some(previous),
+            Self::Genesis { .. } => Ok(None),
+            Self::Headers { previous, .. } | Self::Window { previous, .. } => {
+                Ok(Some(previous.to_bytes()?))
+            }
+            Self::Coverage(witness) => Ok(Some(witness.previous.journal()?)),
         }
+    }
+    pub fn is_private(&self) -> bool {
+        matches!(self, Self::Window { .. } | Self::Coverage(_))
     }
     pub fn evaluate(&self) -> Result<Evaluation> {
         match self {
+            Self::Coverage(witness) => witness.evaluate(),
             Self::Genesis {
                 policy,
                 header,
@@ -75,6 +89,10 @@ impl Canonical for Witness {
         writer.fixed(b"ZUTTISPI");
         writer.u16(1);
         match self {
+            Self::Coverage(witness) => {
+                writer.u8(4);
+                witness.encode(writer)?;
+            }
             Self::Genesis {
                 policy,
                 header,
@@ -121,6 +139,7 @@ impl Canonical for Witness {
             return Err(zutti_protocol::Error::Version);
         }
         match reader.u8()? {
+            4 => Ok(Self::Coverage(Box::new(CoverageWitness::decode(reader)?))),
             1 => {
                 let policy = Policy::decode(reader)?;
                 let header = reader.fixed::<HEADER_BYTES>()?.to_vec();

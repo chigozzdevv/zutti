@@ -1,5 +1,6 @@
 use bincode::Options;
 pub mod binding;
+pub mod ethereum;
 pub mod settlement;
 use risc0_zkvm::{
     Executor, ExecutorEnv, ExternalProver, Prover, ProverOpts, Receipt, ReceiptClaim,
@@ -76,8 +77,20 @@ pub fn check_previous(witness: &Witness, receipt: Option<&Receipt>, image: Diges
     if witness.policy().program() != image {
         return Err("SPV program does not match its policy".into());
     }
-    match (witness.assumption(), receipt) {
-        (Some(previous), Some(receipt)) => verify(receipt, image, &previous.to_bytes()?),
+    if let (Witness::Coverage(coverage), Some(receipt)) = (witness, receipt)
+        && matches!(
+            coverage.previous,
+            zutti_source::spv::CoveragePrevious::Coverage(_)
+        )
+        && !matches!(
+            receipt.inner,
+            risc0_zkvm::InnerReceipt::Succinct(_) | risc0_zkvm::InnerReceipt::Groth16(_)
+        )
+    {
+        return Err("private coverage predecessors require zero-knowledge receipts".into());
+    }
+    match (witness.required_journal()?, receipt) {
+        (Some(previous), Some(receipt)) => verify(receipt, image, &previous),
         (Some(_), None) => Err("genuine predecessor evidence is required".into()),
         (None, None) => Ok(()),
         (None, Some(_)) => Err("genesis cannot consume a predecessor".into()),
@@ -96,7 +109,7 @@ pub fn run(
         cycle_limit,
         public_header_receipt,
     } = options;
-    if public_header_receipt && (!prove || matches!(witness, Witness::Window { .. })) {
+    if public_header_receipt && (!prove || witness.is_private()) {
         return Err("composite mode is restricted to public header proving".into());
     }
     if out.try_exists()? || cycle_limit == 0 || cycle_limit > MAX_CYCLES {
@@ -126,8 +139,8 @@ pub fn run(
         .segment_limit_po2(20);
     if let Some(receipt) = previous {
         builder.add_assumption(receipt.clone());
-    } else if let Some(previous) = witness.assumption() {
-        builder.add_assumption(ReceiptClaim::ok(image_id.0, previous.to_bytes()?));
+    } else if let Some(previous) = witness.required_journal()? {
+        builder.add_assumption(ReceiptClaim::ok(image_id.0, previous));
     }
     let started = Instant::now();
     let prover = ExternalProver::new("zutti-spv-prototype", "r0vm");
@@ -171,7 +184,7 @@ pub fn run(
         "cycles":cycles,"segments":segments,"seconds":started.elapsed().as_secs_f64(),
         "journal_matches":true,"proof_generated":prove,"proof_verified":prove,
         "receipt_kind":if prove {Some(if public_header_receipt {"composite"} else {"succinct"})} else {None},
-        "predecessor_proof_verified":previous.is_some(),"unresolved_execution_assumption":!prove && witness.assumption().is_some() && previous.is_none(),
+        "predecessor_proof_verified":previous.is_some(),"unresolved_execution_assumption":!prove && witness.required_journal()?.is_some() && previous.is_none(),
         "full_transaction_validity_verified":false,"canonicality_admitted":false,
         "payment_preparation_verified":false,"lower_boundary_birth_verified":false,
         "settlement_authority":false,"paid_jobs":0,
@@ -219,8 +232,8 @@ pub fn reject(
         .segment_limit_po2(20);
     if let Some(receipt) = previous {
         builder.add_assumption(receipt.clone());
-    } else if let Some(previous) = witness.assumption() {
-        builder.add_assumption(ReceiptClaim::ok(image(program)?.0, previous.to_bytes()?));
+    } else if let Some(previous) = witness.required_journal()? {
+        builder.add_assumption(ReceiptClaim::ok(image(program)?.0, previous));
     }
     let started = Instant::now();
     let error = ExternalProver::new("zutti-spv-rejection", "r0vm")

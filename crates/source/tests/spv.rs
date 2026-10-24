@@ -481,7 +481,7 @@ fn an_initial_header_batch_is_bound_to_genesis_without_an_unresolved_predecessor
         header: raw(0)[..HEADER_BYTES].to_vec(),
         headers: vec![raw(1)[..HEADER_BYTES].to_vec()],
     };
-    assert!(witness.assumption().is_none());
+    assert!(witness.required_journal().unwrap().is_none());
     let expected = prefix()
         .advance(&[raw(1)[..HEADER_BYTES].to_vec()])
         .unwrap()

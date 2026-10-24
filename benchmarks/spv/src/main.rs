@@ -79,6 +79,38 @@ enum Command {
         #[arg(long, default_value_t=DEFAULT_CYCLES, value_parser=clap::value_parser!(u64).range(1..=MAX_CYCLES))]
         cycle_limit: u64,
     },
+    Binding {
+        #[arg(long)]
+        program: PathBuf,
+        #[arg(long)]
+        witness: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long)]
+        prove: bool,
+    },
+    Wrap {
+        #[arg(long)]
+        image: String,
+        #[arg(long)]
+        receipt: PathBuf,
+        #[arg(long)]
+        journal: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Pool {
+        #[arg(long)]
+        program: PathBuf,
+        #[arg(long)]
+        witness: PathBuf,
+        #[arg(long = "receipt")]
+        receipts: Vec<PathBuf>,
+        #[arg(long)]
+        out: PathBuf,
+        #[arg(long)]
+        prove: bool,
+    },
     Verify {
         #[arg(long)]
         program: PathBuf,
@@ -158,7 +190,7 @@ fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
     let manifest = match kind {
         Guest::Binding => "crates/prover/methods/binding/Cargo.toml",
         Guest::Pool => "crates/prover/methods/spv-pool/Cargo.toml",
-        _ => "crates/prover/methods/source/Cargo.toml",
+        _ => "crates/prover/methods/spv-source/Cargo.toml",
     };
     let mut command = risc0_build::cargo_command("build", &flags);
     let status = command
@@ -453,6 +485,73 @@ fn main() -> Result<()> {
                 },
             )?;
             Ok(())
+        }
+        Command::Binding {
+            program,
+            witness,
+            out,
+            prove,
+        } => {
+            use zutti_wallet::binding::{MAX_BINDING_WITNESS, PaymentBindingWitness};
+            let program = bounded(&program, 32 * 1024 * 1024)?;
+            let witness =
+                PaymentBindingWitness::from_bytes(&bounded(&witness, MAX_BINDING_WITNESS)?)?;
+            zutti_spv_prototype::binding::run(&program, &witness, &out, prove, false)
+        }
+        Command::Wrap {
+            image,
+            receipt,
+            journal,
+            out,
+        } => {
+            use bincode::Options;
+            let image = Digest::from_hex(&image)?;
+            let receipt = read_receipt(&receipt)?;
+            let journal = bounded(&journal, 16_384)?;
+            if out.try_exists()? {
+                return Err("wrapping output already exists".into());
+            }
+            let (wrapped, seal) = zutti_spv_prototype::ethereum::wrap(&receipt, image, &journal)?;
+            fs::create_dir(&out)?;
+            write_new(
+                &out.join("receipt.bin"),
+                &bincode::DefaultOptions::new()
+                    .with_fixint_encoding()
+                    .with_limit(zutti_spv_prototype::MAX_RECEIPT as u64)
+                    .serialize(&wrapped)?,
+            )?;
+            write_new(&out.join("seal.bin"), &seal)?;
+            write_new(&out.join("journal.bin"), &journal)?;
+            let result = serde_json::json!({"image_id":image.to_string(),"proof_verified":true,"format":"groth16","ethereum_seal_bytes":seal.len(),"transaction_submitted":false,"settlement_authority":false,"paid_jobs":0});
+            write_new(
+                &out.join("result.json"),
+                &serde_json::to_vec_pretty(&result)?,
+            )?;
+            println!("{result}");
+            Ok(())
+        }
+        Command::Pool {
+            program,
+            witness,
+            receipts,
+            out,
+            prove,
+        } => {
+            use zutti_spv_prototype::settlement::{Dependencies, run};
+            use zutti_wallet::spv_pool::{MAX_SPV_POOL_WITNESS, SpvPoolWitness};
+            let program = bounded(&program, 32 * 1024 * 1024)?;
+            let witness = SpvPoolWitness::from_bytes(&bounded(&witness, MAX_SPV_POOL_WITNESS)?)?;
+            let receipts = receipts
+                .iter()
+                .map(|path| read_receipt(path))
+                .collect::<Result<Vec<_>>>()?;
+            let dependencies = if prove || !receipts.is_empty() || witness.assumptions()?.is_empty()
+            {
+                Dependencies::Genuine(&receipts)
+            } else {
+                Dependencies::Unresolved
+            };
+            run(&program, &witness, dependencies, &out, prove)
         }
         Command::Verify {
             program,
