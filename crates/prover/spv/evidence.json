@@ -456,7 +456,7 @@
       }
     },
     "job_schema": 2,
-    "scope": "Public Testnet export/preflight and cryptographically verified receipt import; no marketplace fulfillment of the new programs.",
+    "scope": "Historical export/preflight snapshot before the paid source-composition run below; no marketplace fulfillment had occurred at that recording.",
     "dependency_verifier": {
       "program": {
         "admitted": false,
@@ -661,5 +661,130 @@
     "current_chain_admitted": false,
     "refund_security_review_complete": false,
     "swap_executed": false
+  },
+  "boundless_capacity": {
+    "schema": 1,
+    "observed_at": "2026-10-25T10:04:32.417550+00:00",
+    "scope": "Public market capacity observations and one execution-checked candidate; no new proof purchased or source height authenticated.",
+    "market_chain_id": 8453,
+    "documentation": {
+      "provider_limits": "https://docs.boundless.network/provers/broker",
+      "composition": "https://docs.boundless.network/developers/tutorials/proof-composition",
+      "auction": "https://docs.boundless.network/developers/tutorials/auction"
+    },
+    "sampling": {
+      "unique_requests": 1438,
+      "method": "Three 500-row pages ordered by updated_at and one ordered by created_at, deduplicated by request identifier.",
+      "global_maximum_established": false,
+      "dates_use_fulfilled_at": true
+    },
+    "verified_examples": [
+      {
+        "request_id": "0x1734df7809c4ef94da037449c287166d11450319800075b4a",
+        "program_cycles": 36936834190,
+        "selector": "73c457ba",
+        "fulfilled_at": "2026-10-16T08:40:41+00:00",
+        "price_wei": "95000000000000",
+        "lock_to_fulfillment_seconds": 698,
+        "fulfillment_transaction": "0x847df09b4375f0e2f5ac6c7df16ccc92088bf5556ad812991033a67cd1d44bda",
+        "groth16_eth_call_verified": true,
+        "verification_chain_id": 11155111,
+        "verification_router": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+        "verification_block": 11990072,
+        "source_url": "https://d2mdvlnmyov1e1.cloudfront.net/v1/market/requests/0x1734df7809c4ef94da037449c287166d11450319800075b4a",
+        "transaction_succeeded": true
+      },
+      {
+        "request_id": "0x1734df7809c4ef94da037449c287166d114503198000643b2",
+        "program_cycles": 53981402476,
+        "selector": "73c457ba",
+        "fulfilled_at": "2025-11-30T20:05:51+00:00",
+        "price_wei": "845000000000000",
+        "lock_to_fulfillment_seconds": 1138,
+        "fulfillment_transaction": "0x40bd094db97f554a3c5873d0735ebac12df3c48cb0f2ccb3534c0230345becda",
+        "groth16_eth_call_verified": true,
+        "verification_chain_id": 11155111,
+        "verification_router": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+        "verification_block": 11990072,
+        "source_url": "https://d2mdvlnmyov1e1.cloudfront.net/v1/market/requests/0x1734df7809c4ef94da037449c287166d114503198000643b2",
+        "transaction_succeeded": true
+      }
+    ],
+    "available_balance": {
+      "chain_id": 8453,
+      "account": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483",
+      "market": "0xfd152dadc5183870710fe54f939eae3ab9f0fe82",
+      "block": 53066283,
+      "market_wei": "993179228315769",
+      "observed_at": 1792921915
+    },
+    "software_cycle_ceiling": 34359738368,
+    "guest_image_unchanged": "c4367920591ba262fdaeab8bea6dc70dd8e880fbe20633069d0d3b25191b32ce",
+    "candidate": {
+      "first_height": 5,
+      "last_height": 4100,
+      "headers": 4096,
+      "raw_header_bytes": 6090752,
+      "cycle_allowance": 32000000000,
+      "execution": {
+        "cycles": 23931789154,
+        "host_assumptions": 0,
+        "image_id": "c4367920591ba262fdaeab8bea6dc70dd8e880fbe20633069d0d3b25191b32ce",
+        "journal_matches": true,
+        "paid_jobs": 0,
+        "proof_generated": false,
+        "seconds": 404.128588291
+      },
+      "execution_resources": {
+        "status": "completed",
+        "exit_code": 0,
+        "seconds": 408.5027405420551,
+        "sampled_peak_rss_mib": 456.4375,
+        "seconds_limit": 900,
+        "rss_limit_mib": 4096,
+        "development_mode": false,
+        "paid_jobs": 0,
+        "error": null
+      },
+      "program_sha256": "0dea86b94339a71d2ea55fd58cca055850ae9bba9e89392c420150764007508b",
+      "stdin_sha256": "2ebf204ca506625b718616d1d1089db2bb1d7d9989a1cb074cb098ecf059ff7a",
+      "witness_sha256": "014554b31187255ac0c28df9f0e527c0e6394fa66e78993467fcbebc172b0e63",
+      "journal_sha256": "2b5dbe1ac8f58c8eb6a33e0b6b10bdecf7a8d78e1924c9edc0314c5bce05836c",
+      "predecessor_receipt_sha256": "e69c9eb5bb3f072f51ca4b657f690f159c8c139eeb28c44e4b515dd112aaa6f5",
+      "proof_generated": false,
+      "request_submitted": false,
+      "authorised_paid_requests": 0,
+      "accepted_verified_height": 4,
+      "proposed_fee_ceiling_wei": "125000000000000",
+      "proposal_scope": "One larger-job trial only, requiring fresh authorization; no automatic resubmission or full-bootstrap spending.",
+      "encrypted_archive": {
+        "run_id": "boundless-prepared-4096-20261025",
+        "archive_verified": true,
+        "sha256": "c36bd70120d8244bdb1e6e801682329bf665d9eab51cf0893e30c8ebf916c42f",
+        "compressed_bytes": 6683684,
+        "files": 9,
+        "collection": "proof_runs"
+      }
+    },
+    "bootstrap_projection": {
+      "snapshot_height": 4539666,
+      "headers_remaining": 4539662,
+      "headers_per_job": 4096,
+      "additional_source_jobs": 1109,
+      "raw_headers_bytes_including_genesis": 6750484829,
+      "estimated_remaining_guest_cycles": 26524108389922,
+      "calibration": "Assumes later headers match the 5-4100 batch after subtracting the separately measured predecessor-check cost; remaining requests round up. Later epochs are not independently profiled.",
+      "serial_predecessor_dependencies": true,
+      "additional_admission_and_swap_proofs_excluded": true,
+      "reference_comparison_only": {
+        "request_id": "0x1734df7809c4ef94da037449c287166d11450319800075b4a",
+        "method": "Scale the projected guest cycles by this foreign job's observed fee per program cycle; not a Zutti quote, lower bound or guaranteed rate.",
+        "projected_fee_wei": "68218902683456803",
+        "funding_ratio_to_observed_balance": 68.68740378223804
+      },
+      "full_bootstrap_price_established": false,
+      "full_bootstrap_time_established": false
+    },
+    "paid_requests_submitted_this_run": 0
   }
 }

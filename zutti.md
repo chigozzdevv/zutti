@@ -18,7 +18,7 @@ An earned payout has no claim deadline. A delayed proof, disconnected wallet, un
 
 Zutti consists of a headless client SDK, a maker SDK, a shared protocol core, a private USDC pool, and source-verification infrastructure. Applications own their interface and use the public SDK to request offers, accept a trade and manage its outcome. The Zutti application uses that same SDK.
 
-The workspace implements protocol rules, Ironwood preparation, private notes, SPV header/window programs, conditional pool predicates, Ethereum authorization gates, encrypted recovery records and RFQ packages. The current SPV image has a genuine genesis receipt. Current-chain proving, genuine conditional proof composition, Sepolia deployment, wallet execution and SDK fulfillment remain unfinished. Earlier genuine component proofs certify only their own program identities.
+The workspace implements protocol rules, Ironwood preparation, private notes, SPV header/window programs, conditional pool predicates, Ethereum authorization gates, encrypted recovery records and RFQ packages. The Boundless source image has two genuine linked receipts through Testnet height 4. Current-chain proving, genuine conditional swap proofs, Sepolia deployment, wallet execution and SDK fulfillment remain unfinished. Earlier genuine component proofs certify only their own program identities.
 
 ### 1.1 Supported asset model
 
@@ -95,7 +95,7 @@ The research checkout of `zcash-light-client` in this workspace is an SPV/transp
 
 RISC Zero 3.0.5 supplies the programs and Boundless supplies remote proving compute. The Testnet demo permits public swap witnesses through the existing Pinata/IPFS transport. Those inputs are readable by provers and anyone obtaining the published objects. Wallet signing keys remain local. This demo policy does not establish production witness confidentiality.
 
-The new SPV programs still need marketplace export/import and predecessor-receipt wiring. Cryptographic proofs and Ethereum wrapping must be verified independently. A mock proof, an execution result or an unresolved proof assumption cannot authorize settlement.
+The SPV adapter exports hashed public jobs and imports cryptographically verified Groth16 receipts. Source-prefix composition has fulfilled on Boundless; the remaining admission, payment/window and pool profiles still need genuine proof composition and live settlement validation. A mock proof, an execution result or an unresolved proof assumption cannot authorize settlement.
 
 ### 3.3 Configuration and versions
 
@@ -548,6 +548,10 @@ The remote adapter exports owner-only public job artifacts with hashes for the p
 The in-guest verifier has accepted a genuine retained proof with no host assumptions and rejected changed image, journal and seal inputs. That isolated execution consumed 183,494,181 cycles for one receipt. Removing repeated pool evaluation reduced the separate generated operation cases by about 48%; inline receipt verification adds work to conditional operations.
 
 The October 25 public Boundless run produced two genuine Groth16 source receipts: genesis through block 2, then blocks 3–4 using the first receipt inside the guest. Both verified locally, passed tamper checks and were accepted by the durable bootstrap store. Both also passed read-only verification against the deployed Sepolia RISC Zero router; no settlement transaction was submitted. Their total prover fee was 58,333,333,333,333 wei, with submission-to-fulfillment times of 701 and 607 seconds. This establishes the early source-composition path, not current-chain bootstrap, conditional swap proofs, refund security or funded settlement. Exact artifacts and scope are recorded in `crates/prover/spv/evidence.json`.
+
+The larger continuation for heights 5–4,100 uses that genuine predecessor and the same guest identity. Bounded local execution passed at 23,931,789,154 cycles; the exported allowance is 32 billion cycles. The host/client guard is 34,359,738,368 cycles and the current guest bounds each batch to 4,096 headers. No paid request or new prefix proof was produced for this candidate. Foreign fulfilled Groth16 examples demonstrate observed capacity above this batch size, not a provider commitment to this program or price.
+
+At the recorded height 4,539,666, continuing from height 4 with this batch size requires 1,109 additional source jobs. Extrapolating the measured batch gives about 26.5 trillion guest cycles; later epochs, padding, market conditions and complete proof costs remain unmeasured. Current continuations depend on predecessor receipts, so aggregate network throughput is not a demonstrated bootstrap completion rate. Source admission, ongoing updates and swap proofs are additional work. No full bootstrap is authorized by the prepared packet.
 
 Conditional operations require a checkpoint accepted by `SpvRegistry`. The supported source horizon must extend through expiry plus twice the confirmation depth: the window proves its confirmation suffix, then registry admission confirms the resulting prefix. Funding also requires fresh progress and the configured minimum remaining inclusion interval. These are protocol checks, not established swap-latency estimates.
 
