@@ -22,10 +22,10 @@
     },
     "pool": {
       "admitted": false,
-      "image_id": "720c8cf586161691b93a153a78be921435f377a146d19a9ab5e76ce49de914fc",
+      "image_id": "9ecd57d09a96a3c901c3e644ed88545163837457f2604babefee9c3fb7742bbe",
       "kind": "spv_pool",
       "network_scope": "Testnet prototype",
-      "program_sha256": "de47b2ecbed31dc300cdd53d9c61e46720ffbcf368c3428197279605959e5650",
+      "program_sha256": "8590636af721d2125e83c20a06d94636cc928b220de7fadf7e19838faece0dff",
       "schema": 1
     },
     "binding": {
@@ -366,5 +366,62 @@
     "settlement_authority": false,
     "unresolved_execution_assumption": false,
     "witness_sha256": "b51c524db46ebf931099660e0b7a3ff55736cb84811dd02e3a86c7232e2400ae"
+  },
+  "pool_optimization": {
+    "recorded_at": "2026-10-25",
+    "change": "Evaluate each pool operation once while retaining exact receipt dependencies.",
+    "scope": "Equivalent generated public cases rebound to each program identity; execution only, conditional dependency claims unresolved.",
+    "before": {
+      "admitted": false,
+      "image_id": "720c8cf586161691b93a153a78be921435f377a146d19a9ab5e76ce49de914fc",
+      "kind": "spv_pool",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "de47b2ecbed31dc300cdd53d9c61e46720ffbcf368c3428197279605959e5650",
+      "schema": 1
+    },
+    "after": {
+      "admitted": false,
+      "image_id": "9ecd57d09a96a3c901c3e644ed88545163837457f2604babefee9c3fb7742bbe",
+      "kind": "spv_pool",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "8590636af721d2125e83c20a06d94636cc928b220de7fadf7e19838faece0dff",
+      "schema": 1
+    },
+    "cases": {
+      "deposit": {
+        "before_cycles": 9054707,
+        "after_cycles": 4709351,
+        "reduction_percent": 47.99,
+        "before_witness_sha256": "e00b3981e18e184993e071f79e79b12d541f2ee734a6fa82f9811d50195e355d",
+        "after_witness_sha256": "1d85bb0d154087ccc15ca009a4ae63080863a033a3b292222246d2d3b15bf561",
+        "journals_match_native_evaluation": true
+      },
+      "reservation": {
+        "before_cycles": 39909797,
+        "after_cycles": 20738779,
+        "reduction_percent": 48.04,
+        "before_witness_sha256": "220e68ec9345f52ada2d891788249f07410be576f4ec6c1ab8f245f12898a041",
+        "after_witness_sha256": "a948d7e2c9bf0381ad3c3ae7be63f4c2c470d7c79bf03bb95ba820e9ce98891d",
+        "journals_match_native_evaluation": true
+      },
+      "paid": {
+        "before_cycles": 36454199,
+        "after_cycles": 18833635,
+        "reduction_percent": 48.34,
+        "before_witness_sha256": "d9a13e3b220bcda5ce94f3d54fb6cd2dfcc518f937110892738ed864f1feaafe",
+        "after_witness_sha256": "577f4ca2145cf9a8843b5b12b8817d8bc8dcb4db44d8eab82245512009555bd7",
+        "journals_match_native_evaluation": true
+      },
+      "unpaid": {
+        "before_cycles": 36452832,
+        "after_cycles": 18832950,
+        "reduction_percent": 48.34,
+        "before_witness_sha256": "ed2dc6df9849e19ff026e34e3c8399dab603f77e170fbb687f7c2e1014885974",
+        "after_witness_sha256": "8397810e041863f75a068a65a96d5588ea1582a9f0ed67097fd2099cdb376261",
+        "journals_match_native_evaluation": true
+      }
+    },
+    "proof_generated": false,
+    "paid_jobs": 0
   }
 }

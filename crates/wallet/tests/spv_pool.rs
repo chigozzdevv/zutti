@@ -19,9 +19,10 @@ fn copy(witness: &SpvPoolWitness) -> SpvPoolWitness {
 #[test]
 fn reservation_checks_backing_authority_outputs_and_exact_proof_assumptions() {
     let witness = funding();
-    assert_eq!(witness.evaluate().unwrap(), witness.claim);
+    let evaluated = witness.evaluate_with_assumptions().unwrap();
+    assert_eq!(evaluated.claim, witness.claim);
     assert_eq!(copy(&witness).evaluate().unwrap(), witness.claim);
-    let assumptions = witness.assumptions().unwrap();
+    let assumptions = evaluated.assumptions;
     assert_eq!(assumptions.len(), 2);
     assert_eq!(assumptions[0].0, witness.claim.binding_program);
     assert_eq!(assumptions[1].0, witness.policy.program());
@@ -63,7 +64,7 @@ fn funding_context_and_signature_mutations_fail() {
                     fixture::output(bad.claim.pool.domain, &fixture::keys(20), 102_000_000, 90)
             }
         }
-        assert!(bad.evaluate().is_err(), "field {field}");
+        assert!(bad.evaluate_with_assumptions().is_err(), "field {field}");
     }
 }
 #[test]
@@ -89,7 +90,7 @@ fn terminal_rejects_window_policy_ancestry_checkpoint_and_output_substitutions()
             5 => path.position += 1,
             _ => reservation.txid = support::digest(115),
         }
-        assert!(bad.evaluate().is_err(), "field {field}");
+        assert!(bad.evaluate_with_assumptions().is_err(), "field {field}");
     }
 }
 #[test]

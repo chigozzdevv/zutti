@@ -205,6 +205,11 @@ pub struct SpvPoolWitness {
     pub outputs: Vec<NoteOutput>,
     pub action: SpvAction,
 }
+#[derive(Debug)]
+pub struct SpvPoolEvaluation {
+    pub claim: SpvPoolClaim,
+    pub assumptions: Vec<(Digest, Vec<u8>)>,
+}
 impl core::fmt::Debug for SpvPoolWitness {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str("SpvPoolWitness([REDACTED])")
@@ -212,8 +217,11 @@ impl core::fmt::Debug for SpvPoolWitness {
 }
 impl SpvPoolWitness {
     pub fn assumptions(&self) -> Result<Vec<(Digest, Vec<u8>)>> {
-        self.evaluate()?;
-        Ok(match &self.action {
+        Ok(self.evaluate_with_assumptions()?.assumptions)
+    }
+    pub fn evaluate_with_assumptions(&self) -> Result<SpvPoolEvaluation> {
+        let claim = self.evaluate()?;
+        let assumptions = match &self.action {
             SpvAction::Reserve(reservation) => vec![
                 (self.claim.binding_program, reservation.binding.to_bytes()?),
                 (self.policy.program(), reservation.anchor.to_bytes()?),
@@ -225,7 +233,8 @@ impl SpvPoolWitness {
                 (self.policy.program(), window.to_bytes()?),
             ],
             _ => vec![],
-        })
+        };
+        Ok(SpvPoolEvaluation { claim, assumptions })
     }
     pub fn evaluate(&self) -> Result<SpvPoolClaim> {
         self.claim.validate()?;

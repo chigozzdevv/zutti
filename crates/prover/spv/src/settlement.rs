@@ -19,6 +19,13 @@ pub enum Dependencies<'a> {
 }
 pub fn verify_dependencies(witness: &SpvPoolWitness, receipts: &[Receipt]) -> Result<()> {
     let required = witness.assumptions()?;
+    verify_required(witness, &required, receipts)
+}
+fn verify_required(
+    witness: &SpvPoolWitness,
+    required: &[(zutti_protocol::Digest, Vec<u8>)],
+    receipts: &[Receipt],
+) -> Result<()> {
     if required.len() != receipts.len() {
         return Err("incomplete SPV pool evidence".into());
     }
@@ -51,8 +58,8 @@ pub fn run(
     if witness.claim.pool_program != image {
         return Err("SPV pool witness targets another program".into());
     }
-    let claim = witness.evaluate()?;
-    let required = witness.assumptions()?;
+    let evaluated = witness.evaluate_with_assumptions()?;
+    let required = evaluated.assumptions;
     let negative = matches!(
         dependencies,
         Dependencies::Missing(_) | Dependencies::WrongImage | Dependencies::WrongJournal
@@ -85,7 +92,7 @@ pub fn run(
         .segment_limit_po2(20);
     match dependencies {
         Dependencies::Genuine(receipts) => {
-            verify_dependencies(witness, receipts)?;
+            verify_required(witness, &required, receipts)?;
             for receipt in receipts {
                 builder.add_assumption(receipt.clone());
             }
@@ -107,7 +114,7 @@ pub fn run(
     }
     fs::create_dir(out)?;
     write_new(&out.join("witness.bin"), &input)?;
-    let journal = claim.to_bytes()?;
+    let journal = evaluated.claim.to_bytes()?;
     write_new(&out.join("journal.bin"), &journal)?;
     let started = Instant::now();
     let prover = ExternalProver::new("zutti-spv-pool", "r0vm");

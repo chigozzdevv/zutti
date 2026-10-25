@@ -14,9 +14,16 @@ fn main() {
     let mut bytes = vec![0; length];
     env::read_slice(&mut bytes);
     let witness = SpvPoolWitness::from_bytes(&bytes).expect("invalid SPV pool witness");
-    for (image, journal) in witness.assumptions().expect("invalid SPV pool operation") {
+    let evaluated = witness
+        .evaluate_with_assumptions()
+        .expect("invalid SPV pool operation");
+    for (image, journal) in evaluated.assumptions {
         env::verify(image.0, &journal).expect("unverified SPV pool dependency");
     }
-    let claim = witness.evaluate().expect("invalid SPV pool operation");
-    env::commit_slice(&claim.to_bytes().expect("invalid SPV pool journal"));
+    env::commit_slice(
+        &evaluated
+            .claim
+            .to_bytes()
+            .expect("invalid SPV pool journal"),
+    );
 }
