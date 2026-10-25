@@ -528,5 +528,138 @@
       "proof_generated": false,
       "seconds": 0.305581125
     }
+  },
+  "boundless_source_composition": {
+    "schema": 1,
+    "recorded_at": "2026-10-25",
+    "scope": "Two genuine linked proofs over early public Testnet headers; not current-chain bootstrap or funded settlement.",
+    "artifacts": "fixtures/boundless-source",
+    "program": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "c4367920591ba262fdaeab8bea6dc70dd8e880fbe20633069d0d3b25191b32ce",
+      "kind": "spv_source",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "0dea86b94339a71d2ea55fd58cca055850ae9bba9e89392c420150764007508b",
+      "schema": 1
+    },
+    "policy": {
+      "network": "testnet",
+      "source_image_id": "c4367920591ba262fdaeab8bea6dc70dd8e880fbe20633069d0d3b25191b32ce",
+      "confirmations": 10,
+      "window_blocks": 128,
+      "valid_through": 5000000,
+      "status": "testnet_candidate",
+      "first_batch": [
+        0,
+        2
+      ],
+      "second_batch": [
+        3,
+        4
+      ],
+      "header_origin": "Retained real Testnet genesis and blocks 1 through 4; guest independently checks the headers.",
+      "current_chain_admitted": false,
+      "settlement_authority": false
+    },
+    "market_chain_id": 8453,
+    "settlement_chain_id": 11155111,
+    "jobs": [
+      {
+        "batch": 0,
+        "first_height": 0,
+        "last_height": 2,
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74837c141878",
+        "proof_verified": true,
+        "receipt_kind": "groth16",
+        "predecessor_proof_verified": false,
+        "host_assumptions": 0,
+        "execution_cycles": 11705129,
+        "market_reported_total_cycles": 12582912,
+        "prover_fee_wei": "30000000000000",
+        "submission_to_fulfillment_seconds": 701,
+        "lock_to_fulfillment_seconds": 680,
+        "fulfillment_block": 53064315,
+        "fulfillment_transaction": "0xb4bfec51bb528e39938f98bdcf41a5822ee56a40bec5b16a74200ff2716fcb30",
+        "artifacts_sha256": {
+          "receipt-0.bin": "d7d786397840cc34a04a8aea1f674e4ab2283346b6ef2ea136a24fe71502b4ac",
+          "journal-0.bin": "4978559e8b4001256c296a4793224c6e315494422547867684626c529e7788ae",
+          "witness-0.bin": "b7a56b93c00bad891e58a769474a24c10cbc6a234f9b332dc38290715becb2b5"
+        },
+        "audit": {
+          "changed_proof_rejected": true,
+          "changed_receipt_journal_rejected": true,
+          "development_mode": false,
+          "settlement_authority": false,
+          "valid_receipt_verified": true,
+          "wrong_expected_journal_rejected": true,
+          "wrong_image_rejected": true
+        },
+        "sepolia_read_only_verification": {
+          "chain_id": 11155111,
+          "router": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+          "block": 11989831,
+          "image_id": "c4367920591ba262fdaeab8bea6dc70dd8e880fbe20633069d0d3b25191b32ce",
+          "seal_selector": "73c457ba",
+          "verification_call_succeeded": true,
+          "transaction_submitted": false,
+          "source_admitted": false,
+          "swap_executed": false,
+          "changed_proof_rejected": true,
+          "wrong_image_rejected": true,
+          "wrong_journal_rejected": true,
+          "finality_verified": false
+        }
+      },
+      {
+        "batch": 1,
+        "first_height": 3,
+        "last_height": 4,
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748359454f31",
+        "proof_verified": true,
+        "receipt_kind": "groth16",
+        "predecessor_proof_verified": true,
+        "host_assumptions": 0,
+        "execution_cycles": 195044502,
+        "market_reported_total_cycles": 209190912,
+        "prover_fee_wei": "28333333333333",
+        "submission_to_fulfillment_seconds": 607,
+        "lock_to_fulfillment_seconds": 588,
+        "fulfillment_block": 53064776,
+        "fulfillment_transaction": "0x185f89aa7fa5f29dcfbf69bedb70f55abf1061b9091cbacb565fdc54b70ddc56",
+        "artifacts_sha256": {
+          "receipt-1.bin": "e69c9eb5bb3f072f51ca4b657f690f159c8c139eeb28c44e4b515dd112aaa6f5",
+          "journal-1.bin": "c123ab1871498bfb4a0edf94a30e6956e80d11f4c462e719b0ff96e3a15dd4b6",
+          "witness-1.bin": "099fabb5f54e8cd33fdf65711019a8cbf710265eb6d33a7a918b995bc95d7e5b"
+        },
+        "audit": {
+          "changed_proof_rejected": true,
+          "changed_receipt_journal_rejected": true,
+          "development_mode": false,
+          "settlement_authority": false,
+          "valid_receipt_verified": true,
+          "wrong_expected_journal_rejected": true,
+          "wrong_image_rejected": true
+        },
+        "sepolia_read_only_verification": {
+          "chain_id": 11155111,
+          "router": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+          "block": 11989856,
+          "image_id": "c4367920591ba262fdaeab8bea6dc70dd8e880fbe20633069d0d3b25191b32ce",
+          "seal_selector": "73c457ba",
+          "verification_call_succeeded": true,
+          "transaction_submitted": false,
+          "finality_verified": false,
+          "source_admitted": false,
+          "swap_executed": false
+        }
+      }
+    ],
+    "total_prover_fee_wei": "58333333333333",
+    "approved_prover_fee_ceiling_wei": "125000000000000",
+    "verified_height": 4,
+    "current_chain_admitted": false,
+    "refund_security_review_complete": false,
+    "swap_executed": false
   }
 }

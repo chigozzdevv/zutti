@@ -67,13 +67,13 @@ RISC Zero supplies the proof programs; Boundless supplies remote proving compute
 
 The current Boundless transport publishes program inputs through IPFS. The Testnet demo explicitly permits public swap witnesses. Those witnesses are not confidential from the prover or others who obtain the published inputs. Wallet signing keys remain local. This demo profile does not establish production witness privacy.
 
-The adapter exports public SPV jobs, checks their program/input/journal hashes and imports cryptographically verified Groth16 receipts. Recursive jobs use separately built guests that verify predecessor seals inside the zkVM; the pinned [Boundless input format](https://docs.rs/boundless-market/2.0.1/boundless_market/input/struct.GuestEnv.html) cannot carry native host assumptions. Marketplace fulfillment of these new profiles remains untested. A submission or expired request is not a verified proof. Destination settlement remains on Sepolia regardless of the market used to buy compute.
+The adapter exports public SPV jobs, checks their program/input/journal hashes and imports cryptographically verified Groth16 receipts. Recursive jobs use separately built guests that verify predecessor seals inside the zkVM; the pinned [Boundless input format](https://docs.rs/boundless-market/2.0.1/boundless_market/input/struct.GuestEnv.html) cannot carry native host assumptions. Two genuine Boundless source receipts now compose through Testnet block 4, and both pass read-only verification against the deployed Sepolia RISC Zero router. This establishes early header-prefix composition, not current-chain admission or live settlement. Destination settlement remains on Sepolia regardless of the market used to buy compute.
 
-No new paid jobs, rentals or parameter downloads are part of routine setup or this cleanup. Spending requires an explicit budget. Faucet-funded marketplace capacity has not been established.
+Paid jobs, rentals and parameter downloads require an explicit budget. Routine setup does not launch them. Faucet-funded marketplace capacity has not been established.
 
 ## Remaining work
 
-1. Obtain genuine Boundless fulfillment for the new SPV profiles and measure proof time, memory and price. Export/import and in-guest dependency verification are execution-tested; new composed receipts remain pending.
+1. Measure useful header batch sizes and sustained proving throughput. The two linked early-history receipts establish composition; they do not establish the complete bootstrap cost or timing.
 2. Generate genuine binding, pool deposit/reservation, complete payment/absence, terminal and withdrawal proofs under exact release identities, with Ethereum-compatible wrapping where required.
 3. Prove headers from genesis through the demo's current Testnet height and maintain fresh source admission.
 4. Resolve the [refund lower-bound review](zutti.md#94-refund-security-review) before enabling funded refunds. Guest execution and mutation tests do not establish that cryptographic argument.
@@ -178,6 +178,6 @@ Use the full `SpvFundingProfile::authorize` entry point for funder authorization
 
 ## Evidence and specification
 
-[Retained evidence](crates/prover/spv/evidence.json) records exact program identities, the genuine current-source genesis proof/audit, historical execution samples and failed bounded proof attempts. Genesis fixtures and public proof regression data remain in their original component directories. Their scope and upstream provenance are documented in [zutti.md](zutti.md#24-verification-parameters-and-fixture-provenance).
+[Retained evidence](crates/prover/spv/evidence.json) records exact program identities, the genuine genesis proof/audit, two linked Boundless source receipts with actual fees and fulfillment times, historical execution samples and failed bounded proof attempts. Public proof regression data remains in the component fixtures. Its scope and upstream provenance are documented in [zutti.md](zutti.md#24-verification-parameters-and-fixture-provenance).
 
 [zutti.md](zutti.md) contains the architecture, SDK contract, source/payment/refund rules, trust and privacy boundaries, security-review questions and acceptance criteria. These two root files are the project's documentation. Earlier experiments and removed narrative files remain recoverable from Git history.

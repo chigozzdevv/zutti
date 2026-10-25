@@ -25,6 +25,35 @@ fn genuine_boundless_source_receipt_passes_audit() {
     );
 }
 
+#[test]
+fn genuine_boundless_continuation_verifies_its_exact_predecessor() {
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/boundless-source");
+    let program = std::fs::read(directory.join("program.elf")).unwrap();
+    let previous = read_receipt(&directory.join("receipt-0.bin")).unwrap();
+    let current = read_receipt(&directory.join("receipt-1.bin")).unwrap();
+    let witness =
+        Witness::from_bytes(&std::fs::read(directory.join("witness-1.bin")).unwrap()).unwrap();
+    let image = image(&program).unwrap();
+    assert!(matches!(current.inner, InnerReceipt::Groth16(_)));
+    check_previous(&witness, Some(&previous), image).unwrap();
+    assert_eq!(
+        witness.required_journal().unwrap().unwrap(),
+        previous.journal.bytes
+    );
+    let journal = witness.evaluate().unwrap().journal().unwrap();
+    verify(&current, image, &journal).unwrap();
+    assert_eq!(
+        HeaderClaim::from_bytes(&journal).unwrap().height().unwrap(),
+        4
+    );
+    assert!(check_previous(&witness, Some(&current), image).is_err());
+    assert!(check_previous(&witness, None, image).is_err());
+    assert_eq!(
+        audit(&program, &current).unwrap()["changed_proof_rejected"],
+        true
+    );
+}
+
 fn genuine_genesis() -> (Receipt, Digest, Vec<u8>) {
     let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/genesis-v2");
     let receipt = read_receipt(&directory.join("receipt.bin")).unwrap();
