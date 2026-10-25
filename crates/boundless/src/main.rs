@@ -15,6 +15,7 @@ use boundless_market::{
 use clap::{Parser, Subcommand, ValueEnum};
 use risc0_zkvm::{Journal, compute_image_id, sha::Digest};
 use serde::{Deserialize, Serialize};
+use sha2::{Digest as _, Sha256};
 use std::{
     collections::BTreeMap,
     fs::{File, OpenOptions},
@@ -154,18 +155,56 @@ struct Job {
     stdin: PathBuf,
     journal: PathBuf,
     cycles: u64,
+    #[serde(default)]
+    program_sha256: Option<String>,
+    #[serde(default)]
+    stdin_sha256: Option<String>,
+    #[serde(default)]
+    journal_sha256: Option<String>,
 }
 
 impl Job {
     fn validate(&self) -> Result<()> {
         ensure!(
-            self.version == 1 && self.visibility == "public",
+            matches!(self.version, 1 | 2) && self.visibility == "public",
             "this storage transport only accepts explicitly public witnesses"
         );
         ensure!(
             self.cycles > 0 && self.cycles <= 2_147_483_648,
             "unsupported cycle bound"
         );
+        for hash in [
+            &self.program_sha256,
+            &self.stdin_sha256,
+            &self.journal_sha256,
+        ] {
+            ensure!(
+                hash.is_some() == (self.version == 2),
+                "job hash schema mismatch"
+            );
+            if let Some(hash) = hash {
+                ensure!(
+                    hash.len() == 64 && hex::decode(hash)?.len() == 32,
+                    "invalid artifact digest"
+                );
+            }
+        }
+        Ok(())
+    }
+    fn verify_artifacts(&self, program: &[u8], stdin: &[u8], journal: &[u8]) -> Result<()> {
+        self.validate()?;
+        for (expected, bytes) in [
+            (&self.program_sha256, program),
+            (&self.stdin_sha256, stdin),
+            (&self.journal_sha256, journal),
+        ] {
+            if let Some(expected) = expected {
+                ensure!(
+                    *expected == hex::encode(Sha256::digest(bytes)),
+                    "exported job artifact changed"
+                );
+            }
+        }
         Ok(())
     }
 }
@@ -414,6 +453,7 @@ async fn run(args: Args, config: &Config) -> Result<()> {
             let program = private_read(&job.program, 64 * 1024 * 1024)?;
             let stdin = private_read(&job.stdin, 64 * 1024 * 1024 + 1044)?;
             let journal = private_read(&job.journal, 65_664)?;
+            job.verify_artifacts(&program, &stdin, &journal)?;
             let image = Digest::from(
                 <[u8; 32]>::try_from(hex::decode(&job.image_id)?)
                     .map_err(|_| anyhow::anyhow!("invalid image identifier"))?,
@@ -624,6 +664,42 @@ mod tests {
             job.cycles = cycles;
             ensure!(job.validate().is_err());
         }
+        Ok(())
+    }
+
+    #[test]
+    fn hashed_jobs_reject_changed_artifacts_and_incomplete_hash_schemas() -> Result<()> {
+        let mut job: Job = serde_json::from_value(serde_json::json!({
+            "version":2,"visibility":"public","image_id":"00".repeat(32),
+            "program":"program.elf","stdin":"stdin.bin","journal":"journal.bin","cycles":1,
+            "program_sha256":hex::encode(Sha256::digest(b"program")),
+            "stdin_sha256":hex::encode(Sha256::digest(b"stdin")),
+            "journal_sha256":hex::encode(Sha256::digest(b"journal")),
+        }))?;
+        job.verify_artifacts(b"program", b"stdin", b"journal")?;
+        for (program, stdin, journal) in [
+            (
+                b"changed".as_slice(),
+                b"stdin".as_slice(),
+                b"journal".as_slice(),
+            ),
+            (
+                b"program".as_slice(),
+                b"changed".as_slice(),
+                b"journal".as_slice(),
+            ),
+            (
+                b"program".as_slice(),
+                b"stdin".as_slice(),
+                b"changed".as_slice(),
+            ),
+        ] {
+            ensure!(job.verify_artifacts(program, stdin, journal).is_err());
+        }
+        job.stdin_sha256 = None;
+        ensure!(job.validate().is_err());
+        job.version = 1;
+        ensure!(job.validate().is_err());
         Ok(())
     }
 
