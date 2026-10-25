@@ -15,7 +15,7 @@ Fast PLONK-based zero-knowledge proving system with no trusted setup
 license.workspace = true
 repository.workspace = true
 documentation = "https://docs.rs/halo2_proofs"
-readme = "README.md"
+readme = false
 categories = ["cryptography"]
 keywords = ["halo", "proofs", "zkp", "zkSNARKs"]
 

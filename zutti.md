@@ -1,8 +1,8 @@
 # Zutti
 
-The selected Testnet source model is genesis-bound SPV with complete bounded payment coverage and the mining-validity assumptions in [source verification](docs/source-verification.md). Full-history transaction-validity proving is paused. The Testnet demo permits public swap witnesses through Boundless/IPFS; confidential prover transport is deferred.
+The selected Testnet source model is genesis-bound SPV with complete bounded payment coverage and the mining-validity assumptions in [source verification](#10-committee-free-source-verification). Full-history transaction-validity proving is paused. The Testnet demo permits public swap witnesses through Boundless/IPFS; confidential prover transport is deferred.
 
-The [delivery plan](docs/testnet-delivery.md) defines the unfinished proof, deployment and live-execution work. The [refund review](docs/refund-window-review.md) remains a security gate. This specification describes intended behavior; the [README](README.md) records actual implementation status.
+The [delivery plan](README.md#remaining-work) defines the unfinished proof, deployment and live-execution work. The [refund review](#94-refund-security-review) remains a security gate. This specification describes intended behavior; the [README](README.md) records actual implementation status.
 
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 
@@ -308,6 +308,29 @@ Before finalizing the reservation, the payer retains a final authorization capab
 
 Once reserved, an authorized transaction may be rebroadcast unchanged. Any fee or recipient change that changes `t` requires a new agreement and reservation; it cannot silently reuse the old payout. A format-permitted reauthorization that preserves `t` must preserve every property the preparation proof binds.
 
+#### SPV binding statement
+
+`PaymentBindingWitness` contains the existing redacted preparation witness and an exact SPV policy. Its evaluator runs the existing Ironwood preparation checks directly. It does not accept a server's payment description or an unverified preparation claim.
+
+The payment must use transaction version 6, the supported consensus branch throughout its inclusion window, Ironwood only, and the required transfer flags. Its nonzero expiry must equal the agreed expiry. The designated positive-value output must match the exact recipient and amount. The evaluator reconstructs its note commitment, ephemeral key and complete encrypted note/memo and compares them with the transaction effects. Source fees remain bounded by the existing preparation predicate.
+
+The encrypted memo contains the deployment domain, the order commitment and the exact source block hash `H0`. The order commits the recipient, amount, both fixed USDC outputs, source policy, anchor height `h0`, expiry `E` and other terms. The named payment profile is `ironwood-v6-anchor-dependency-v1`; a legacy or unrelated profile fails closed.
+
+The statement connects these commitments:
+
+```text
+O  = existing private order commitment
+ t = exact effect-committing transaction ID
+R  = existing reservation commitment to (O, t)
+W  = (domain, O, h0, H0, E, fixed payout, fixed refund)
+Rw = SPV reservation commitment to (policy, W, t)
+```
+
+The same private transaction ID and reservation randomness produce `R` and `Rw`, using different commitment domains. `ZUTTIBND` version 1 publishes only the deployment domain, order commitment, `R`, source policy identity, digest of `W`, `Rw` and payment-profile identity. It omits the transaction ID, recipient, amount, memo and branch selector.
+
+`ZUTTIBWI` version 1 encodes the witness. Redaction removes spending keys, viewing material, input-note openings, signatures and transaction proofs that preparation does not need. Output openings remain sensitive. Authorization may subsequently change without changing the prepared effects or either reservation commitment.
+
+
 ### 7.5 Bilateral recovery handoff
 
 Before funding, `D` obtains and checks `t`, openings for the agreed reservation, the verified preparation statement and enough escrow witness data to refund independently. Before source authorization, `Z` obtains and checks the finalized reservation opening, fixed output data and enough settlement witness data to claim independently.
@@ -363,11 +386,91 @@ An authenticated qualifying payment within the agreed interval selects the fixed
 
 ### 9.2 Refund predicate
 
-Refund requires complete authenticated absence across every possible payment block through inclusive expiry, plus the required stable descendants. Missing source data, an absent claim or a destination timer is not absence evidence. The current anchor-hash construction for the lower boundary remains conditional and requires the [refund review](docs/refund-window-review.md).
+Refund requires complete authenticated absence across every possible payment block through inclusive expiry, plus the required stable descendants. Missing source data, an absent claim or a destination timer is not absence evidence. The current anchor-hash construction for the lower boundary remains conditional and requires the [refund review](#94-refund-security-review).
 
 ### 9.3 Exclusivity and availability
 
 Payout and refund must be mutually exclusive under the admitted proof relation and source policy. Recovery reconstructs the same fixed outcome and cannot redirect funds. Unavailable data, proving or accepted source history can delay settlement; permanent source-halt recovery remains unresolved.
+
+### 9.4 Refund security review
+
+Status: review prepared; independent cryptographic review is not complete. This packet identifies the proposition to establish. It does not approve funded refunds.
+
+Scope: the version-6 Ironwood payment profile `ironwood-v6-anchor-dependency-v1`, the pinned preparation implementation, the SPV window relation and the composed pool settlement relation. The source model relies on miners enforcing transaction validity and on relevant competing histories reaching source admission.
+
+#### The proposition
+
+Let `C` be the accepted source ancestry, `H0` its authenticated block hash at height `h0`, and `E` the agreed nonzero expiry. Let `t` be the exact transaction ID hidden in the binding and source-reservation commitments.
+
+The proposed conclusion is:
+
+```text
+valid binding to (C[h0] = H0, t, E)
+and complete authenticated absence of t in C[h0 + 1 .. E]
+imply that the qualifying payment did not occur in C
+and cannot first occur later in C while remaining valid.
+```
+
+This needs two different boundaries. Expiry supplies the consensus upper boundary: first inclusion after `E` is invalid, while inclusion at `E` is allowed. [ZIP 203](https://zips.z.cash/zip-0203)
+
+The lower boundary is the part requiring cryptographic analysis. The prepared output's correctly constructed encrypted memo includes `H0`, the deployment domain and the private order commitment. The transaction identifier commits to the checked output ciphertext. If that same transaction were present at or before `h0`, the source ancestry would also commit to it, creating a dependency from `H0` through the payment and back to `H0`.
+
+The candidate assumes that an adversary cannot feasibly construct that cycle or find an alternate valid output opening for the same effect commitment. Collision resistance alone is not a proof of that composed claim. A random-oracle-style argument, if proposed, must name the exact modeled functions, attacker control and security bound rather than treating the desired conclusion as an assumption about honest wallet behavior.
+
+#### Checked implementation path
+
+| Relation | Implementation | What must be established |
+| --- | --- | --- |
+| Fixed order | `crates/protocol/src/order.rs` | Recipient, amount, expiry, anchor, deployment and both USDC outputs are committed consistently |
+| Recoverable payment output | `crates/wallet/src/prepare.rs::inspect_bound_output` | The note commitment, ephemeral key and entire encrypted plaintext/memo match the chosen note opening and order |
+| Effect identifier | Pinned `zcash_primitives` transaction digester | The exact version-6 Ironwood output ciphertext and expiry are effect-committing data; later authorizations cannot change their meaning |
+| Both reservations | `crates/wallet/src/binding.rs` | The same hidden `t`, order and randomness bind the ordinary reservation and salted source reservation |
+| Source anchor | `crates/source/src/spv/chain.rs`, admission guest and registry | `H0` belongs to the genesis-bound accepted ancestry under the exact source policy |
+| Complete interval | `crates/source/src/spv/{window,coverage}.rs` | Every eligible block is covered with all transaction identifiers; paid prefixes cannot be discarded during composition |
+| Fixed entitlement | `crates/wallet/src/spv_pool.rs` | A genuine reservation certificate and matching genuine window select exactly one fixed output and consume the same terminal nullifier |
+
+Transaction-ID field behavior must be checked against the pinned implementation and the version-6 amendments, not inferred solely from the older Orchard layout. [ZIP 244](https://zips.z.cash/zip-0244), [ZIP 229](https://zips.z.cash/zip-0229)
+
+#### Why lock time is not the current solution
+
+The pinned `zebra-chain` 14.0.0 implementation returns no effective lock-time restriction unless a transparent input sequence enables one. Our payment profile rejects transparent inputs and outputs. Merely putting a future height in `nLockTime` therefore does not establish the desired lower boundary.
+
+This was checked in `transaction.rs::lock_time` at package source revision `6d1e414d6f55e4180d0e47baaa934bf97d5b4fec`. The corresponding consensus check accepts the no-effective-lock-time case. [Pinned implementation](https://github.com/ZcashFoundation/zebra/blob/6d1e414d6f55e4180d0e47baaa934bf97d5b4fec/zebra-chain/src/transaction.rs#L128), [consensus check](https://github.com/ZcashFoundation/zebra/blob/6d1e414d6f55e4180d0e47baaa934bf97d5b4fec/zebra-consensus/src/transaction/check.rs)
+
+A shielded note-tree anchor is also not interchangeable with `H0`: version 6 permits shielded anchor/proof updates as authorizing data without changing the transaction identifier. The current construction uses the encrypted memo dependency instead. [PCZT anchor rules](https://zips.z.cash/zip-0374#anchors-and-pre-authorization)
+
+#### Adversary and review questions
+
+The adversary may control either RFQ party, all locally chosen note/encryption randomness, prepared payment data, proving inputs, relays, data providers and proof submission timing. Do not assume an adversarial sender uses our wallet's normal randomness or waits until the honest preparation step. Chain/proof/commitment security assumptions must be stated separately from that attacker control.
+
+| Attack or boundary | Required review outcome |
+| --- | --- |
+| Previously mined payment reopened under a later anchor | Establish infeasibility for the complete note/encryption/effect-commitment relation, or produce a counterexample |
+| Sender-controlled recipient, ephemeral key, note randomness and memo | Analyze alternate openings, key equivocation and chosen-ciphertext construction; honest decryption examples are insufficient |
+| Transaction in the anchor block itself | Include the same-block cycle, not only earlier ancestor blocks |
+| Changed shielded proof, authorization or note-tree anchor | Show which changes preserve `t` and why they cannot replace the committed payment/output/expiry |
+| Wrong transaction version or network upgrade | Bind the supported branch for the entire eligible interval and reject a crossing interval or unsupported version |
+| Same `t` substituted across orders or deployments | Check ordinary/source reservation linkage, domain separation, exact fixed outputs and funding-certificate composition |
+| Missing, duplicate, reordered or truncated block data | Require complete transaction-root reconstruction and consecutive interval coverage; a lookup result is insufficient |
+| Earlier paid chunk followed by an absent chunk | Preserve the exact earlier coverage receipt and paid state through recursion |
+| Payment mined exactly at `E` or proof presented later | Keep the paid entitlement; destination time cannot change its owner |
+| Alternate fork or stale source prefix | Require the accepted ancestry and declared observation policy; proving one valid chain does not prove no unseen heavier chain exists |
+| Loss of a prover, relay or original maker | Preserve entitlement using retained records, the funding certificate and independent submission; availability failure cannot manufacture absence |
+| Permanent source halt | State that conditional funds can remain locked; an automatic refund is not a justified recovery mechanism |
+
+#### Evidence and its limits
+
+Existing mutation tests reject changed recipient, amount, expiry, anchor/hash, profile and output ciphertext. They check authorization stability and valid re-encryption under a changed anchor, and they reject reuse of the old binding. Source tests cover complete interval processing, boundary inclusion and forged continuation data. The [retained evidence](crates/prover/spv/evidence.json) labels binding and coverage execution separately from genuine proof verification.
+
+These tests do not demonstrate that a computationally bounded adversary cannot construct a commitment cycle. A genuine proof of the implemented predicate would not establish that theorem either. Existing conditional executions use unresolved assumptions; they are not genuine composed payment/refund proofs.
+
+#### Review completion
+
+Retain the exact reviewed source revision, program identities, modeled assumptions, attack analysis, findings and their resolution. Independent review must address the lower-bound proposition and the composed funding/window/settlement relation, rather than only inspecting the memo format. Any blocking finding prevents admission of funded refunds until the construction is repaired and its affected profiles and proofs are regenerated.
+
+This is a focused review of refund soundness, separate from a complete production security audit.
+
+The review may conclude the proposed relation is sound under named assumptions, needs modification, or does not establish the claimed boundary. No outcome is presumed here. The [delivery plan](README.md#remaining-work) allows independent implementation work to continue while this gate is resolved.
 
 ## 10. Committee-free source verification
 
@@ -377,7 +480,7 @@ The selected SPV program starts at the fixed Testnet genesis and checks consecut
 
 ### 10.2 Bootstrap and source admission
 
-The [SPV host](crates/prover/spv/README.md) prepares bounded batches, verifies exact predecessor receipts and derives durable progress only from accepted proofs. The registry pins source policy, proof identities, confirmations, work comparison, observation and freshness rules. An operator-selected recent root is not a bootstrap substitute. A synchronized node is a data source, not a Zutti receipt.
+The [SPV host](README.md#spv-workflow) prepares bounded batches, verifies exact predecessor receipts and derives durable progress only from accepted proofs. The registry pins source policy, proof identities, confirmations, work comparison, observation and freshness rules. An operator-selected recent root is not a bootstrap substitute. A synchronized node is a data source, not a Zutti receipt.
 
 ### 10.3 Complete payment-window coverage
 
@@ -387,7 +490,7 @@ The source program parses complete blocks in the bound interval, derives transac
 
 Source finality is probabilistic. Competing eligible histories must be observable under the admitted chain policy; a proof does not establish that an unseen higher-work fork does not exist. Conflicting stable ancestry halts source-dependent settlement. Unsupported rules and stale history stop new reservations. Policy upgrades must preserve earned payouts and the ability to supply the genuine evidence they require.
 
-Each party retains its encrypted recovery data. Independent proving still requires the corresponding public block data and a usable prover. No committee, administrator or timer can replace missing cryptographic evidence. See [source verification](docs/source-verification.md) for the acceptance requirements.
+Each party retains its encrypted recovery data. Independent proving still requires the corresponding public block data and a usable prover. No committee, administrator or timer can replace missing cryptographic evidence. See [source verification](#10-committee-free-source-verification) for the acceptance requirements.
 
 ## 11. Ethereum contracts and proof interfaces
 
@@ -431,6 +534,24 @@ Registry acceptance and source predicates must be checked against canonical cont
 The pool supports refreshed membership witnesses for unspent notes against current accepted note roots. Removing an old recent-root cache entry does not erase a note or authorize its refund. Public append data, encrypted output data and authenticated snapshots must support reconstruction.
 
 Source roots or cumulative successors usable for earned claims remain verifiable. Any future pruning/migration scheme must preserve replay prevention, note ownership and the no-paid-claim-deadline invariant. An operation record expiring on an application server cannot terminate a contract entitlement.
+
+### 11.5 Implemented SPV composition and Ethereum authorization
+
+`SpvPool` uses the `ZUTTISPC` version-2 journal, binding the source policy, binding-program identity, pool-program identity and funding expiry. It is separate from the older `PrivatePool` profile. A receipt for an older program cannot certify the new relation.
+
+Reservation consumes authorized private inventory and conserves its value into the conditional escrow plus owner-authorized change. The pool guest requires genuine binding and source-anchor receipts. Terminal settlement requires the exact genuine reservation certificate and window receipt, membership of the funded escrow, matching policy/order/anchor/expiry, and the exact selected encrypted output. Both outcomes consume the same terminal nullifier. The funding certificate already composes binding/anchor evidence; settlement does not reaccept an unverified payment description.
+
+Conditional operations require a checkpoint accepted by `SpvRegistry`. The supported source horizon must extend through expiry plus twice the confirmation depth: the window proves its confirmation suffix, then registry admission confirms the resulting prefix. Funding also requires fresh progress and the configured minimum remaining inclusion interval. These are protocol checks, not established swap-latency estimates.
+
+`SpvFundingPlan` checks locally accepted terms, refund/change ownership, input membership, exact conservation and expected proof identities before signing. The full native entry point, `SpvFundingProfile::authorize`, additionally verifies genuine binding/anchor receipts and finalized Ethereum inventory evidence. Calling only the lower-level consent check does not authenticate chain state.
+
+The Ethereum verifier pins Helios, verifies beacon signatures and committee transitions, binds the complete execution header to the finalized beacon header, and verifies EIP-1186 account/storage proofs against that execution state root. Reservation evidence authenticates the exact escrow, consumed order-use tag and absent terminal nullifier. Inventory evidence authenticates both pool and registry under the same finalized root, including recognized note membership, unspent inputs, unused order tag, accepted source checkpoint, halt state and freshness.
+
+Local configuration pins the Ethereum genesis/fork schedule, independently established finalized bootstrap checkpoint, contract addresses/code hashes, proof programs and source policy. The evidence server cannot choose those expectations. Ethereum weak subjectivity, clock correctness, consensus and data availability remain assumptions. The configuration's 14-day age cap is not a calculation of the network's weak-subjectivity period. Storage slots are checked against Solidity compiler output by `scripts/check-ethereum-layout.py`.
+
+`SpvPaymentJournal` retains encrypted signing/finalization/retry state for the exact prepared effects. `SpvSwapRecord` retains fixed outputs, anchor, reservation terms and the verified funding certificate without the funder's spending material. A cached seal is verified before use. Recovery reconstructs the proof-bound terminal witness and still needs genuine dependencies, accepted ancestry and on-chain submission.
+
+Native tests use genuine receipt verification and generated Merkle-Patricia proofs, including valid proofs of ineligible states. Conditional contract tests currently use mock proof verification; positive guest execution with unresolved assumptions is not a cryptographic settlement proof. No live wallet/provider/deployment profile has completed this composition.
 
 ## 12. SDK contract
 
@@ -1310,7 +1431,7 @@ This specification incorporates the prior private-cross-chain design and the agr
 
 Before implementation can be called deployable, publish a complete profile fixing:
 
-1. Exact source release/consensus rules, supported payment format, upgrade-boundary behavior and full historical validation path.
+1. Exact source release/consensus rules, supported payment format, upgrade-boundary behavior and genesis-bound SPV verification path.
 2. Proof backend, recursion/compression, private-witness zero-knowledge properties, security assumptions, setup and verifier identities.
 3. Commitment/PRF/hash choices, field/curve parameters, serialization, note/index tree rules and test vectors.
 4. Registry fork-choice/stability/freshness state machine, numeric parameters and behavior during a competing heavier fork.
@@ -1321,3 +1442,35 @@ Before implementation can be called deployable, publish a complete profile fixin
 9. Default maker pricing engine, actual providers/strategies, gross-output contract, freshness/authentication/cost checks and failure policy.
 
 These are explicit engineering and security gates, not permission to fill missing verification with a trusted operator. The architecture's required result stays fixed: a qualifying native shielded ZEC payment earns its private USDC payout; only proven expired absence returns the reservation.
+
+## 24. Verification parameters and fixture provenance
+
+### 24.1 Consensus verifying keys
+
+These public verification parameters are embedded in the native transaction verifier. They are not checkpoints or spending keys.
+
+Sapling keys are the exact verifying-key prefixes of the official parameter files. Both complete files were checked against the BLAKE2b-512 digests pinned by `zcash_proofs` 0.30.0 before extraction. The Sprout Groth16 key comes from `zebra-consensus` 16.0.0. The historical PHGR key is normalized from the [published Sprout ceremony key](https://github.com/zcash/mpc#assets), whose SHA-256 is `4bd498dae0aacfd8e98dc306338d017d9c08dd0918ead18172bd0aec2fc5df82`.
+
+`crates/source/parameters/provenance.json` records input and output hashes. `scripts/extract-consensus-keys.py` reproduces the files from local copies of the authenticated inputs. It rejects mismatched hashes before writing. It converts PHGR's libsnark Montgomery coordinates to canonical affine coordinates and preserves the nine-input query order.
+
+The Rust verifier checks curve membership and subgroup membership. Historical PHGR tests verify real block transactions and reject changed public inputs and proof points. Sapling and Orchard tests verify real transactions and reject altered binding signatures. Individual proof verification avoids introducing a predictable batch-verification challenge.
+
+Reference implementations: [Zcash PHGR point encoding](https://github.com/zcash/zcash/blob/v2.0.7/src/zcash/Proof.cpp), [PHGR verification equations](https://github.com/zcash/zcash/blob/v2.0.7/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.tcc), [Sapling verifier](https://docs.rs/sapling-crypto/0.7.0/src/sapling_crypto/verifier.rs.html). Reference source licenses are MIT for Zcash/libsnark and MIT/Apache-2.0 for Zebra/librustzcash.
+
+### 24.2 Public transaction and proof fixtures
+
+`tests/fixtures/encoding.json` is the cross-language canonical encoding/commitment vector. Rust and Node verify it independently. Real block text fixtures come unchanged from `zebra-test` 4.0.0, with source paths and hashes in `tests/fixtures/provenance.json` and the accompanying upstream licenses. They are data inputs, not trusted bootstrap checkpoints. `sapling-outputs.json` retains genuine public proof inputs for source authorization tests.
+
+The current SPV genesis fixture lives in `crates/prover/spv/fixtures/genesis-coverage`. Its exact ELF, witness, journal and genuine composite receipt are recorded in [evidence.json](crates/prover/spv/evidence.json). The policy has one confirmation, a three-block window and a height-four horizon; it authenticates only genesis and is not a current-chain deployment profile. Historical genesis fixtures exercise genuine verification and rejection under a different image.
+
+The earlier source-prefix and preparation fixtures certify only their retained program identities. `tests/fixtures/pool-lifecycle.json` contains genuine local-chain deposit/transfer/withdrawal receipts and public demonstration note data. It does not contain a mined shielded swap payment. Tests in `tests/support` use deterministic demonstration identities, never deployment wallet keys. Existing synthetic conditional executions are not funded-swap evidence.
+
+### 24.3 Ethereum consensus vectors
+
+Ethereum light-client consensus vectors copied unchanged from a16z/helios commit `2af9b41887e069144ee56cd710f3ddca195473f8`, under `ethereum/consensus-core/testdata/{deneb,gloas}/advance_finality_without_sync_committee`. The accompanying Helios license is retained.
+
+Gloas vectors originate from Ethereum consensus-specs v1.7.0-beta.2, minimal preset. They exercise the same verifier as production with a smaller committee; they are not evidence of a live Ethereum reservation. `sha256.json` records copied-file hashes.
+
+### 24.4 Vendored dependencies
+
+The local `dirs` portability adapter follows [dirs-rs](https://github.com/soc/dirs-rs). The proof guests also retain source from [halo2](https://github.com/zcash/halo2), [jubjub](https://github.com/zkcrypto/jubjub) and `maybe-rayon`, pinned by the guest lockfiles. Vendored source and license files remain with their components; upstream narrative READMEs and changelogs are omitted from this repository. Package readme metadata is disabled where those files were removed.

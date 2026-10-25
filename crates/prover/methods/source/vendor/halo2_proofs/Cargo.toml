@@ -30,7 +30,7 @@ description = """
 Fast PLONK-based zero-knowledge proving system with no trusted setup
 """
 documentation = "https://docs.rs/halo2_proofs"
-readme = "README.md"
+readme = false
 keywords = [
     "halo",
     "proofs",
