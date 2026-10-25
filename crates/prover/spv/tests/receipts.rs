@@ -3,7 +3,27 @@ use std::path::PathBuf;
 use zcash_protocol::consensus::NetworkType;
 use zutti_protocol::{Digest, encoding::Canonical};
 use zutti_source::spv::{HEADER_BYTES, HeaderClaim, Policy, Witness};
-use zutti_spv_prototype::{check_previous, read_receipt, verify};
+use zutti_spv_prototype::{audit, check_previous, image, read_receipt, verify};
+
+#[test]
+fn genuine_boundless_source_receipt_passes_audit() {
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/boundless-source");
+    let program = std::fs::read(directory.join("program.elf")).unwrap();
+    let receipt = read_receipt(&directory.join("receipt-0.bin")).unwrap();
+    let journal = std::fs::read(directory.join("journal-0.bin")).unwrap();
+    let witness =
+        Witness::from_bytes(&std::fs::read(directory.join("witness-0.bin")).unwrap()).unwrap();
+    assert!(matches!(receipt.inner, InnerReceipt::Groth16(_)));
+    verify(&receipt, image(&program).unwrap(), &journal).unwrap();
+    assert_eq!(witness.evaluate().unwrap().journal().unwrap(), journal);
+    assert!(witness.required_journal().unwrap().is_none());
+    let prefix = HeaderClaim::from_bytes(&journal).unwrap();
+    assert_eq!(prefix.height().unwrap(), 2);
+    assert_eq!(
+        audit(&program, &receipt).unwrap()["changed_proof_rejected"],
+        true
+    );
+}
 
 fn genuine_genesis() -> (Receipt, Digest, Vec<u8>) {
     let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/genesis-v2");

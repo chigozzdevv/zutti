@@ -287,19 +287,23 @@ pub fn audit(program: &[u8], receipt: &Receipt) -> Result<serde_json::Value> {
         return Err("tampered receipt journal was accepted".into());
     }
     let mut changed = receipt.clone();
-    let seal = match &mut changed.inner {
-        risc0_zkvm::InnerReceipt::Succinct(inner) => &mut inner.seal,
+    match &mut changed.inner {
+        risc0_zkvm::InnerReceipt::Succinct(inner) => {
+            *inner.seal.first_mut().ok_or("empty succinct proof seal")? ^= 1;
+        }
         risc0_zkvm::InnerReceipt::Composite(inner) => {
-            &mut inner
+            let seal = &mut inner
                 .segments
                 .first_mut()
                 .ok_or("empty composite receipt")?
-                .seal
+                .seal;
+            *seal.first_mut().ok_or("empty composite proof seal")? ^= 1;
         }
-        _ => return Err("audit expects a succinct or composite receipt".into()),
-    };
-    let first = seal.first_mut().ok_or("empty proof seal")?;
-    *first ^= 1;
+        risc0_zkvm::InnerReceipt::Groth16(inner) => {
+            *inner.seal.first_mut().ok_or("empty Groth16 proof seal")? ^= 1;
+        }
+        _ => return Err("audit requires a cryptographic receipt".into()),
+    }
     if verify(&changed, image, &receipt.journal.bytes).is_ok() {
         return Err("tampered proof seal was accepted".into());
     }
