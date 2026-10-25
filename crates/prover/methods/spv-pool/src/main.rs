@@ -1,4 +1,7 @@
 #![no_main]
+#[cfg(feature = "boundless")]
+#[path = "../../receipt.rs"]
+mod receipt;
 use risc0_zkvm::guest::env;
 use zutti_protocol::encoding::Canonical;
 use zutti_wallet::spv_pool::{MAX_SPV_POOL_WITNESS, SpvPoolWitness};
@@ -18,6 +21,9 @@ fn main() {
         .evaluate_with_assumptions()
         .expect("invalid SPV pool operation");
     for (image, journal) in evaluated.assumptions {
+        #[cfg(feature = "boundless")]
+        receipt::read_and_verify(image.0, &journal);
+        #[cfg(not(feature = "boundless"))]
         env::verify(image.0, &journal).expect("unverified SPV pool dependency");
     }
     env::commit_slice(

@@ -7,6 +7,9 @@ publish = false
 
 [workspace]
 
+[features]
+boundless = []
+
 [[bin]]
 name = "spv_pool"
 path = "src/main.rs"

@@ -67,13 +67,13 @@ RISC Zero supplies the proof programs; Boundless supplies remote proving compute
 
 The current Boundless transport publishes program inputs through IPFS. The Testnet demo explicitly permits public swap witnesses. Those witnesses are not confidential from the prover or others who obtain the published inputs. Wallet signing keys remain local. This demo profile does not establish production witness privacy.
 
-The existing market client has successfully returned genuine proofs for earlier programs. Wiring the new SPV programs and predecessor-proof dependencies into that transport remains unfinished. A marketplace submission or expired request is not a verified proof. Destination settlement remains on Sepolia regardless of the market used to buy compute.
+The adapter exports public SPV jobs, checks their program/input/journal hashes and imports cryptographically verified Groth16 receipts. Recursive jobs use separately built guests that verify predecessor seals inside the zkVM; the pinned [Boundless input format](https://docs.rs/boundless-market/2.0.1/boundless_market/input/struct.GuestEnv.html) cannot carry native host assumptions. Marketplace fulfillment of these new profiles remains untested. A submission or expired request is not a verified proof. Destination settlement remains on Sepolia regardless of the market used to buy compute.
 
 No new paid jobs, rentals or parameter downloads are part of routine setup or this cleanup. Spending requires an explicit budget. Faucet-funded marketplace capacity has not been established.
 
 ## Remaining work
 
-1. Remove repeated operation validation and connect the current SPV guests, predecessor receipts, collection and import to Boundless.
+1. Obtain genuine Boundless fulfillment for the new SPV profiles and measure proof time, memory and price. Export/import and in-guest dependency verification are execution-tested; new composed receipts remain pending.
 2. Generate genuine binding, pool deposit/reservation, complete payment/absence, terminal and withdrawal proofs under exact release identities, with Ethereum-compatible wrapping where required.
 3. Prove headers from genesis through the demo's current Testnet height and maintain fresh source admission.
 4. Resolve the [refund lower-bound review](zutti.md#94-refund-security-review) before enabling funded refunds. Guest execution and mutation tests do not establish that cryptographic argument.
@@ -129,6 +129,35 @@ An empty registry initializes from a genuine genesis-proved stable prefix plus t
 `run-admission` executes by default; `--prove` requests proof generation. Later advances also supply `--stable-headers` to preparation and name the genuine prior prefix. Freshness, work, competing-history observation and real contract verification still apply.
 
 The `payment-binding`, `coverage` and `settlement` Cargo examples exercise the corresponding relations. Use `--help` for their exact proof inputs. Execution with unresolved assumptions is not settlement evidence. Signing keys are not part of the public proving transport.
+
+### Boundless jobs
+
+Build source, admission and pool programs with `build --boundless`. This pins a different image and source policy from the native-assumption profile. Existing receipts do not authenticate the replacement program. Binding is stateless and uses its existing build. Use the adapter commands to execute these inputs; the native `run`, `pool` and `run-admission` commands use host assumptions instead.
+
+```sh
+"$SPV" build --kind source --boundless --guest-target "$GUEST_TARGET" --out "$SOURCE_PROGRAM_DIR"
+
+"$SPV" boundless export --kind source --public \
+  --program "$SOURCE_PROGRAM_DIR/program.elf" --witness "$WITNESS" \
+  --dependency "$PREVIOUS_RECEIPT" --cycles "$CYCLE_LIMIT" --out "$JOB_DIR"
+
+"$SPV" boundless execute --job "$JOB_DIR/job.json"
+
+"$BOUNDLESS" --network "$MARKET_NETWORK" --config "$BOUNDLESS_CONFIG" \
+  submit --job "$JOB_DIR/job.json" --request "$REQUEST"
+
+"$BOUNDLESS" --network "$MARKET_NETWORK" --config "$BOUNDLESS_CONFIG" \
+  collect --request "$REQUEST" --out "$FULFILLMENT"
+
+"$SPV" boundless import --job "$JOB_DIR/job.json" --proof "$FULFILLMENT" --out "$RECEIPT_DIR"
+"$SPV" bootstrap accept --state "$STATE" --batch "$BATCH" --receipt "$RECEIPT_DIR/receipt.bin"
+```
+
+`--public` explicitly authorizes publishing the witness. Omit `--dependency` for genesis, binding and stateless pool operations. Supply one exact predecessor receipt for source/admission and two in the required order for reservation/settlement. Every supplied dependency must already have a genuine Groth16 seal under the pinned parameters; composite or succinct receipts must be wrapped first. Native-assumption guests cannot accept dependencies through this transport.
+
+Export and execution do not purchase proofs. `submit` can spend the configured market budget; `collect` retains fulfillment data, while `import` cryptographically verifies it before publishing `receipt.bin`, `seal.bin` and verification metadata. Program, stdin and journal changes invalidate a version-2 job. Import and export refuse an existing output directory. Source acceptance rechecks the exact pending batch and does not imply admission to the on-chain registry.
+
+The retained execution measurements show about 48% fewer pool-operation cycles after removing duplicate validation. Separately, the receipt-verification probe consumed 183,494,181 cycles for one genuine historical Groth16 receipt, with zero host assumptions. Each inline dependency adds verification work; these figures are not complete proof-time or market-price estimates. `build --kind receipt-check` builds that regression probe, not a settlement program. No new SPV composed proof was generated by these execution checks.
 
 ## Ethereum evidence
 

@@ -5,12 +5,17 @@ edition = "2024"
 rust-version = "1.93"
 publish = false
 [workspace]
+[features]
+boundless = []
 [[bin]]
 name = "spv_source"
 path = "../source/src/spv.rs"
 [[bin]]
 name = "spv_admission"
 path = "../source/src/spv_admission.rs"
+[[bin]]
+name = "spv_receipt_check"
+path = "../source/src/receipt_check.rs"
 [dependencies]
 zutti-source = { path = "../../../source", default-features = false, features = ["blocks"] }
 zutti-protocol = { path = "../../../protocol", default-features = false }

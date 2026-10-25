@@ -1,4 +1,7 @@
 #![no_main]
+#[cfg(feature = "boundless")]
+#[path = "../../receipt.rs"]
+mod receipt;
 
 use risc0_zkvm::guest::env;
 use zutti_protocol::encoding::Canonical;
@@ -18,6 +21,12 @@ fn main() {
     env::read_slice(&mut bytes);
     let witness = AdmissionWitness::from_bytes(&bytes).expect("invalid SPV admission witness");
     let previous = witness.predecessor();
+    #[cfg(feature = "boundless")]
+    receipt::read_and_verify(
+        previous.policy().program().0,
+        &previous.to_bytes().expect("invalid SPV predecessor"),
+    );
+    #[cfg(not(feature = "boundless"))]
     env::verify(
         previous.policy().program().0,
         &previous.to_bytes().expect("invalid SPV predecessor"),

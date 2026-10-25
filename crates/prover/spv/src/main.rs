@@ -27,6 +27,10 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    Boundless {
+        #[command(subcommand)]
+        command: BoundlessCommand,
+    },
     PrepareAdmission {
         #[arg(long)]
         header_program: PathBuf,
@@ -58,6 +62,8 @@ enum Command {
     Build {
         #[arg(long, value_enum, default_value = "source")]
         kind: Guest,
+        #[arg(long)]
+        boundless: bool,
         #[arg(long)]
         guest_target: PathBuf,
         #[arg(long)]
@@ -156,6 +162,38 @@ enum Command {
         program: PathBuf,
         #[arg(long)]
         receipt: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum BoundlessCommand {
+    Export {
+        #[arg(long, value_enum)]
+        kind: zutti_spv_prototype::boundless::Kind,
+        #[arg(long)]
+        program: PathBuf,
+        #[arg(long)]
+        witness: PathBuf,
+        #[arg(long)]
+        dependency: Vec<PathBuf>,
+        #[arg(long, value_parser = clap::value_parser!(u64).range(1..=zutti_spv_prototype::boundless::MAX_CYCLES))]
+        cycles: u64,
+        #[arg(long, required = true)]
+        public: bool,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Execute {
+        #[arg(long)]
+        job: PathBuf,
+    },
+    Import {
+        #[arg(long)]
+        job: PathBuf,
+        #[arg(long)]
+        proof: PathBuf,
         #[arg(long)]
         out: PathBuf,
     },
@@ -291,6 +329,7 @@ enum Guest {
     Admission,
     Binding,
     Pool,
+    ReceiptCheck,
 }
 
 fn root() -> Result<PathBuf> {
@@ -310,7 +349,7 @@ fn fixture(height: u32) -> Result<Vec<u8>> {
     )?)
 }
 
-fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
+fn build(target: &Path, out: &Path, kind: Guest, boundless: bool) -> Result<()> {
     if out.try_exists()? {
         return Err("build output already exists".into());
     }
@@ -329,6 +368,7 @@ fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
         Guest::Admission => "spv_admission",
         Guest::Binding => "payment_binding",
         Guest::Pool => "spv_pool",
+        Guest::ReceiptCheck => "spv_receipt_check",
     };
     let manifest = match kind {
         Guest::Binding => "crates/prover/methods/binding/Cargo.toml",
@@ -336,6 +376,12 @@ fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
         _ => "crates/prover/methods/spv-source/Cargo.toml",
     };
     let mut command = risc0_build::cargo_command("build", &flags);
+    if boundless {
+        if matches!(kind, Guest::Binding) {
+            return Err("binding is stateless and uses its existing guest".into());
+        }
+        command.args(["--features", "boundless"]);
+    }
     let status = command
         .env("CARGO_HOME", &cargo_home)
         .env("CARGO_NET_OFFLINE", "true")
@@ -368,7 +414,8 @@ fn build(target: &Path, out: &Path, kind: Guest) -> Result<()> {
     fs::create_dir(out)?;
     write_new(&out.join("program.elf"), &program)?;
     let manifest = serde_json::json!({"schema":1,"image_id":image(&program)?.to_string(),
-        "program_sha256":hex::encode(Sha256::digest(&program)),"admitted":false,"kind":name,"network_scope":"Testnet prototype"});
+        "program_sha256":hex::encode(Sha256::digest(&program)),"admitted":false,"kind":name,"network_scope":"Testnet prototype",
+        "composition":if boundless || matches!(kind, Guest::ReceiptCheck) {"inline-groth16"} else {"native"}});
     write_new(
         &out.join("program.json"),
         &serde_json::to_vec_pretty(&manifest)?,
@@ -549,6 +596,24 @@ fn demo(
 
 fn main() -> Result<()> {
     match Args::parse().command {
+        Command::Boundless { command } => {
+            use zutti_spv_prototype::boundless;
+            match command {
+                BoundlessCommand::Export {
+                    kind,
+                    program,
+                    witness,
+                    dependency,
+                    cycles,
+                    public: _,
+                    out,
+                } => boundless::export(&program, &witness, &dependency, kind, cycles, &out),
+                BoundlessCommand::Execute { job } => boundless::execute(&job),
+                BoundlessCommand::Import { job, proof, out } => {
+                    boundless::import(&job, &proof, &out)
+                }
+            }
+        }
         Command::PrepareAdmission {
             header_program,
             previous,
@@ -618,7 +683,8 @@ fn main() -> Result<()> {
             guest_target,
             out,
             kind,
-        } => build(&guest_target, &out, kind),
+            boundless,
+        } => build(&guest_target, &out, kind, boundless),
         Command::Admission {
             program,
             header_program,

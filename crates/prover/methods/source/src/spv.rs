@@ -1,4 +1,7 @@
 #![no_main]
+#[cfg(feature = "boundless")]
+#[path = "../../receipt.rs"]
+mod receipt;
 
 use risc0_zkvm::guest::env;
 use zutti_protocol::encoding::Canonical;
@@ -21,6 +24,9 @@ fn main() {
         .required_journal()
         .expect("invalid SPV predecessor journal")
     {
+        #[cfg(feature = "boundless")]
+        receipt::read_and_verify(witness.policy().program().0, &previous);
+        #[cfg(not(feature = "boundless"))]
         env::verify(witness.policy().program().0, &previous).expect("unverified SPV predecessor");
     }
     let evaluation = witness.evaluate().expect("invalid SPV source transition");
