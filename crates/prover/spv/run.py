@@ -10,7 +10,7 @@ import time
 def group_processes(group):
     output = subprocess.run(
         ["ps", "-axo", "pid=,pgid=,rss="],
-        check=True, capture_output=True, text=True, timeout=3,
+        check=True, capture_output=True, text=True, timeout=10,
     ).stdout
     processes = {}
     for line in output.splitlines():

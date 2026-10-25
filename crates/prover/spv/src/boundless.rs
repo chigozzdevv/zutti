@@ -16,7 +16,7 @@ use zutti_wallet::{
     spv_pool::{MAX_SPV_POOL_WITNESS, SpvPoolWitness},
 };
 
-pub const MAX_CYCLES: u64 = 1 << 31;
+pub const MAX_CYCLES: u64 = 1 << 35;
 const MAX_JOURNAL: usize = 65_664;
 const MAX_STDIN: usize = 64 * 1024 * 1024 + 1044;
 type Assumptions = Vec<(Digest, Vec<u8>)>;
@@ -378,6 +378,44 @@ mod tests {
             }
             assert!(verified_fulfillment(&proof, image, &journal).is_err());
         }
+    }
+
+    #[test]
+    fn large_public_jobs_keep_explicit_cycle_bounds() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("fixtures/genesis-coverage");
+        let directory = tempfile::tempdir().unwrap();
+        let out = directory.path().join("job");
+        export(
+            &root.join("program.elf"),
+            &root.join("witness.bin"),
+            &[],
+            Kind::Source,
+            32_000_000_000,
+            &out,
+        )
+        .unwrap();
+        assert_eq!(
+            load(&out.join("job.json")).unwrap().job.cycles,
+            32_000_000_000
+        );
+        let rejected = directory.path().join("rejected");
+        assert!(
+            export(
+                &root.join("program.elf"),
+                &root.join("witness.bin"),
+                &[],
+                Kind::Source,
+                MAX_CYCLES + 1,
+                &rejected,
+            )
+            .is_err()
+        );
+        assert!(!rejected.exists());
+        let path = out.join("job.json");
+        let mut job: Job = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+        job.cycles = MAX_CYCLES + 1;
+        fs::write(&path, serde_json::to_vec(&job).unwrap()).unwrap();
+        assert!(load(&path).is_err());
     }
 
     #[test]

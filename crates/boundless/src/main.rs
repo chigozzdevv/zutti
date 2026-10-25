@@ -26,6 +26,8 @@ use std::{
 };
 use zeroize::{Zeroize, Zeroizing};
 
+const MAX_JOB_CYCLES: u64 = 1 << 35;
+
 #[derive(Parser)]
 #[command(name = "zutti-boundless")]
 struct Args {
@@ -170,7 +172,7 @@ impl Job {
             "this storage transport only accepts explicitly public witnesses"
         );
         ensure!(
-            self.cycles > 0 && self.cycles <= 2_147_483_648,
+            self.cycles > 0 && self.cycles <= MAX_JOB_CYCLES,
             "unsupported cycle bound"
         );
         for hash in [
@@ -211,7 +213,7 @@ impl Job {
 
 fn proof_timeouts(cycles: u64) -> Result<(u32, u32)> {
     ensure!(
-        cycles > 0 && cycles <= 2_147_483_648,
+        cycles > 0 && cycles <= MAX_JOB_CYCLES,
         "unsupported cycle bound"
     );
     let lock_timeout = u32::try_from(cycles.div_ceil(1_000_000) + 300)?.max(900);
@@ -640,7 +642,10 @@ mod tests {
         ensure!(proof_timeouts(260_000_000)? == (900, 1800));
         ensure!(proof_timeouts(1_314_365_753)? == (1615, 2515));
         ensure!(proof_timeouts(2_147_483_648)? == (2448, 3348));
+        ensure!(proof_timeouts(32_000_000_000)? == (32300, 33200));
+        ensure!(proof_timeouts(MAX_JOB_CYCLES)? == (34660, 35560));
         ensure!(proof_timeouts(0).is_err());
+        ensure!(proof_timeouts(MAX_JOB_CYCLES + 1).is_err());
         ensure!(proof_timeouts(u64::MAX).is_err());
         Ok(())
     }
@@ -656,11 +661,11 @@ mod tests {
         job.visibility = "private".into();
         ensure!(job.validate().is_err());
         job.visibility = "public".into();
-        for cycles in [268_435_456, 268_435_457, 2_147_483_648] {
+        for cycles in [268_435_456, 2_147_483_648, 24_000_000_000, MAX_JOB_CYCLES] {
             job.cycles = cycles;
             job.validate()?;
         }
-        for cycles in [0, 2_147_483_649, u64::MAX] {
+        for cycles in [0, MAX_JOB_CYCLES + 1, u64::MAX] {
             job.cycles = cycles;
             ensure!(job.validate().is_err());
         }
