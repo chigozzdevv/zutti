@@ -786,5 +786,14 @@
       "full_bootstrap_time_established": false
     },
     "paid_requests_submitted_this_run": 0
+  },
+  "checkpoint_profile": {
+    "recorded_at": "2026-10-26",
+    "artifacts": "../../../deploy/source/checkpoint/profile.json",
+    "scope": "Active Testnet payment-only checkpoint candidate; older evidence above retains its original identities and policy.",
+    "proof_generated": false,
+    "source_admitted": false,
+    "contracts_deployed": false,
+    "funded_swap": false
   }
 }

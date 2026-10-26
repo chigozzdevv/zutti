@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "status": "prepared",
+  "network": "testnet",
+  "settlement_chain_id": "11155111",
+  "pairs": [
+    "ZEC/USDC"
+  ],
+  "nonpayment_refunds": false,
+  "input_visibility": "public",
+  "checkpoint": {
+    "commitment": "f8a3dec2735963dfd58a0e86f55a3b532d5100bd4db7e08311bf200e84476156",
+    "height": 4545419,
+    "hash": "bac02e756970fe88a2ef4290dc6573b86ca5ee030a299a0dbc2e87d7d9230000",
+    "rpc_display_hash": "000023d9d7872ebc0d9a290a03eea56cb87365dc9042efa288fe7069752ec0ba",
+    "context_headers": 113,
+    "work": "00000000000000000000000000000000000000000000000000000000022c0c85",
+    "work_basis": "retained_context"
+  },
+  "policy": {
+    "id": "70c397a436c8283d10fe42b6472ebde7b7d457eb90399ad45007d0b05542a452",
+    "version": 2,
+    "confirmations": 10,
+    "window_blocks": 128,
+    "valid_through": 5000000
+  },
+  "programs": {
+    "source": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "17033e62ab44b6fbcf275c6a481f47bca3485ab788049236201b1dcd29f22355",
+      "kind": "spv_source",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "cd2bfac5c43e4c05dfb54d933f5c7b8c3261b84c54e771aa885e2b5bd80092b3",
+      "schema": 1
+    },
+    "admission": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "8ffedd84de67b884b07c537840c6dab886f1b28f933c73e980f45a714e16a49d",
+      "kind": "spv_admission",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "83e7816c7fff3abb965567d382d02242acb1c91e2ed12fc950e4f1cd7a37b1d0",
+      "schema": 1
+    },
+    "binding": {
+      "admitted": false,
+      "composition": "native",
+      "image_id": "e31866af4cfb9c0dce67bc3b975b3474fc6fe8dd1eb41e517b8f84c84de9125a",
+      "kind": "payment_binding",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "f98f13784b06fd25d53aef16b78bfd4ea99d520067b51e501e11d29a1998af58",
+      "schema": 1
+    },
+    "pool": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+      "kind": "spv_pool",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "440bf56a4ee8b4d1ea5b2b86db0de70c114c3f53e227eafd94813ee62c32180f",
+      "schema": 1
+    }
+  },
+  "artifacts": {
+    "headers.bin": {
+      "bytes": 168031,
+      "sha256": "e977b297ded1df880dbf3f0b324f24bdb0541711df3d6cf4e272f90fcb8565fd"
+    },
+    "checkpoint.bin": {
+      "bytes": 5075,
+      "sha256": "34bf205942da753ddeca52a1a856d4dd98c32d295927a9cf2de81e0f23f15fc4"
+    },
+    "following-headers.bin": {
+      "bytes": 29740,
+      "sha256": "26b771a9b6879d0f3fe0b97e61f3c8368cad05efc66e46476d462eddf1d8ad29"
+    }
+  },
+  "source_execution": {
+    "first_height": 4545420,
+    "last_height": 4545439,
+    "cycles": 117906565,
+    "host_assumptions": 0,
+    "image_id": "17033e62ab44b6fbcf275c6a481f47bca3485ab788049236201b1dcd29f22355",
+    "journal_matches": true,
+    "paid_jobs": 0,
+    "proof_generated": false,
+    "seconds": 2.031225125,
+    "request_cycle_limit": 268435456,
+    "journal_sha256": "3fde0f3f589867c4635d143e05a64091e12d1a8687949415ab5107c34af08d00",
+    "proof_verified": false
+  },
+  "source_admitted": false,
+  "contracts_deployed": false,
+  "funded_swap": false,
+  "assumptions": [
+    "The deployer selects the starting Testnet checkpoint and validation context.",
+    "Miners enforce Zcash transaction validity; these programs verify SPV headers and payment evidence.",
+    "Accepted source history remains subject to mining, observation, reorganization and availability assumptions.",
+    "Public Testnet proving inputs do not provide witness confidentiality."
+  ],
+  "code_revision": "ec2776f101460d71b066b25699843354b8d7ffb2"
+}
