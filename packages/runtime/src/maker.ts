@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { ZuttiError, envelope, maker_start_options, request_body, rfq_domain } from "@zutti/schema";
+import {
+  ZuttiError,
+  envelope,
+  maker_start_options,
+  request_body,
+  rfq_domain,
+  require_pair,
+} from "@zutti/schema";
 import type {
   FeeQuote,
   IntentInput,
@@ -59,6 +66,10 @@ export class RfqMaker {
   }
   private validate_options(value: MakerStartOptions): MakerStartOptions {
     const options = maker_start_options.parse(value);
+    for (const pair of options.pairs) {
+      const [from = "", to = ""] = pair.split("/");
+      require_pair(this.domain.policy, from, to);
+    }
     for (const asset of ["ZEC", "USDC"] as const) {
       const range = options.limits.per_trade[asset];
       this.config.core.amount(asset, range.min);

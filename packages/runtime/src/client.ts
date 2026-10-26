@@ -8,6 +8,7 @@ import {
   intent_input,
   maker_announcement,
   request_body,
+  require_pair,
   rfq_domain,
 } from "@zutti/schema";
 import type {
@@ -75,6 +76,7 @@ export class RfqClient {
   }
   normalize(input: IntentInput): Readonly<IntentInput> {
     const request = intent_input.parse(input);
+    require_pair(this.domain.policy, request.from, request.to);
     const result = {
       ...request,
       amount: this.config.core.amount(request.from, request.amount).amount,

@@ -11,6 +11,42 @@ import {
   random_id,
 } from "../../packages/runtime/dist/index.js";
 
+test("checkpoint deployment exchanges encrypted ZEC quotes and rejects reverse routes at both owners", async () => {
+  const fixture = await setup({
+    checkpoint: {
+      commitment: "44".repeat(32),
+      height: 4_545_419,
+      hash: "55".repeat(32),
+      program_id: "66".repeat(32),
+    },
+  });
+  try {
+    await assert.rejects(fixture.maker.start(options), { code: "invalid_input" });
+    await fixture.maker.start({ ...options, pairs: ["ZEC/USDC"] });
+    const client = fixture.make_client();
+    assert.throws(() => client.intent({ from: "USDC", to: "ZEC", amount: "100" }), {
+      code: "invalid_input",
+    });
+    const offers = await client.intent({ from: "ZEC", to: "USDC", amount: "5" }).offers();
+    assert.equal(offers.items.length, 1);
+    assert.equal(offers.items[0].output.amount, "199");
+    assert.equal(offers.items[0].policy.source_checkpoint.height, 4_545_419);
+    const owner = await MessagingIdentity.create();
+    const announcement = await announce(owner, {
+      network: "testnet",
+      deployment_id: fixture.client_config.domain.deployment_id,
+      key_version: 1,
+      pairs: ["USDC/ZEC"],
+      policy: fixture.client_config.domain.policy,
+      deadline: Date.now() + 30_000,
+    });
+    await assert.rejects(fixture.relay.announce(announcement));
+    await client.close();
+  } finally {
+    await fixture.close();
+  }
+});
+
 test("both SDKs exchange real encrypted HTTP RFQs and native fees in both directions", async () => {
   const fixture = await setup();
   try {

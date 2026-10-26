@@ -9,6 +9,7 @@ import {
   envelope_header,
   mailbox_auth,
   maker_announcement,
+  require_pair,
 } from "@zutti/schema";
 import type {
   Envelope,
@@ -54,6 +55,10 @@ export async function verify_announcement(
   now: number,
 ): Promise<MakerAnnouncement> {
   const announcement = maker_announcement.parse(value);
+  for (const pair of announcement.pairs) {
+    const [from = "", to = ""] = pair.split("/");
+    require_pair(domain.policy, from, to);
+  }
   check_domain(domain, announcement);
   fresh(announcement.deadline, now, MAX_ANNOUNCEMENT_MS);
   if (

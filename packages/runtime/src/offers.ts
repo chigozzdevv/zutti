@@ -1,4 +1,4 @@
-import { ZuttiError, wire_offer } from "@zutti/schema";
+import { ZuttiError, wire_offer, require_pair } from "@zutti/schema";
 import type { IntentInput, Offer, RfqDomain, WireOffer } from "@zutti/schema";
 import type { ProtocolCore } from "@zutti/bindings";
 import { canonical, digest, immutable } from "./encoding.js";
@@ -14,6 +14,7 @@ export async function verify_offer(
   now: number,
   request_deadline: number,
 ): Promise<WireOffer> {
+  require_pair(domain.policy, request.from, request.to);
   const offer = wire_offer.parse(value);
   const { id, ...body } = offer;
   if (

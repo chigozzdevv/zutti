@@ -15,9 +15,13 @@ import { create_zutti_maker } from "../../packages/maker-sdk/dist/index.js";
 
 import { domain, profile } from "./rfq-domain.mjs";
 export { domain, profile, options } from "./rfq-domain.mjs";
-export async function setup() {
+export async function setup({ checkpoint } = {}) {
+  const active_domain = checkpoint
+    ? { ...domain, policy: { ...domain.policy, source_checkpoint: checkpoint } }
+    : domain;
+  const active_profile = { ...profile, policy: active_domain.policy };
   const root = await mkdtemp(join(tmpdir(), "zutti-rfq-integration-"));
-  const server = create_relay_server(domain);
+  const server = create_relay_server(active_domain);
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const relay = new HttpRelay(`http://127.0.0.1:${server.address().port}`);
   const core = create_native_core(process.env.ZUTTI_CORE_BINARY);
@@ -25,14 +29,14 @@ export async function setup() {
     "encrypt",
     "decrypt",
   ]);
-  const store = (name) => new EncryptedStore(join(root, name), key, domain.deployment_id);
+  const store = (name) => new EncryptedStore(join(root, name), key, active_domain.deployment_id);
   const client_store = store("client");
   const maker_identity = await MessagingIdentity.create();
   const maker_store = store("maker");
   const issued = [];
   let price_calls = 0;
   const maker_config = {
-    domain,
+    domain: active_domain,
     core,
     identity: maker_identity,
     store: maker_store,
@@ -74,10 +78,10 @@ export async function setup() {
   const maker_runtime = new RfqMaker(maker_config);
   const maker = create_zutti_maker({
     network: "testnet",
-    wallet: { zutti_maker: () => ({ profile, maker: maker_runtime }) },
+    wallet: { zutti_maker: () => ({ profile: active_profile, maker: maker_runtime }) },
   });
   const client_config = {
-    domain,
+    domain: active_domain,
     core,
     store: client_store,
     relay,
@@ -87,7 +91,7 @@ export async function setup() {
   const make_client = (config = client_config) =>
     create_zutti({
       network: "testnet",
-      wallet: { zutti: () => ({ profile, rfq: new RfqClient(config) }) },
+      wallet: { zutti: () => ({ profile: active_profile, rfq: new RfqClient(config) }) },
     });
   return {
     root,
