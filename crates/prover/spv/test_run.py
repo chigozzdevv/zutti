@@ -26,7 +26,7 @@ class SupervisorTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(report["status"], "completed")
         with tempfile.TemporaryDirectory() as directory:
-            result, report = self.invoke(directory, "import time; data=bytearray(160*1024*1024); time.sleep(10)")
+            result, report = self.invoke(directory, "import time; data=bytearray(b'x'*(160*1024*1024)); time.sleep(10)")
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(report["status"], "memory_limit")
 
