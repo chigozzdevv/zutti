@@ -65,6 +65,13 @@ pub fn reservation_for_program(
     pool_program: Digest,
 ) -> SpvPoolWitness {
     let policy = Policy::new(source_program, NetworkType::Test, 2, 128, 4_465_200).unwrap();
+    reservation_for_policy(binding_program, policy, pool_program)
+}
+pub fn reservation_for_policy(
+    binding_program: Digest,
+    policy: Policy,
+    pool_program: Digest,
+) -> SpvPoolWitness {
     let domain = Domain::new(
         zutti_protocol::network::ZCASH_TESTNET_GENESIS,
         11155111,

@@ -17,6 +17,33 @@ fn copy(witness: &SpvPoolWitness) -> SpvPoolWitness {
 }
 
 #[test]
+fn checkpoint_pool_accepts_payment_but_rejects_the_fixed_refund() {
+    use zcash_protocol::consensus::NetworkType;
+    use zutti_source::spv::Policy;
+    let source = support::digest(51);
+    let original = Policy::new(source, NetworkType::Test, 2, 128, 4_465_200).unwrap();
+    let checkpoint = fixture::unverified_anchor(original);
+    let policy = Policy::from_checkpoint(
+        source,
+        2,
+        128,
+        4_465_200,
+        checkpoint.checkpoint_id().unwrap(),
+    )
+    .unwrap();
+    let funding = fixture::reservation_for_policy(support::digest(52), policy, support::digest(60));
+    funding.evaluate().unwrap();
+    fixture::terminal(&funding, true).evaluate().unwrap();
+    assert!(fixture::terminal(&funding, false).evaluate().is_err());
+    assert_eq!(
+        SpvPoolWitness::from_bytes(&funding.to_bytes().unwrap())
+            .unwrap()
+            .policy,
+        policy
+    );
+}
+
+#[test]
 fn reservation_checks_backing_authority_outputs_and_exact_proof_assumptions() {
     let witness = funding();
     let evaluated = witness.evaluate_with_assumptions().unwrap();

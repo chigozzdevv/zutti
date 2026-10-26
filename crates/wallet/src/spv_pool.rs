@@ -103,6 +103,11 @@ impl SpvReservation {
         ))
     }
     pub fn validate(&self, policy: Policy, domain: Digest) -> Result<()> {
+        if policy.paid_only()
+            && self.terms.direction() != zutti_protocol::order::Direction::ZecToUsdc
+        {
+            return Err(Error::Invalid("checkpoint demo supports ZEC to USDC only"));
+        }
         if u64::from(self.terms.window().expiry()) + 2 * u64::from(policy.confirmations())
             > u64::from(policy.valid_through())
         {
@@ -352,6 +357,11 @@ impl SpvPoolWitness {
                 }
                 path.verify(claim.domain, reservation.escrow.commitment()?, claim.root)?;
                 let fixed = self.outputs[0].fixed()?;
+                if self.policy.paid_only()
+                    && window.output != reservation.terms.payout().commitment()
+                {
+                    return Err(Error::Invalid("checkpoint demo requires payment evidence"));
+                }
                 let expected = if window.output == reservation.terms.payout().commitment() {
                     reservation.terms.payout()
                 } else {

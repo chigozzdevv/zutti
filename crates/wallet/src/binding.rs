@@ -74,6 +74,9 @@ impl PaymentBindingClaim {
         reservation_randomness: &zutti_protocol::Secret32,
         txid: Digest,
     ) -> Result<Self> {
+        if policy.paid_only() && terms.direction() != zutti_protocol::order::Direction::ZecToUsdc {
+            return Err(Error::Payment);
+        }
         let window = terms.window();
         let policy_id = policy.id()?;
         if terms.domain().payment_profile() != payment_profile()
