@@ -2,13 +2,13 @@
 
 Cross-chain RFQ swaps between native shielded ZEC on Zcash Testnet and private USDC notes backed by Sepolia USDC.
 
-The selected source model is genesis-bound SPV: Zutti verifies header rules and complete payment-window coverage, while relying on miners to enforce transaction validity. There is no checkpoint committee or discretionary refund authority. Full-history transaction-validity proving is paused.
+The Testnet demo uses checkpoint-bootstrapped SPV. A release pins one selected Testnet checkpoint and its validation context; subsequent headers and payment inclusion require proofs. Zutti relies on that initial checkpoint selection and on miners enforcing transaction validity. The demo supports ZEC → USDC settlement on payment evidence. Reverse swaps and nonpayment refunds are disabled for this profile. Full-history bootstrap is deferred.
 
 ## Status
 
-Protocol rules, wallet authorization gates, SPV programs, private-pool contracts, recovery tooling and RFQ packages are implemented. The current SPV program has a genuine genesis receipt. Conditional swap programs have execution coverage but do not yet have the complete genuine proof chain, a live Sepolia deployment or an operational SDK `accept()` flow.
+Protocol rules, wallet authorization gates, SPV programs, private-pool contracts, recovery tooling and RFQ packages are implemented. Checkpoint policy encoding, context import, durable bootstrap and payment-only guards have native test coverage. The source, admission, binding and pool guests are built; the [checkpoint candidate](deploy/source/checkpoint/profile.json) records their exact identities and public source inputs. Historical genesis-based source receipts remain valid only for their original program identities. The checkpoint release still needs genuine proof receipts, a live Sepolia deployment and an operational SDK `accept()` flow.
 
-The [remaining work](#remaining-work) includes the unresolved [refund security review](zutti.md#94-refund-security-review). Component tests and downloaded chain data are not evidence of a completed swap.
+The [remaining work](#remaining-work) separates compiled programs, execution checks, genuine proof receipts and live transactions. The [refund security review](zutti.md#94-refund-security-review) concerns future refund support; the checkpoint demo rejects nonpayment settlement rather than treating missing evidence as a refund.
 
 ## Layout
 
@@ -63,7 +63,7 @@ Set `ZUTTI_SPV_BINARY` to the built `zutti-spv-prototype` executable to include 
 
 ## Proving and settlement
 
-RISC Zero supplies the proof programs; Boundless supplies remote proving compute. Public source history is shared across swaps. Each swap additionally needs payment binding, reservation, payment-or-absence coverage and terminal settlement evidence.
+RISC Zero supplies the proof programs; Boundless supplies remote proving compute. Public source history is shared across swaps. Each demo swap additionally needs payment binding, reservation, qualifying payment coverage and terminal payout evidence.
 
 The current Boundless transport publishes program inputs through IPFS. The Testnet demo explicitly permits public swap witnesses. Those witnesses are not confidential from the prover or others who obtain the published inputs. Wallet signing keys remain local. This demo profile does not establish production witness privacy.
 
@@ -73,15 +73,37 @@ Paid jobs, rentals and parameter downloads require an explicit budget. Routine s
 
 ## Remaining work
 
-1. Obtain genuine fulfillment for the prepared 4,096-header candidate and measure its accepted price and sustained throughput. Its 23.93-billion-cycle execution check does not establish the complete bootstrap budget or timing.
-2. Generate genuine binding, pool deposit/reservation, complete payment/absence, terminal and withdrawal proofs under exact release identities, with Ethereum-compatible wrapping where required.
-3. Prove headers from genesis through the demo's current Testnet height and maintain fresh source admission.
-4. Resolve the [refund lower-bound review](zutti.md#94-refund-security-review) before enabling funded refunds. Guest execution and mutation tests do not establish that cryptographic argument.
+1. Obtain genuine receipts for the built checkpoint programs and the selected checkpoint's following headers. Execution over the selected checkpoint plus 20 real headers passed at 117,906,565 cycles; this is not a proof receipt.
+2. Generate genuine binding, pool deposit/reservation, qualifying payment, payout and withdrawal proofs under exact release identities, with Ethereum-compatible wrapping where required.
+3. Maintain source admission from the pinned checkpoint through the payment and required confirmations; do not submit the deferred full-history bootstrap.
+4. Keep reverse swaps and nonpayment refunds disabled in the checkpoint profile. Unavailable or unproved payment evidence leaves a reservation pending. Refund support needs the separate [lower-bound review](zutti.md#94-refund-security-review).
 5. Deploy the actual Sepolia verifier/registry/pool profile and verify finalized reservation evidence before signing Zcash payments.
 6. Connect scanning, spendable-note selection, native Ironwood proving/signing/broadcast, USDC balances and operational SDK `intent.accept()` fulfillment. Generate dedicated Testnet wallets and provide their public funding addresses at this stage.
-7. Demonstrate real paid, unpaid, expiry-boundary, delayed-claim, reverse-trade and independent-recovery cases, then deliver the application flow and submission materials.
+7. Demonstrate a real ZEC → USDC payout, private balance and withdrawal, plus rejection of wrong evidence and pending behavior when evidence is unavailable. Then deliver the application flow and submission materials.
 
 Completion needs genuine proof receipts, real chain transactions, actual token backing and usable recovery. A proof submission, synchronized node or successful component test is insufficient. Permanent source-halt recovery remains unresolved; conditional funds can remain locked when accepted source evidence becomes unavailable or invalidated. No administrator or timer may turn that failure into a refund for an already-paid trade.
+
+## Checkpoint workflow
+
+Export the selected checkpoint's 113-header validation context with `scripts/spv_checkpoint.py`. The node endpoint and cookie are local operational configuration. The exporter pins the block hash and checks that the source branch stays unchanged during export. Work is measured relative to the retained context; it is not a claim about total genesis-to-tip work.
+
+```sh
+"$SPV" build --kind source --boundless --guest-target "$GUEST_TARGET" --out "$SOURCE_PROGRAM_DIR"
+
+python3 scripts/spv_checkpoint.py --endpoint "$SOURCE_RPC" --cookie "$SOURCE_COOKIE" \
+  --height "$CHECKPOINT_HEIGHT" --out "$CHECKPOINT_EXPORT"
+"$SPV" checkpoint --headers "$CHECKPOINT_EXPORT/headers.bin" \
+  --height "$CHECKPOINT_HEIGHT" --work "$CHECKPOINT_WORK" --out "$CHECKPOINT_CONTEXT"
+"$SPV" bootstrap init --state "$STATE" --program "$SOURCE_PROGRAM_DIR/program.elf" \
+  --checkpoint "$CHECKPOINT_CONTEXT/checkpoint.bin" --confirmations 10 \
+  --window-blocks 128 --valid-through 5000000
+"$SPV" bootstrap prepare --state "$STATE" --headers "$FOLLOWING_HEADERS"
+"$SPV" bootstrap status --state "$STATE"
+```
+
+`CHECKPOINT_WORK` is the exported `work` field. Policy version 2 commits to the complete selected context and maximum timestamp. A changed context requires a new policy and deployment profile. Initialization alone does not create a verified receipt or admit source history. The worker starts after the checkpoint and checks its pinned branch before preparing subsequent headers.
+
+The following genesis workflow remains available for historical regression and future full bootstrap work. It is not the selected demo profile.
 
 ## SPV workflow
 
@@ -116,7 +138,7 @@ Import an externally generated genuine header receipt with its exact pending bat
 "$SPV" bootstrap accept --state "$STATE" --batch "$BATCH" --receipt "$RECEIPT"
 ```
 
-An empty registry initializes from a genuine genesis-proved stable prefix plus the required confirmations. It does not accept a server-picked recent checkpoint. Admission preparation and execution are separate from proof generation and Ethereum wrapping:
+An empty registry initializes from a genuinely proved stable prefix plus the required confirmations. For the demo, that proof begins at the checkpoint committed by the deployment policy; runtime servers cannot replace it. Admission preparation and execution are separate from proof generation and Ethereum wrapping:
 
 ```sh
 "$SPV" prepare-admission --header-program "$SOURCE_PROGRAM_DIR/program.elf" \

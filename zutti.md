@@ -1,24 +1,35 @@
 # Zutti
 
-The selected Testnet source model is genesis-bound SPV with complete bounded payment coverage and the mining-validity assumptions in [source verification](#10-committee-free-source-verification). Full-history transaction-validity proving is paused. The Testnet demo permits public swap witnesses through Boundless/IPFS; confidential prover transport is deferred.
+The selected Testnet demo profile uses checkpoint-bootstrapped SPV and payment-only ZEC → USDC settlement. One deployment-pinned checkpoint supplies the starting state; genuine proofs validate subsequent headers and the agreed payment. Miners enforce transaction validity. The Testnet demo permits public swap witnesses through Boundless/IPFS; confidential prover transport is deferred.
 
-The [delivery plan](README.md#remaining-work) defines the unfinished proof, deployment and live-execution work. The [refund review](#94-refund-security-review) remains a security gate. This specification describes intended behavior; the [README](README.md) records actual implementation status.
+The [delivery plan](README.md#remaining-work) defines the unfinished proof, deployment and live-execution work. The [refund review](#94-refund-security-review) gates future nonpayment refunds; the active demo profile does not permit those outcomes. This specification describes intended behavior; the [README](README.md) records actual implementation status.
 
 Private cross-chain RFQ swaps between native shielded ZEC and privately owned USDC.
 
-Specification draft · 25 October 2026
+Specification draft · 27 October 2026
 
 ## 1. Product and status
 
-Zutti lets a user request private offers from market makers, select a price, and exchange native shielded ZEC for a private USDC balance on Ethereum. The same protocol supports the reverse trade by exchanging the parties' roles.
+Zutti lets a user request private offers from market makers, select a price, and exchange native shielded ZEC for a private USDC balance on Ethereum. The active checkpoint profile exposes ZEC → USDC only. Reverse trading remains a future extension.
 
-The maker supplying USDC reserves it before the ZEC payer authorizes payment. Cryptographic evidence then determines the reservation's outcome. A valid ZEC payment earns the fixed USDC payout. A refund requires proof that the exact prepared payment never occurred and can no longer occur.
+The maker supplying USDC reserves it before the ZEC payer authorizes payment. Cryptographic evidence then determines the reservation's outcome. A valid ZEC payment earns the fixed USDC payout. Nonpayment refunds are disabled in the checkpoint profile. Expiry or unavailable evidence leaves a funded reservation pending; there is no timer-based or administrator refund.
 
 An earned payout has no claim deadline. A delayed proof, disconnected wallet, unavailable relayer, or closed application does not authorize the counterparty to take that payout back.
 
 Zutti consists of a headless client SDK, a maker SDK, a shared protocol core, a private USDC pool, and source-verification infrastructure. Applications own their interface and use the public SDK to request offers, accept a trade and manage its outcome. The Zutti application uses that same SDK.
 
-The workspace implements protocol rules, Ironwood preparation, private notes, SPV header/window programs, conditional pool predicates, Ethereum authorization gates, encrypted recovery records and RFQ packages. The Boundless source image has two genuine linked receipts through Testnet height 4. Current-chain proving, genuine conditional swap proofs, Sepolia deployment, wallet execution and SDK fulfillment remain unfinished. Earlier genuine component proofs certify only their own program identities.
+The workspace implements protocol rules, Ironwood preparation, private notes, SPV header/window programs, conditional pool predicates, Ethereum authorization gates, encrypted recovery records and RFQ packages. The historical genesis-based source image has two genuine linked receipts through Testnet height 4. The checkpoint policy, context import and durable bootstrap are implemented, and payment-only guards reject refund and reverse outcomes. Genuine receipts under the new program identities, Sepolia deployment, wallet execution and SDK fulfillment remain unfinished. Earlier genuine component proofs certify only their own program identities.
+
+### Demo execution profile
+
+The user requests an encrypted RFQ, reviews a signed maker quote, and accepts its fixed terms. The maker reserves USDC. The wallet verifies finalized reservation evidence before authorizing the shielded ZEC transaction. After confirmations, a genuine payment-binding and inclusion proof permits the fixed private USDC payout. The user can then withdraw to a Sepolia address.
+
+- The source policy commits to the checkpoint's complete difficulty/timestamp context and relative-work baseline. The deployer selects that starting checkpoint. Subsequent source updates require verified linkage, work, difficulty, timestamp and admission checks.
+- Checkpoint policy version 2 is Testnet-only and distinct from the historical genesis policy. Its initial source witness must open the exact pinned context; it cannot substitute genesis or a different snapshot.
+- The checkpoint policy permits only ZEC → USDC reservations and payment-backed terminal outputs. Source absence branches and private-pool refund outputs are rejected by the proof relation.
+- RFQ announcements, maker configuration, requests and offer validation enforce the same route restriction. The signed policy carries the checkpoint commitment, height, hash and source program identity.
+- Quote expiry before reservation creates no payment entitlement. Once reserved, missing data, proving failure, wallet disconnection or deadline expiry leaves settlement pending. A delayed valid payment claim remains claimable.
+- The existing contract verification gates remain active. New source, admission, binding and pool identities must be pinned before funded execution. A context export, successful execution or an old receipt does not substitute for those proofs.
 
 ### 1.1 Supported asset model
 
@@ -38,7 +49,7 @@ Ethereum L1 is the initial destination. This avoids introducing an L2 sequencer 
 
 - RFQ discovers prices and counterparties. Several makers can compete, but the protocol does not guarantee the best price available anywhere.
 - Makers prefund their own trading inventory. Their USDC is payout funding, not an additional security bond.
-- Private USDC can be held, transferred inside the pool, withdrawn publicly, or used to fund a reverse swap.
+- The demo includes holding private USDC and withdrawing it publicly. Internal transfers and reverse swaps are outside the initial application flow.
 - Arbitrary public DeFi interactions do not become confidential through Zutti.
 - Standing offers, sealed auctions, passive shared liquidity vaults, lending, perpetuals, and a destination dark pool are separate applications, not prerequisites for this swap protocol.
 
@@ -90,7 +101,7 @@ The research checkout of `zcash-light-client` in this workspace is an SPV/transp
 
 ### 3.2 Separate proof workloads
 
-1. **Shared public source proving:** verifies genesis-bound headers and source admission. Its receipts are reused across swaps; updates continue as blocks arrive.
+1. **Shared public source proving:** verifies headers from the deployment-pinned checkpoint and source admission. Its receipts are reused across swaps; updates continue as blocks arrive.
 2. **Per-operation proving:** binds the prepared payment, private-note ownership, reservation and fixed payment/refund outcome. Every dependency must be a genuine receipt for the exact image and journal.
 
 RISC Zero 3.0.5 supplies the programs and Boundless supplies remote proving compute. The Testnet demo permits public swap witnesses through the existing Pinata/IPFS transport. Those inputs are readable by provers and anyone obtaining the published objects. Wallet signing keys remain local. This demo policy does not establish production witness confidentiality.
@@ -105,7 +116,7 @@ Endpoints and signed manifests are discovery/configuration aids. A server respon
 
 Every outstanding reservation retains its accepted policy and proof semantics. Routine SDK updates cannot reinterpret old commitments or introduce a new refund rule.
 
-## 4. The two complete swap flows
+## 4. Swap flows
 
 Illustrative amounts below are not a market quote.
 
@@ -121,7 +132,9 @@ Illustrative amounts below are not a market quote.
 8. An accepted source-history proof establishes the payment. The settlement proof consumes the reservation and creates the user's precommitted private USDC note.
 9. The user's SDK verifies the confirmed output, decrypts or recovers its note data, and reports the swap as settled. The maker cannot spend that note.
 
-### 4.2 Private USDC to ZEC
+### 4.2 Future extension: private USDC to ZEC
+
+This direction is disabled by the checkpoint profile. The flow below describes the future refund-enabled protocol.
 
 1. The user already owns private USDC notes or explicitly deposits USDC into the pool. A deposit from an ordinary Ethereum account is public.
 2. Makers return encrypted offers to pay a fixed shielded ZEC amount for the requested USDC input.
@@ -142,11 +155,10 @@ flowchart TD
   C --> D[Authorize and broadcast ZEC]
   D --> E{Accepted source evidence}
   E -->|Payment included| F[Fixed private USDC payout]
-  E -->|Absent through expiry| G[Fixed private USDC refund]
-  E -->|Evidence unavailable| H[Reservation remains locked]
+  E -->|Unproved or unavailable| H[Reservation remains pending]
 ```
 
-This is asynchronous cross-chain settlement. The ledgers do not change in one transaction, and a source reorganization after irreversible destination settlement remains a risk under the declared chain assumptions.
+The diagram shows the active payment-only profile. Expiry alone does not release reserved funds. This is asynchronous cross-chain settlement. The ledgers do not change in one transaction, and a source reorganization after irreversible destination settlement remains a risk under the declared chain assumptions.
 
 ## 5. Private RFQ
 
@@ -330,7 +342,6 @@ The same private transaction ID and reservation randomness produce `R` and `Rw`,
 
 `ZUTTIBWI` version 1 encodes the witness. Redaction removes spending keys, viewing material, input-note openings, signatures and transaction proofs that preparation does not need. Output openings remain sensitive. Authorization may subsequently change without changing the prepared effects or either reservation commitment.
 
-
 ### 7.5 Bilateral recovery handoff
 
 Before funding, `D` obtains and checks `t`, openings for the agreed reservation, the verified preparation statement and enough escrow witness data to refund independently. Before source authorization, `Z` obtains and checks the finalized reservation opening, fixed output data and enough settlement witness data to claim independently.
@@ -425,7 +436,7 @@ The candidate assumes that an adversary cannot feasibly construct that cycle or 
 | Recoverable payment output | `crates/wallet/src/prepare.rs::inspect_bound_output` | The note commitment, ephemeral key and entire encrypted plaintext/memo match the chosen note opening and order |
 | Effect identifier | Pinned `zcash_primitives` transaction digester | The exact version-6 Ironwood output ciphertext and expiry are effect-committing data; later authorizations cannot change their meaning |
 | Both reservations | `crates/wallet/src/binding.rs` | The same hidden `t`, order and randomness bind the ordinary reservation and salted source reservation |
-| Source anchor | `crates/source/src/spv/chain.rs`, admission guest and registry | `H0` belongs to the genesis-bound accepted ancestry under the exact source policy |
+| Source anchor | `crates/source/src/spv/chain.rs`, admission guest and registry | `H0` belongs to the accepted ancestry under the exact source policy; the active demo starts at its pinned checkpoint |
 | Complete interval | `crates/source/src/spv/{window,coverage}.rs` | Every eligible block is covered with all transaction identifiers; paid prefixes cannot be discarded during composition |
 | Fixed entitlement | `crates/wallet/src/spv_pool.rs` | A genuine reservation certificate and matching genuine window select exactly one fixed output and consume the same terminal nullifier |
 
@@ -476,7 +487,7 @@ The review may conclude the proposed relation is sound under named assumptions, 
 
 ### 10.1 Header rules and mining validity
 
-The selected SPV program starts at the fixed Testnet genesis and checks consecutive header linkage, Equihash, targets, exact difficulty, timestamp rules and cumulative work. It does not prove all historical shielded proofs, signatures or state transitions. It relies on miners enforcing transaction validity.
+The active demo SPV program starts at a deployment-pinned Testnet checkpoint and checks subsequent consecutive header linkage, Equihash, targets, exact difficulty, timestamp rules and relative cumulative work. The complete retained context and its maximum timestamp are committed by policy version 2. Its initial work baseline is the sum of work in that context, not total historical chain work. The historical genesis-bound program remains a separate profile. It does not prove all historical shielded proofs, signatures or state transitions. It relies on miners enforcing transaction validity.
 
 ### 10.2 Bootstrap and source admission
 
@@ -505,7 +516,7 @@ Conceptual contract operations are:
 | `deposit` | Receive actual pinned USDC and issue the authorized note output |
 | `transact` | Apply an authorized conserving private transfer or public withdrawal |
 | `reserve` | Consume private inventory and create one correctly bound conditional note |
-| `settle_escrow` | Apply one valid paid/refund transition to its fixed output |
+| `settle_escrow` | Apply the fixed payment-backed payout; checkpoint refunds are rejected |
 
 These are contract responsibilities, not extra routine SDK calls. The exact ABI must bind all public outputs and ciphertext digests to the verified statement.
 
@@ -549,9 +560,7 @@ The in-guest verifier has accepted a genuine retained proof with no host assumpt
 
 The October 25 public Boundless run produced two genuine Groth16 source receipts: genesis through block 2, then blocks 3–4 using the first receipt inside the guest. Both verified locally, passed tamper checks and were accepted by the durable bootstrap store. Both also passed read-only verification against the deployed Sepolia RISC Zero router; no settlement transaction was submitted. Their total prover fee was 58,333,333,333,333 wei, with submission-to-fulfillment times of 701 and 607 seconds. This establishes the early source-composition path, not current-chain bootstrap, conditional swap proofs, refund security or funded settlement. Exact artifacts and scope are recorded in `crates/prover/spv/evidence.json`.
 
-The larger continuation for heights 5–4,100 uses that genuine predecessor and the same guest identity. Bounded local execution passed at 23,931,789,154 cycles; the exported allowance is 32 billion cycles. The host/client guard is 34,359,738,368 cycles and the current guest bounds each batch to 4,096 headers. No paid request or new prefix proof was produced for this candidate. Foreign fulfilled Groth16 examples demonstrate observed capacity above this batch size, not a provider commitment to this program or price.
-
-At the recorded height 4,539,666, continuing from height 4 with this batch size requires 1,109 additional source jobs. Extrapolating the measured batch gives about 26.5 trillion guest cycles; later epochs, padding, market conditions and complete proof costs remain unmeasured. Current continuations depend on predecessor receipts, so aggregate network throughput is not a demonstrated bootstrap completion rate. Source admission, ongoing updates and swap proofs are additional work. No full bootstrap is authorized by the prepared packet.
+The genesis-to-current-history bootstrap is deferred. The active checkpoint candidate, its raw validation context and exact source/admission/binding/pool identities are retained in `deploy/source/checkpoint/profile.json`. Checkpoint plus 20 real descendant headers passed execution at 117,906,565 cycles with a matching journal and no unresolved assumptions. No genuine receipt has yet been generated for that candidate. Execution duration is not proof latency, and the historical receipts cannot authenticate a different program or policy.
 
 Conditional operations require a checkpoint accepted by `SpvRegistry`. The supported source horizon must extend through expiry plus twice the confirmation depth: the window proves its confirmation suffix, then registry admission confirms the resulting prefix. Funding also requires fresh progress and the configured minimum remaining inclusion interval. These are protocol checks, not established swap-latency estimates.
 
@@ -621,27 +630,7 @@ The SDK performs the following inside `accept()`:
 
 Status updates expose the stage and any blocking condition. Typical stages include `preparing`, `awaiting_reservation`, `reserved`, `awaiting_authorization`, `payment_submitted`, `payment_confirming`, `settling` and `settled`. They advance only when the relevant authorization/evidence checks pass. The optional callback does not drive the protocol; callback failure cannot disable persistence, change terms or create a second swap.
 
-The same shape handles the reverse direction:
-
-```ts
-const reverse = zutti.intent({
-  from: "USDC",
-  to: "ZEC",
-  amount: "100",
-});
-
-const reverse_offers = await reverse.offers();
-
-// The user reviews and selects the returned offer_02.
-const reverse_swap = await reverse.accept({
-  offer_id: "offer_02",
-  on_status: set_status,
-});
-
-const reverse_receipt = reverse_swap.receipt;
-```
-
-For an illustrative gross quote of 2.5 ZEC, a 50-basis-point maker fee is 0.0125 ZEC and the net output is 2.4875 ZEC. `reverse_receipt.received` is `{ asset: "ZEC", amount: "2.4875" }`. The maker pays its source transaction fee in addition to the agreed payment; that fee cannot reduce the fixed received principal.
+The checkpoint deployment rejects reverse intents before requesting offers. It does not expose USDC → ZEC as an available route.
 
 ### 12.3 Wallets, routes and destinations
 
@@ -657,7 +646,7 @@ The wallet handle is not a raw seed, a public address, or a promise that every e
 
 `network` selects a release-pinned pair of deployments: source network/genesis and payment profile, Ethereum chain, exact USDC token/private pool, proof identities and verification policy. A profile without admitted deployed verifiers is unavailable. No unknown route resolves to an arbitrary bridged substitute.
 
-For ZEC to USDC, the destination defaults to the owner's private USDC account. For USDC to ZEC, it defaults to the connected wallet's supported shielded receiver. The SDK resolves fresh receiving data during acceptance and binds it before payment preparation and reservation funding. Initial RFQs do not require a public receiving address. Receiving a private USDC note does not require an initial USDC deposit or a public Ethereum signer when the selected offer uses an admitted submission arrangement. Public USDC withdrawal is a separate explicit account action.
+For ZEC to USDC, the destination defaults to the owner's private USDC account. The SDK resolves fresh receiving data during acceptance and binds it before payment preparation and reservation funding. Initial RFQs do not require a public receiving address. Receiving a private USDC note does not require an initial USDC deposit or a public Ethereum signer when the selected offer uses an admitted submission arrangement. Public USDC withdrawal is a separate explicit account action.
 
 Client construction does not create a new economic intent or grant spending permission. Once the owner is connected/unlocked, background reconciliation can continue an existing operation only within its retained authorizations and accepted terms. A new required signature, changed fee budget or unavailable capability remains an explicit action requirement.
 
@@ -676,7 +665,7 @@ An offer exposes exact input, gross output, maker fee, net output, separately pa
 | Confirmed successful exchange | Resolve to `SettledSwap` with a verified receipt and recoverable owner output |
 | Bounded wait/interruption | Typed pending error with the existing operation ID and verified snapshot; retained work remains eligible for automatic continuation |
 | Required owner action | Typed action-required error with the known operation ID and required capability/authorization |
-| Confirmed refund | Distinct refund error/outcome with a verified refund receipt |
+| Expiry after reservation | Retain the funded operation as pending; no automatic refund |
 | Rejected/expired unfunded offer | Report rejection without presenting it as funded recovery or successful exchange |
 
 A funded reservation or submitted payment is not success. Aborting a wait does not cancel a source transaction or refund principal. An expired unfunded offer requires a newly selected fresh offer; the SDK cannot automatically replace the user's price.
@@ -747,15 +736,15 @@ await zutti.close();
 
 The encrypted package covers note data and unpublished operation witnesses, not merely a list of IDs. Restore authenticates owner/deployment scope, imports records and reconciles evidence. It grants no new spending authority. Browser/runtime storage alone is not an independent backup; losing unpublished witnesses cannot be repaired from a public swap ID or necessarily from a wallet seed alone.
 
-Explicit `claim()` and `refund()` remain available to independent recovery tools using the same core. They settle only fixed authorized outputs. Claiming requires qualifying payment evidence; refunding requires accepted complete absence through inclusive expiry and the required stable descendant. A timer, missing claim or RPC lookup failure cannot authorize a refund. The paid entitlement has no claim deadline.
+Independent recovery tools can construct the fixed payout from qualifying payment evidence. The checkpoint profile rejects nonpayment refund construction and settlement. A timer, missing claim or RPC lookup failure cannot authorize a refund. The paid entitlement has no claim deadline.
 
-Refunds return USDC to its funder: the maker for ZEC-to-USDC and the user for USDC-to-ZEC. Fees already spent are not automatically returned. A universal funded cancellation is not part of the API.
+A future refund-enabled profile would return USDC to its funder only after accepted complete absence through inclusive expiry and the required stable descendant. That path still needs its separate security review and is not an active demo feature. Fees already spent are not automatically returned. A universal funded cancellation is not part of the API.
 
 `close()` flushes retained state and closes local workers/transports. It does not cancel a source payment, revoke an earned payout or erase recovery material. A different supported client must be able to recover without the original website or database service if the owner retained the required package and capabilities.
 
 ### 12.7 Public type and completion reference
 
-The following reference fixes inputs, outputs and lifecycle boundaries. It is not additional setup code for an ordinary application. `WalletProvider` is supplied by a supported wallet integration and implemented by the wallet/core bindings.
+The following reference fixes inputs, outputs and lifecycle boundaries for the intended full API. Reverse directions, refund types and refund methods are future capabilities rejected by the checkpoint profile. It is not additional setup code for an ordinary application. `WalletProvider` is supplied by a supported wallet integration and implemented by the wallet/core bindings.
 
 ```ts
 import type { WalletProvider } from "@zutti/sdk";
@@ -788,6 +777,12 @@ interface SwapPolicy {
   min_source_window_blocks: number;
   max_source_window_blocks: number;
   paid_claim_deadline: null;
+  source_checkpoint?: {
+    commitment: string;
+    height: number;
+    hash: string;
+    program_id: string;
+  };
 }
 
 interface NetworkProfile {
@@ -1031,7 +1026,7 @@ await maker.account().deposit({
 });
 
 await maker.start({
-  pairs: ["ZEC/USDC", "USDC/ZEC"],
+  pairs: ["ZEC/USDC"],
 
   fee_bps: 50,
 
@@ -1059,7 +1054,7 @@ await maker.start({
 });
 ```
 
-The deposit is an explicit public inventory-funding operation, not an action performed automatically before each trade. To sell ZEC the maker also holds supported shielded ZEC in its connected source wallet. Its Ethereum execution costs need operating funds or an admitted submission arrangement. Example limits are illustrative business choices, not measured production cost/safety parameters.
+The deposit is an explicit public inventory-funding operation, not an action performed automatically before each trade. The current maker buys ZEC and supplies USDC. Its Ethereum execution costs need operating funds or an admitted submission arrangement. Example limits are illustrative business choices, not measured production cost/safety parameters.
 
 ### 13.2 Trading controls
 
@@ -1101,7 +1096,6 @@ maker fee  = g - net output
 | Illustrative trade | Gross output | Fee at 50 bps | Net output |
 | --- | --- | --- | --- |
 | 5 ZEC to USDC | 200 USDC | 1 USDC | 199 USDC |
-| 100 USDC to ZEC | 2.5 ZEC | 0.0125 ZEC | 2.4875 ZEC |
 
 Network and submission fees are additional separately disclosed costs, with currencies, payer and caps. `fee_bps` is earned maker revenue; `max_fee_per_swap` limits operating spending. Changing a feed or gas payer after acceptance cannot change either fixed principal or expand fee authorization.
 
@@ -1184,8 +1178,7 @@ Restart with the same owner/runtime records reconciles accepted obligations and 
 
 A single-writer lease or a correctly transactional shared journal prevents workers allocating the same local inventory independently. Durable records retain exact signed messages, order/reservation openings, payment effects/identity, authorization state, chain receipts and recovery witnesses. Chain nullifier and input checks remain authoritative even if local snapshots are stale. Database assertions or runtime status messages cannot settle balances.
 
-After a forward reservation and recovery handoff, the USDC-supplying maker's discretionary approval is no longer required for the earned payout. In the reverse direction, the ZEC-supplying maker still must authorize and broadcast its prepared payment. If it does not, only the verified expired-absence path returns the USDC reservation. Depositing inventory does not remove that source-signing responsibility.
-
+After a forward reservation and recovery handoff, the USDC-supplying maker's discretionary approval is no longer required for the earned payout. Depositing inventory does not cause a Zcash payment: the user still authorizes the exact prepared transaction after verifying the reservation. Reverse fulfillment and nonpayment refunds remain unavailable in this profile.
 
 ## 14. State and completion
 
@@ -1217,6 +1210,8 @@ These are local/messaging states. They do not imply funded escrow or source paym
 
 `evidence_unavailable`, `action_required`, `service_unavailable` and `source_conflict` are blocking conditions attached to a known stage. They are not terminal proof of payment or absence. A later verified observation can clear them without creating another swap.
 
+The checkpoint profile never offers a refund action or emits `refund_provable` or `refunded`. Those states describe the future refund-enabled protocol. An expired source window or failed proof leaves the existing funded stage pending.
+
 A wallet rejection after reservation does not mean `unfunded`. A source payment can still be eligible or already authorized. The operation remains visible until a valid terminal outcome is reconciled.
 
 An SDK/database record is a convenience view. Confirmed pool state and accepted source evidence determine settlement; no operator endpoint can set a private balance or mark a swap successfully settled by assertion.
@@ -1227,8 +1222,8 @@ An SDK/database record is a convenience view. Confirmed pool state and accepted 
 | --- | --- |
 | No maker responds | Return no offer; no funds move |
 | Selected maker cannot reserve USDC | Do not authorize ZEC; reconcile whether any funding actually occurred |
-| Unsafe source window after reservation | Withhold source authorization and retain refund recovery |
-| Payer never authorizes or broadcasts | USDC funder proves expired absence before refund |
+| Unsafe source window after reservation | Withhold source authorization and retain the pending reservation and recovery material |
+| Payer never authorizes or broadcasts | Keep reserved USDC pending; nonpayment refunds are disabled in the checkpoint profile |
 | Payer spends a source input elsewhere | Only qualifying inclusion of the exact prepared transaction earns payout |
 | Payment included at height `E` | Paid predicate can succeed; false refund fails |
 | Payment included but proof arrives much later | Payout remains claimable; no timeout confiscation |
@@ -1359,13 +1354,13 @@ There is no release claim until the relevant gates pass against the exact pinned
 - Reject fabricated recent anchors, wrong anchor heights, unsupported anchor heights and terminal checkpoints on a different ancestry.
 - Output recovery and receiving-key separation work without a counterparty spending secret.
 
-### Gate B: SPV source and authenticated refund evidence
+### Gate B: Checkpoint source and payment evidence
 
-- Bootstrap genuine genesis-bound headers without trusted recent-root substitution.
+- Pin the selected Testnet checkpoint context and relative-work baseline under policy version 2; prove subsequent headers without runtime checkpoint substitution.
 - Verify Equihash, target, difficulty, timestamp, parent and network rules.
 - Prove complete payment coverage through inclusive expiry and the required descendants.
 - Reject omitted transactions, collapsed subtrees, missing interval blocks and changed proof dependencies.
-- Resolve the lower-bound review and demonstrate that a paid but delayed claim cannot be refunded.
+- Reject absence/refund outcomes for the checkpoint profile and preserve delayed payment claims. The lower-bound review remains a requirement for any future refund-enabled profile.
 - Test competing histories, greater-work selection, stable-prefix conflicts, stale progress and unavailable data.
 - Admit the exact registry policy and preserve the stated mining-validity assumption.
 
@@ -1380,10 +1375,10 @@ There is no release claim until the relevant gates pass against the exact pinned
 
 ### Gate D: End-to-end swaps and recovery
 
-- Complete both directions with real source and destination evidence.
+- Complete ZEC → USDC with real source and destination evidence. Reject reverse requests in the checkpoint deployment.
 - Pay ZEC, delay the destination claim beyond quote/payment expiry, then successfully collect the original payout.
 - Attempt a refund for that paid transaction; reject it even when nobody previously submitted a claim.
-- Never broadcast the prepared source payment, advance accepted source history through expiry, and independently prove/refund.
+- Never broadcast the prepared source payment, advance past expiry, and verify that the reservation remains pending rather than producing a refund.
 - Remove the original maker/relay/site and recover using retained data plus alternate public sources.
 - Restart after each economic step and reconcile without duplicate signing, funding or settlement.
 - Test wallet rejection after reservation, exact expiry boundary, source halt, unavailable proof, exhausted fees and source/destination reorganization.
@@ -1443,7 +1438,7 @@ This specification incorporates the prior private-cross-chain design and the agr
 
 Before implementation can be called deployable, publish a complete profile fixing:
 
-1. Exact source release/consensus rules, supported payment format, upgrade-boundary behavior and genesis-bound SPV verification path.
+1. Exact source release/consensus rules, supported payment format, upgrade-boundary behavior and the exact checkpoint-bootstrapped SPV verification path.
 2. Proof backend, recursion/compression, private-witness zero-knowledge properties, security assumptions, setup and verifier identities.
 3. Commitment/PRF/hash choices, field/curve parameters, serialization, note/index tree rules and test vectors.
 4. Registry fork-choice/stability/freshness state machine, numeric parameters and behavior during a competing heavier fork.
