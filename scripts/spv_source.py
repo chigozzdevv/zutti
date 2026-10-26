@@ -43,8 +43,8 @@ def emit(value, **fields):
 def check_branch(current, info, rpc):
     if info.get("chain") != "test" or type(info.get("blocks")) is not int:
         raise ValueError("source node must report Testnet")
-    for prefix in ("verified", "pending"):
-        height = current[f"{prefix}_height"]
+    for prefix in ("checkpoint", "verified", "pending"):
+        height = current.get(f"{prefix}_height")
         if height is None:
             continue
         if info["blocks"] < height:
@@ -80,7 +80,7 @@ def run(args, rpc):
                         return 0
                     time.sleep(min(args.poll_seconds, max(0, deadline - time.monotonic())))
                     continue
-                start = 1 if height is None else height + 1
+                start = (current.get("checkpoint_height") or 0) + 1 if height is None else height + 1
                 count = min(args.batch_size, end - start + 1)
                 if count > 0:
                     packet = Path(tempfile.mkdtemp(prefix="headers-", dir=args.work))

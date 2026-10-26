@@ -184,6 +184,9 @@ impl WindowWitness {
     pub fn evaluate(&self, previous: &HeaderClaim) -> Result<WindowClaim> {
         self.check_bounds()?;
         let policy = previous.policy();
+        if policy.paid_only() && self.branch == Branch::Absent {
+            return Err(Error::Outcome);
+        }
         if self.terms.anchor_height != previous.height()?
             || self.terms.anchor_hash != previous.tip()?
             || self.terms.expiry - self.terms.anchor_height > policy.window_blocks()

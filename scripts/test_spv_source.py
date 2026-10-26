@@ -36,6 +36,18 @@ class SourceTargetTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 check_branch(current, {"chain": "test", "blocks": 9}, None)
 
+    def test_checkpoint_branch_is_checked_before_any_verified_batch_exists(self):
+        current = {"checkpoint_height": 10, "checkpoint_tip": "11" * 32,
+                   "verified_height": None, "pending_height": None}
+        class Node:
+            def call(self, method, params):
+                self.parameters = method, params
+                return "22" * 32
+        node = Node()
+        with self.assertRaisesRegex(ValueError, "source branch changed"):
+            check_branch(current, {"chain": "test", "blocks": 20}, node)
+        self.assertEqual(node.parameters, ("getblockhash", [10]))
+
 
 @unittest.skipUnless(os.environ.get("ZUTTI_SPV_BINARY"), "set ZUTTI_SPV_BINARY for the real CLI integration test")
 class ArchiveIntegrationTests(unittest.TestCase):

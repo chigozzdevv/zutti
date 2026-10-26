@@ -31,6 +31,115 @@ fn policy() -> Policy {
 }
 
 #[test]
+fn checkpoint_origin_binds_the_complete_context_and_rejects_genesis_substitution() {
+    let original = HeaderClaim::genesis(policy(), &raw(0)[..HEADER_BYTES])
+        .unwrap()
+        .advance(&[
+            raw(1)[..HEADER_BYTES].to_vec(),
+            raw(2)[..HEADER_BYTES].to_vec(),
+        ])
+        .unwrap();
+    let pinned =
+        Policy::from_checkpoint(Digest([2; 32]), 1, 3, 4, original.checkpoint_id().unwrap())
+            .unwrap();
+    assert!(pinned.paid_only());
+    assert_ne!(policy().id().unwrap(), pinned.id().unwrap());
+    assert_eq!(
+        Policy::from_bytes(&pinned.to_bytes().unwrap()).unwrap(),
+        pinned
+    );
+    assert!(HeaderClaim::genesis(pinned, &raw(0)[..HEADER_BYTES]).is_err());
+    let witness = Witness::Checkpoint {
+        policy: pinned,
+        checkpoint: original.clone(),
+        headers: vec![raw(3)[..HEADER_BYTES].to_vec()],
+    };
+    assert!(witness.required_journal().unwrap().is_none());
+    let bytes = witness.to_bytes().unwrap();
+    let journal = Witness::from_bytes(&bytes)
+        .unwrap()
+        .evaluate()
+        .unwrap()
+        .journal()
+        .unwrap();
+    assert_eq!(
+        HeaderClaim::from_bytes(&journal).unwrap().height().unwrap(),
+        3
+    );
+    let changed = original
+        .advance(&[raw(3)[..HEADER_BYTES].to_vec()])
+        .unwrap();
+    assert!(HeaderClaim::from_checkpoint(pinned, &changed).is_err());
+    assert!(Policy::from_checkpoint(Digest([2; 32]), 1, 3, 4, Digest::default()).is_err());
+    let mut changed_time = original.to_bytes().unwrap();
+    *changed_time.last_mut().unwrap() ^= 1;
+    if let Ok(changed) = HeaderClaim::from_bytes(&changed_time) {
+        assert!(HeaderClaim::from_checkpoint(pinned, &changed).is_err());
+    }
+}
+
+#[test]
+fn checkpoint_context_requires_linked_real_headers_and_sufficient_work() {
+    let context: Vec<_> = (0..=2)
+        .map(|height| raw(height)[..HEADER_BYTES].to_vec())
+        .collect();
+    let original = HeaderClaim::genesis(policy(), &context[0])
+        .unwrap()
+        .advance(&context[1..])
+        .unwrap();
+    let checkpoint =
+        HeaderClaim::checkpoint_context(policy(), 2, &context, original.work().unwrap()).unwrap();
+    assert_eq!(
+        checkpoint.checkpoint_id().unwrap(),
+        original.checkpoint_id().unwrap()
+    );
+    assert!(
+        HeaderClaim::checkpoint_context(policy(), 2, &context[1..], original.work().unwrap())
+            .is_err()
+    );
+    assert!(HeaderClaim::checkpoint_context(policy(), 2, &context, [0; 32]).is_err());
+    let mut broken = context.clone();
+    broken.swap(1, 2);
+    assert!(
+        HeaderClaim::checkpoint_context(policy(), 2, &broken, original.work().unwrap()).is_err()
+    );
+}
+
+#[test]
+fn checkpoint_payment_window_rejects_absence_without_treating_it_as_a_refund() {
+    let original = HeaderClaim::genesis(policy(), &raw(0)[..HEADER_BYTES])
+        .unwrap()
+        .advance(&[raw(1)[..HEADER_BYTES].to_vec()])
+        .unwrap();
+    let pinned =
+        Policy::from_checkpoint(Digest([2; 32]), 1, 2, 4, original.checkpoint_id().unwrap())
+            .unwrap();
+    let anchor = HeaderClaim::from_checkpoint(pinned, &original).unwrap();
+    let terms = WindowTerms::new(
+        Digest([3; 32]),
+        Digest([4; 32]),
+        1,
+        anchor.tip().unwrap(),
+        3,
+        Digest([5; 32]),
+        Digest([6; 32]),
+    )
+    .unwrap();
+    let witness = WindowWitness::new(
+        terms,
+        Digest([7; 32]),
+        Secret32::from_bytes([8; 32]).unwrap(),
+        Branch::Absent,
+        (2..=4)
+            .map(|height| raw(height)[..HEADER_BYTES].to_vec())
+            .collect(),
+        vec![raw(2), raw(3)],
+    )
+    .unwrap();
+    assert!(matches!(witness.evaluate(&anchor), Err(Error::Outcome)));
+}
+
+#[test]
 fn shielded_transaction_bodies_are_covered_by_the_actual_block_root() {
     use zcash_protocol::consensus::MAIN_NETWORK;
     use zutti_source::spv::parse_block;

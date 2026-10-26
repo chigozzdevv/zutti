@@ -15,6 +15,7 @@ pub struct Policy {
     confirmations: u32,
     window_blocks: u32,
     valid_through: u32,
+    checkpoint: Option<Digest>,
 }
 
 impl Policy {
@@ -31,9 +32,35 @@ impl Policy {
             confirmations,
             window_blocks,
             valid_through,
+            checkpoint: None,
         };
         policy.to_bytes()?;
         Ok(policy)
+    }
+    pub fn from_checkpoint(
+        program: Digest,
+        confirmations: u32,
+        window_blocks: u32,
+        valid_through: u32,
+        checkpoint: Digest,
+    ) -> zutti_protocol::Result<Self> {
+        Digest::nonzero(checkpoint.0)?;
+        let mut policy = Self::new(
+            program,
+            NetworkType::Test,
+            confirmations,
+            window_blocks,
+            valid_through,
+        )?;
+        policy.checkpoint = Some(checkpoint);
+        policy.to_bytes()?;
+        Ok(policy)
+    }
+    pub const fn checkpoint(self) -> Option<Digest> {
+        self.checkpoint
+    }
+    pub const fn paid_only(self) -> bool {
+        self.checkpoint.is_some()
     }
     pub fn id(self) -> zutti_protocol::Result<Digest> {
         Ok(hash(b"spv-policy", &[&self.to_bytes()?]))
@@ -68,7 +95,7 @@ impl Canonical for Policy {
             return Err(Error::Invalid("SPV policy bounds"));
         }
         writer.fixed(b"ZUTTISPP");
-        writer.u16(1);
+        writer.u16(if self.checkpoint.is_some() { 2 } else { 1 });
         writer.fixed(&self.program.0);
         writer.u8(match self.network {
             NetworkType::Main => 1,
@@ -78,10 +105,20 @@ impl Canonical for Policy {
         writer.u32(self.confirmations);
         writer.u32(self.window_blocks);
         writer.u32(self.valid_through);
+        if let Some(checkpoint) = self.checkpoint {
+            if self.network != NetworkType::Test {
+                return Err(Error::Invalid("checkpoint network"));
+            }
+            writer.fixed(&Digest::nonzero(checkpoint.0)?.0);
+        }
         Ok(())
     }
     fn decode(reader: &mut Reader<'_>) -> zutti_protocol::Result<Self> {
-        if reader.fixed::<8>()? != *b"ZUTTISPP" || reader.u16()? != 1 {
+        if reader.fixed::<8>()? != *b"ZUTTISPP" {
+            return Err(Error::Version);
+        }
+        let version = reader.u16()?;
+        if version != 1 && version != 2 {
             return Err(Error::Version);
         }
         let program = Digest(reader.fixed()?);
@@ -90,12 +127,19 @@ impl Canonical for Policy {
             2 => NetworkType::Test,
             _ => return Err(Error::Invalid("SPV network")),
         };
-        Self::new(
+        let mut policy = Self::new(
             program,
             network,
             reader.u32()?,
             reader.u32()?,
             reader.u32()?,
-        )
+        )?;
+        if version == 2 {
+            if network != NetworkType::Test {
+                return Err(Error::Invalid("checkpoint network"));
+            }
+            policy.checkpoint = Some(Digest::nonzero(reader.fixed()?)?);
+        }
+        Ok(policy)
     }
 }

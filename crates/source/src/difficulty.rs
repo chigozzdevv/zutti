@@ -36,6 +36,41 @@ pub struct HeaderCandidate {
 }
 
 impl HeaderCandidate {
+    pub fn from_checkpoint_headers(
+        network: NetworkType,
+        height: u32,
+        context: &[BlockHeader],
+        cumulative_work: [u8; 32],
+    ) -> Result<Self> {
+        if network != NetworkType::Test
+            || context.len() != (u64::from(height) + 1).min(CONTEXT_WINDOW as u64) as usize
+            || height == 0
+            || height >= 500_000_000
+        {
+            return Err(Error::Height);
+        }
+        let mut bytes = Writer::default();
+        bytes.u8(2);
+        bytes.u8(context.len() as u8);
+        let first = height + 1 - context.len() as u32;
+        let mut minimum_work = BigUint::from(0_u8);
+        for (index, header) in context.iter().enumerate() {
+            verify_header_work(header, network)?;
+            if index > 0 && header.prev_block.0 != context[index - 1].hash().0 {
+                return Err(Error::Height);
+            }
+            bytes.u32(first + index as u32);
+            bytes.fixed(&header.hash().0);
+            bytes.u32(header.time);
+            bytes.u32(header.bits);
+            minimum_work += work(header.bits)?;
+        }
+        if BigUint::from_bytes_be(&cumulative_work) < minimum_work {
+            return Err(Error::Work);
+        }
+        bytes.fixed(&cumulative_work);
+        Ok(Self::from_bytes(&bytes.finish())?)
+    }
     pub fn from_genesis(genesis: &GenesisBlock) -> Result<Self> {
         let block = genesis.block();
         let header = Header {

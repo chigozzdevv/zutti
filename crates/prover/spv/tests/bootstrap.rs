@@ -35,6 +35,42 @@ fn setup(root: &Path) -> Bootstrap {
 }
 
 #[test]
+fn checkpoint_bootstrap_survives_restart_and_never_invents_a_receipt() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("checkpoint-state");
+    let directory = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("fixtures/boundless-source");
+    let program = fs::read(directory.join("program.elf")).unwrap();
+    let checkpoint =
+        HeaderClaim::from_bytes(&fs::read(directory.join("journal-0.bin")).unwrap()).unwrap();
+    let policy = Policy::from_checkpoint(
+        image(&program).unwrap(),
+        1,
+        3,
+        10,
+        checkpoint.checkpoint_id().unwrap(),
+    )
+    .unwrap();
+    let state = Bootstrap::init_checkpoint(&root, &program, &checkpoint, policy).unwrap();
+    let batch = state.prepare(vec![]).unwrap();
+    let status = state.status().unwrap();
+    assert_eq!(status.bootstrap, "checkpoint");
+    assert_eq!(status.checkpoint_height, Some(2));
+    assert_eq!(status.verified_height, None);
+    assert_eq!(status.pending_height, Some(2));
+    assert!(state.accept(0, &directory.join("receipt-0.bin")).is_err());
+    assert!(!batch.join("receipt.bin").exists());
+    drop(state);
+    let state = Bootstrap::open(&root).unwrap();
+    assert_eq!(state.status().unwrap().pending_height, Some(2));
+    drop(state);
+    let path = root.join("checkpoint.bin");
+    let mut bytes = fs::read(&path).unwrap();
+    bytes[0] ^= 1;
+    fs::write(path, bytes).unwrap();
+    assert!(Bootstrap::open(&root).is_err());
+}
+
+#[test]
 fn genuine_receipt_advances_once_and_restart_preserves_its_exact_predecessor() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().join("state");

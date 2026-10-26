@@ -22,7 +22,8 @@ const MAX_JOURNAL: usize = 16_384;
 struct Config {
     schema: u32,
     program_sha256: String,
-    genesis_sha256: String,
+    #[serde(alias = "genesis_sha256")]
+    origin_sha256: String,
     policy: String,
 }
 
@@ -50,6 +51,9 @@ pub struct Status {
     pub pending_batch: Option<u32>,
     pub pending_height: Option<u32>,
     pub pending_tip: Option<String>,
+    pub bootstrap: &'static str,
+    pub checkpoint_height: Option<u32>,
+    pub checkpoint_tip: Option<String>,
     pub canonicality_admitted: bool,
     pub settlement_authority: bool,
 }
@@ -64,7 +68,7 @@ pub struct Bootstrap {
     root: PathBuf,
     _lock: File,
     program: Vec<u8>,
-    genesis: Vec<u8>,
+    origin: Vec<u8>,
     policy: Policy,
 }
 
@@ -119,6 +123,31 @@ pub fn headers(path: &Path) -> Result<Vec<Vec<u8>>> {
 
 impl Bootstrap {
     pub fn init(root: &Path, program: &[u8], genesis: &[u8], policy: Policy) -> Result<Self> {
+        if policy.checkpoint().is_some() {
+            return Err("genesis bootstrap cannot accept a checkpoint policy".into());
+        }
+        Self::init_origin(root, program, genesis, policy)
+    }
+
+    pub fn init_checkpoint(
+        root: &Path,
+        program: &[u8],
+        checkpoint: &HeaderClaim,
+        policy: Policy,
+    ) -> Result<Self> {
+        HeaderClaim::from_checkpoint(policy, checkpoint)?;
+        Self::init_origin(root, program, &checkpoint.to_bytes()?, policy)
+    }
+
+    fn initial_claim(policy: Policy, origin: &[u8]) -> Result<HeaderClaim> {
+        Ok(if policy.checkpoint().is_some() {
+            HeaderClaim::from_checkpoint(policy, &HeaderClaim::from_bytes(origin)?)?
+        } else {
+            HeaderClaim::genesis(policy, origin)?
+        })
+    }
+
+    fn init_origin(root: &Path, program: &[u8], origin: &[u8], policy: Policy) -> Result<Self> {
         if program.is_empty() || program.len() > MAX_PROGRAM || image(program)? != policy.program()
         {
             return Err("bootstrap program does not match the pinned policy".into());
@@ -126,7 +155,8 @@ impl Bootstrap {
         if policy.network() != NetworkType::Test {
             return Err("bootstrap runner currently supports Testnet only".into());
         }
-        HeaderClaim::genesis(policy, genesis)?;
+        Self::initial_claim(policy, origin)?;
+        let checkpoint = policy.checkpoint().is_some();
         if exists(root)? {
             return Err("bootstrap state already exists; open it to resume".into());
         }
@@ -139,14 +169,21 @@ impl Bootstrap {
             .tempdir_in(parent)?;
         write_new(&stage.path().join("lock"), b"zutti-spv-bootstrap-v1")?;
         write_new(&stage.path().join("program.elf"), program)?;
-        write_new(&stage.path().join("genesis.bin"), genesis)?;
+        write_new(
+            &stage.path().join(if checkpoint {
+                "checkpoint.bin"
+            } else {
+                "genesis.bin"
+            }),
+            origin,
+        )?;
         fs::create_dir(stage.path().join("jobs"))?;
         write_new(
             &stage.path().join("config.json"),
             &serde_json::to_vec_pretty(&Config {
-                schema: 1,
+                schema: if checkpoint { 2 } else { 1 },
                 program_sha256: sha(program),
-                genesis_sha256: sha(genesis),
+                origin_sha256: sha(origin),
                 policy: hex::encode(policy.to_bytes()?),
             })?,
         )?;
@@ -169,22 +206,30 @@ impl Bootstrap {
         directory(&root.join("jobs"))?;
         let config: Config = serde_json::from_slice(&regular(&root.join("config.json"), 4096)?)?;
         let program = regular(&root.join("program.elf"), MAX_PROGRAM)?;
-        let genesis = regular(&root.join("genesis.bin"), HEADER_BYTES)?;
         let policy = Policy::from_bytes(&hex::decode(&config.policy)?)?;
-        if config.schema != 1
+        let checkpoint = policy.checkpoint().is_some();
+        let origin = regular(
+            &root.join(if checkpoint {
+                "checkpoint.bin"
+            } else {
+                "genesis.bin"
+            }),
+            MAX_JOURNAL,
+        )?;
+        if config.schema != if checkpoint { 2 } else { 1 }
             || sha(&program) != config.program_sha256
-            || sha(&genesis) != config.genesis_sha256
+            || sha(&origin) != config.origin_sha256
             || image(&program)? != policy.program()
             || policy.network() != NetworkType::Test
         {
             return Err("bootstrap configuration or program identity changed".into());
         }
-        HeaderClaim::genesis(policy, &genesis)?;
+        Self::initial_claim(policy, &origin)?;
         Ok(Self {
             root: root.to_path_buf(),
             _lock: lock,
             program,
-            genesis,
+            origin,
             policy,
         })
     }
@@ -276,7 +321,17 @@ impl Bootstrap {
                     headers,
                 },
                 None,
-            ) if *policy == self.policy && *header == self.genesis => (0, headers),
+            ) if *policy == self.policy && *header == self.origin => (0, headers),
+            (
+                Witness::Checkpoint {
+                    policy,
+                    checkpoint,
+                    headers,
+                },
+                None,
+            ) if *policy == self.policy && checkpoint.to_bytes()? == self.origin => {
+                (checkpoint.height()?, headers)
+            }
             (
                 Witness::Headers {
                     previous: input,
@@ -296,15 +351,14 @@ impl Bootstrap {
             return Err("bootstrap header batch exceeds its bound".into());
         }
         let last = if previous.is_none() {
-            headers.len() as u32
+            first + headers.len() as u32
         } else {
             first + headers.len() as u32 - 1
         };
-        let tip = zutti_protocol::Digest(
-            parse_header(headers.last().unwrap_or(&self.genesis))?
-                .hash()
-                .0,
-        );
+        let tip = match headers.last() {
+            Some(header) => zutti_protocol::Digest(parse_header(header)?.hash().0),
+            None => Self::initial_claim(self.policy, &self.origin)?.tip()?,
+        };
         if claim.height()? != last || claim.tip()? != tip || last > self.policy.valid_through() {
             return Err("bootstrap batch output does not match its header range".into());
         }
@@ -342,6 +396,21 @@ impl Bootstrap {
                     Ok(HeaderClaim::from_bytes(&p.journal)?.tip()?.to_string())
                 })
                 .transpose()?,
+            bootstrap: if self.policy.checkpoint().is_some() {
+                "checkpoint"
+            } else {
+                "genesis"
+            },
+            checkpoint_height: if self.policy.checkpoint().is_some() {
+                Some(HeaderClaim::from_bytes(&self.origin)?.height()?)
+            } else {
+                None
+            },
+            checkpoint_tip: if self.policy.checkpoint().is_some() {
+                Some(HeaderClaim::from_bytes(&self.origin)?.tip()?.to_string())
+            } else {
+                None
+            },
             canonicality_admitted: false,
             settlement_authority: false,
         })
@@ -354,9 +423,14 @@ impl Bootstrap {
                 previous: previous.clone(),
                 headers,
             },
+            None if self.policy.checkpoint().is_some() => Witness::Checkpoint {
+                policy: self.policy,
+                checkpoint: HeaderClaim::from_bytes(&self.origin)?,
+                headers,
+            },
             None => Witness::Genesis {
                 policy: self.policy,
-                header: self.genesis.clone(),
+                header: self.origin.clone(),
                 headers,
             },
         };

@@ -27,6 +27,16 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    Checkpoint {
+        #[arg(long)]
+        headers: PathBuf,
+        #[arg(long)]
+        height: u32,
+        #[arg(long)]
+        work: String,
+        #[arg(long)]
+        out: PathBuf,
+    },
     Boundless {
         #[command(subcommand)]
         command: BoundlessCommand,
@@ -206,8 +216,14 @@ enum BootstrapCommand {
         state: PathBuf,
         #[arg(long)]
         program: PathBuf,
-        #[arg(long)]
-        genesis: PathBuf,
+        #[arg(
+            long,
+            required_unless_present = "checkpoint",
+            conflicts_with = "checkpoint"
+        )]
+        genesis: Option<PathBuf>,
+        #[arg(long, required_unless_present = "genesis", conflicts_with = "genesis")]
+        checkpoint: Option<PathBuf>,
         #[arg(long)]
         confirmations: u32,
         #[arg(long)]
@@ -254,6 +270,7 @@ fn bootstrap(command: BootstrapCommand) -> Result<()> {
             state,
             program,
             genesis,
+            checkpoint,
             confirmations,
             window_blocks,
             valid_through,
@@ -266,8 +283,24 @@ fn bootstrap(command: BootstrapCommand) -> Result<()> {
                 window_blocks,
                 valid_through,
             )?;
-            Bootstrap::init(&state, &program, &bounded(&genesis, HEADER_BYTES)?, policy)?
-                .status()?
+            match (genesis, checkpoint) {
+                (Some(genesis), None) => {
+                    Bootstrap::init(&state, &program, &bounded(&genesis, HEADER_BYTES)?, policy)?
+                        .status()?
+                }
+                (None, Some(path)) => {
+                    let checkpoint = HeaderClaim::from_bytes(&bounded(&path, 16_384)?)?;
+                    let policy = Policy::from_checkpoint(
+                        image(&program)?,
+                        confirmations,
+                        window_blocks,
+                        valid_through,
+                        checkpoint.checkpoint_id()?,
+                    )?;
+                    Bootstrap::init_checkpoint(&state, &program, &checkpoint, policy)?.status()?
+                }
+                _ => return Err("choose exactly one bootstrap origin".into()),
+            }
         }
         BootstrapCommand::Prepare {
             state,
@@ -830,6 +863,31 @@ fn main() -> Result<()> {
                 Dependencies::Unresolved
             };
             run(&program, &witness, dependencies, &out, prove)
+        }
+        Command::Checkpoint {
+            headers: input,
+            height,
+            work,
+            out,
+        } => {
+            let context = zutti_spv_prototype::bootstrap::headers(&input)?;
+            let work: [u8; 32] = hex::decode(work)?
+                .try_into()
+                .map_err(|_| "checkpoint work must be 32 bytes")?;
+            let policy = Policy::new(Digest([1; 32]), NetworkType::Test, 1, 128, height)?;
+            let checkpoint = HeaderClaim::checkpoint_context(policy, height, &context, work)?;
+            if out.try_exists()? {
+                return Err("checkpoint output already exists".into());
+            }
+            fs::create_dir(&out)?;
+            write_new(&out.join("checkpoint.bin"), &checkpoint.to_bytes()?)?;
+            let summary = serde_json::json!({"network":"testnet", "bootstrap":"checkpoint", "checkpoint_id":checkpoint.checkpoint_id()?.to_string(), "height":checkpoint.height()?, "hash":checkpoint.tip()?.to_string(), "work":hex::encode(work), "context_headers":context.len(), "proof_generated":false,"settlement_authority":false});
+            write_new(
+                &out.join("checkpoint.json"),
+                &serde_json::to_vec_pretty(&summary)?,
+            )?;
+            println!("{summary}");
+            Ok(())
         }
         Command::Verify {
             program,

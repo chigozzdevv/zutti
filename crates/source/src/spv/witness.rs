@@ -8,6 +8,11 @@ pub const MAX_WITNESS: usize = 16 * 1024 * 1024;
 
 #[derive(Debug)]
 pub enum Witness {
+    Checkpoint {
+        policy: Policy,
+        checkpoint: HeaderClaim,
+        headers: Vec<Vec<u8>>,
+    },
     Coverage(Box<CoverageWitness>),
     Genesis {
         policy: Policy,
@@ -44,14 +49,14 @@ impl Evaluation {
 impl Witness {
     pub fn policy(&self) -> Policy {
         match self {
-            Self::Genesis { policy, .. } => *policy,
+            Self::Genesis { policy, .. } | Self::Checkpoint { policy, .. } => *policy,
             Self::Coverage(witness) => witness.previous.head().policy(),
             Self::Headers { previous, .. } | Self::Window { previous, .. } => previous.policy(),
         }
     }
     pub fn required_journal(&self) -> zutti_protocol::Result<Option<Vec<u8>>> {
         match self {
-            Self::Genesis { .. } => Ok(None),
+            Self::Genesis { .. } | Self::Checkpoint { .. } => Ok(None),
             Self::Headers { previous, .. } | Self::Window { previous, .. } => {
                 Ok(Some(previous.to_bytes()?))
             }
@@ -63,6 +68,18 @@ impl Witness {
     }
     pub fn evaluate(&self) -> Result<Evaluation> {
         match self {
+            Self::Checkpoint {
+                policy,
+                checkpoint,
+                headers,
+            } => {
+                let start = HeaderClaim::from_checkpoint(*policy, checkpoint)?;
+                Ok(Evaluation::Headers(if headers.is_empty() {
+                    start
+                } else {
+                    start.advance(headers)?
+                }))
+            }
             Self::Coverage(witness) => witness.evaluate(),
             Self::Genesis {
                 policy,
@@ -89,6 +106,22 @@ impl Canonical for Witness {
         writer.fixed(b"ZUTTISPI");
         writer.u16(1);
         match self {
+            Self::Checkpoint {
+                policy,
+                checkpoint,
+                headers,
+            } => {
+                if headers.len() > MAX_HEADERS || headers.iter().any(|h| h.len() != HEADER_BYTES) {
+                    return Err(zutti_protocol::Error::Length);
+                }
+                writer.u8(5);
+                policy.encode(writer)?;
+                checkpoint.encode(writer)?;
+                writer.u32(headers.len() as u32);
+                for header in headers {
+                    writer.fixed(header);
+                }
+            }
             Self::Coverage(witness) => {
                 writer.u8(4);
                 witness.encode(writer)?;
@@ -139,6 +172,23 @@ impl Canonical for Witness {
             return Err(zutti_protocol::Error::Version);
         }
         match reader.u8()? {
+            5 => {
+                let policy = Policy::decode(reader)?;
+                let checkpoint = HeaderClaim::decode(reader)?;
+                let count = reader.u32()? as usize;
+                if count > MAX_HEADERS {
+                    return Err(zutti_protocol::Error::Length);
+                }
+                let mut headers = Vec::with_capacity(count);
+                for _ in 0..count {
+                    headers.push(reader.fixed::<HEADER_BYTES>()?.to_vec());
+                }
+                Ok(Self::Checkpoint {
+                    policy,
+                    checkpoint,
+                    headers,
+                })
+            }
             4 => Ok(Self::Coverage(Box::new(CoverageWitness::decode(reader)?))),
             1 => {
                 let policy = Policy::decode(reader)?;

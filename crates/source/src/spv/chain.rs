@@ -16,12 +16,68 @@ pub struct HeaderClaim {
 impl HeaderClaim {
     pub fn genesis(policy: Policy, bytes: &[u8]) -> Result<Self> {
         policy.to_bytes()?;
+        if policy.checkpoint().is_some() {
+            return Err(Error::Policy);
+        }
         let header = parse_header(bytes)?;
         let headers = HeaderCandidate::from_genesis_header(&header, policy.network())?;
         Ok(Self {
             policy,
             headers,
             maximum_time: header.time,
+        })
+    }
+    pub fn checkpoint_id(&self) -> zutti_protocol::Result<Digest> {
+        Ok(hash(
+            b"spv-checkpoint",
+            &[&self.headers.to_bytes()?, &self.maximum_time.to_le_bytes()],
+        ))
+    }
+    pub fn from_checkpoint(policy: Policy, checkpoint: &Self) -> Result<Self> {
+        checkpoint.to_bytes()?;
+        policy.to_bytes()?;
+        if policy.network() != zcash_protocol::consensus::NetworkType::Test
+            || checkpoint.headers.network() != policy.network()
+            || policy.checkpoint() != Some(checkpoint.checkpoint_id()?)
+            || checkpoint.height()? == 0
+            || checkpoint.height()? > policy.valid_through()
+        {
+            return Err(Error::Policy);
+        }
+        Ok(Self {
+            policy,
+            headers: checkpoint.headers.clone(),
+            maximum_time: checkpoint.maximum_time,
+        })
+    }
+    pub fn checkpoint_context(
+        policy: Policy,
+        height: u32,
+        headers: &[Vec<u8>],
+        work: [u8; 32],
+    ) -> Result<Self> {
+        if policy.network() != zcash_protocol::consensus::NetworkType::Test
+            || policy.checkpoint().is_some()
+            || height == 0
+            || height > policy.valid_through()
+        {
+            return Err(Error::Policy);
+        }
+        let parsed = headers
+            .iter()
+            .map(|header| parse_header(header))
+            .collect::<Result<Vec<_>>>()?;
+        let maximum_time = parsed
+            .iter()
+            .map(|header| header.time)
+            .max()
+            .ok_or(Error::Bounds)?;
+        let headers =
+            HeaderCandidate::from_checkpoint_headers(policy.network(), height, &parsed, work)?;
+        Ok(Self {
+            policy,
+            headers,
+            maximum_time,
         })
     }
     pub fn advance(&self, headers: &[Vec<u8>]) -> Result<Self> {

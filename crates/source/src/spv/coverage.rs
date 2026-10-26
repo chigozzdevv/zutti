@@ -178,6 +178,9 @@ impl CoverageWitness {
         {
             return Err(Error::Coverage);
         }
+        if policy.paid_only() && payment == 0 {
+            return Err(Error::Outcome);
+        }
         let end = coverage.head.advance(&self.confirmations)?;
         Ok(Evaluation::Window(WindowClaim {
             policy: policy.id()?,
