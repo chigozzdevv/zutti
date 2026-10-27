@@ -1,0 +1,11 @@
+{
+  "chain_id": 11155111,
+  "pool": "0x25b324a015164b76f4481bac8c70bab40bb68cf6",
+  "escrow": "0x18833a80f1c602f13a8de676aa84ee354b559250f88a3275432e5fe193bbb7ae",
+  "execution_hash": "0x82a15b7176eae7417664dd50983d458d81088d265df33deebbff6f9256213df0",
+  "execution_height": 12005633,
+  "finalized_slot": 11448064,
+  "execution_timestamp": 1793110200,
+  "verified_at": 1793111214,
+  "transaction_id": "0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3"
+}

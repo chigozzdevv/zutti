@@ -524,3 +524,47 @@ fn retained_live_sepolia_note_evidence_authenticates_the_actual_deployed_pool() 
         );
     }
 }
+
+#[test]
+fn retained_live_sepolia_reservation_authenticates_funded_escrow_and_source() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/ethereum");
+    let config: ConsensusConfig =
+        serde_json::from_slice(&std::fs::read(path.join("sepolia-consensus.json")).unwrap())
+            .unwrap();
+    let request: ReservationRequest =
+        serde_json::from_slice(&std::fs::read(path.join("reservation-request.json")).unwrap())
+            .unwrap();
+    let raw = std::fs::read(path.join("reservation-evidence.json")).unwrap();
+    let evidence: Evidence = serde_json::from_slice(&raw).unwrap();
+    let observation: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(path.join("reservation-verification.json")).unwrap())
+            .unwrap();
+    let now = observation["verified_at"].as_u64().unwrap();
+    let verified = verify(&config, &request, &evidence, now).unwrap();
+    assert_eq!(verified.execution_height, 12005633);
+    assert_eq!(verified.escrow, request.escrow);
+    assert!(request.source.is_some());
+    for change in ["source_flag", "escrow", "ancestry", "signature"] {
+        let mut changed: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        match change {
+            "source_flag" => changed["source"]["storageProof"][1]["value"] = "0x0".into(),
+            "escrow" => changed["account"]["storageProof"][0]["value"] = "0x0".into(),
+            "ancestry" => {
+                changed["consensus"]["ancestry"][0]["stateRoot"] =
+                    format!("0x{}", "01".repeat(32)).into()
+            }
+            _ => {
+                changed["consensus"]["finality"]["sync_aggregate"]["sync_committee_signature"] =
+                    format!("0x{}", "00".repeat(96)).into()
+            }
+        }
+        let changed = serde_json::from_value(changed).unwrap();
+        assert!(
+            verify(&config, &request, &changed, now).is_err(),
+            "accepted {change}"
+        );
+    }
+    let mut wrong = request;
+    wrong.source.as_mut().unwrap().checkpoint = alloy::primitives::B256::repeat_byte(255);
+    assert!(verify(&config, &wrong, &evidence, now).is_err());
+}
