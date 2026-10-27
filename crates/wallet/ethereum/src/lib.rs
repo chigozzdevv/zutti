@@ -2,11 +2,11 @@
 pub mod authorization;
 pub mod inventory;
 pub mod notes;
-pub mod transfers;
 #[cfg(feature = "spv-fulfillment")]
 pub mod spv_authorization;
 #[cfg(feature = "spv-fulfillment")]
 pub mod spv_funding;
+pub mod transfers;
 
 use alloy::{
     consensus::{Header, TrieAccount},

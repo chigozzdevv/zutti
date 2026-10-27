@@ -218,6 +218,10 @@ class Settlement:
             output.write(data)
         return path
 
+    def recovery_record(self):
+        restored = self.operation / 'recovery/swap.backup'
+        return restored if restored.exists() else self.operation / 'payment/swap.backup'
+
     def execute(self):
         self.offer = json.loads((self.operation / 'selected-offer.json').read_text())
         order = self.operation / 'order'
@@ -301,7 +305,7 @@ class Settlement:
             with os.fdopen(descriptor, 'wb') as output:
                 output.write(data)
         if not window.exists():
-            self.native('payment-window', 'taker', 'window-prepare', '--funding', funding / 'witness.bin', '--headers', headers, '--block', block, '--out', window)
+            self.native('payment-window', 'taker', 'window-prepare', '--record', self.recovery_record(), '--headers', headers, '--block', block, '--out', window)
         if not admission.exists():
             self.run('payment-admission', [self.config['spv'], 'prepare-admission', '--header-program', self.root / 'programs/source/program.elf', '--previous', predecessor, '--stable-headers', admission_headers, '--confirmations', confirmations, '--out', admission])
         self.emit('claimable', 'Proving confirmed payment and source admission', swap)
@@ -325,10 +329,7 @@ class Settlement:
             self.run('reserved-pool-events', ['python3', REPOSITORY / 'scripts/pool_inventory.py', '--deployment', self.config['deployment'], '--block-hash', reservation_tx['receipt']['blockHash'], '--out', events])
         settlement = self.operation / 'settlement'
         if not settlement.exists():
-            record = self.operation / 'recovery/swap.backup'
-            if not record.exists():
-                record = payment / 'swap.backup'
-            self.native('prepare-settlement', 'taker', 'settlement-prepare', '--record', record, '--window', window / 'journal.bin', '--events', events, '--out', settlement)
+            self.native('prepare-settlement', 'taker', 'settlement-prepare', '--record', self.recovery_record(), '--window', window / 'journal.bin', '--events', events, '--out', settlement)
         self.emit('settling', 'Proving the fixed private USDC payout', swap)
         payout_proof = self.proof('demo-payout-1', 'pool', settlement / 'witness.bin', [funding_proof, window_proof], 1500000000)
         payout = self.pool_send('swap-payout', settlement / 'witness.bin', payout_proof, 'taker')

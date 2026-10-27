@@ -83,8 +83,10 @@ enum Command {
         out: PathBuf,
     },
     WindowPrepare {
-        #[arg(long)]
-        funding: PathBuf,
+        #[arg(long, required_unless_present = "record", conflicts_with = "record")]
+        funding: Option<PathBuf>,
+        #[arg(long, required_unless_present = "funding", conflicts_with = "funding")]
+        record: Option<PathBuf>,
         #[arg(long)]
         headers: PathBuf,
         #[arg(long)]
@@ -266,6 +268,25 @@ impl Context {
             account,
             key,
         })
+    }
+    fn recovery_record(
+        &self,
+        funding: Option<PathBuf>,
+        record: Option<PathBuf>,
+    ) -> Result<SpvSwapRecord> {
+        let record = match (funding, record) {
+            (Some(funding), None) => SpvSwapRecord::from_reservation(&SpvPoolWitness::from_bytes(
+                &backup::read_private(&funding, 262_144)?,
+            )?)?,
+            (None, Some(record)) => SpvSwapRecord::from_bytes(&backup::open(
+                self.profile.domain.id()?,
+                &backup::read_private(&record, 263_168)?,
+                &self.key,
+            )?)?,
+            _ => return Err("exactly one recovery source required".into()),
+        };
+        self.profile.reservation_request(&record)?;
+        Ok(record)
     }
     fn inventory(&self, path: &Path) -> Result<PoolInventory> {
         Ok(PoolInventory::from_bytes(&backup::open(
@@ -487,14 +508,13 @@ pub fn run(args: Args, now: u64) -> Result<()> {
         }
         Command::WindowPrepare {
             funding,
+            record,
             headers,
             block,
             out,
         } => {
             use zutti_source::spv::{Branch, WindowWitness, Witness};
-            let funding = SpvPoolWitness::from_bytes(&backup::read_private(&funding, 262_144)?)?;
-            let record = SpvSwapRecord::from_reservation(&funding)?;
-            context.profile.reservation_request(&record)?;
+            let record = context.recovery_record(funding, record)?;
             let reservation = record.reservation();
             let headers = bounded(&headers, 512 * HEADER_BYTES)?;
             if headers.is_empty() || headers.len() % HEADER_BYTES != 0 {
@@ -538,18 +558,7 @@ pub fn run(args: Args, now: u64) -> Result<()> {
             events,
             out,
         } => {
-            let record = match (funding, record) {
-                (Some(funding), None) => SpvSwapRecord::from_reservation(
-                    &SpvPoolWitness::from_bytes(&backup::read_private(&funding, 262_144)?)?,
-                )?,
-                (None, Some(record)) => SpvSwapRecord::from_bytes(&backup::open(
-                    context.profile.domain.id()?,
-                    &backup::read_private(&record, 263_168)?,
-                    &context.key,
-                )?)?,
-                _ => return Err("exactly one settlement recovery source required".into()),
-            };
-            context.profile.reservation_request(&record)?;
+            let record = context.recovery_record(funding, record)?;
             let window = zutti_source::spv::WindowClaim::from_bytes(&bounded(&window, 4096)?)?;
             let events: serde_json::Value = read(&events, 16_777_216)?;
             if events["chain_id"] != 11155111
