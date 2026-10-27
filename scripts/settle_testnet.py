@@ -161,25 +161,29 @@ class Settlement:
         if not plan.exists():
             self.native('funding-plan', 'maker', 'funding-prepare', '--inventory', self.root / 'maker-inventory/inventory.backup', '--reservation', reservation, '--out', plan)
         self.emit('awaiting_reservation', 'Checking finalized maker inventory')
-        note_evidence = self.evidence('maker-inventory', 'note', plan / 'note-request.json')
         funding = self.operation / 'funding'
         if not funding.exists():
+            note_evidence = self.evidence('maker-inventory', 'note', plan / 'note-request.json')
             self.native('authorize-funding', 'maker', 'funding-authorize-note', '--plan', plan / 'plan.backup', '--binding', binding, '--anchor', source_receipt, '--evidence', note_evidence, '--headers', self.current_headers('funding'), '--out', funding)
         funding_proof = self.proof('demo-reservation-1', 'pool', funding / 'witness.bin', [binding, source_receipt], 1500000000)
+        if not (self.root / 'transactions/maker-reservation.json').exists():
+            self.native('check-funding-window', 'maker', 'funding-check', '--witness', funding / 'witness.bin',
+                '--funding', funding_proof, '--source', source_receipt, '--headers', self.current_headers('reservation'))
         reservation_tx = self.pool_send('maker-reservation', funding / 'witness.bin', funding_proof, 'maker')
         payment = self.operation / 'payment'
         if not payment.exists():
             prepared = self.native('prepare-payment-journal', 'taker', 'payment-prepare', '--witness', funding / 'witness.bin', '--funding', funding_proof, '--pczt', proven, '--out', payment)
             atomic_save(self.operation / 'payment.json', prepared)
         swap = json.loads((self.operation / 'payment.json').read_text())['swap']
-        reservation_evidence = self.evidence('reservation', 'reservation', payment / 'request.json')
-        self.emit('reserved', 'USDC reservation finalized and independently verified', swap)
-        self.emit('awaiting_authorization', 'Checking current Zcash headers before signing', swap)
-        env = os.environ.copy()
-        env['ZUTTI_OWNER_CONFIG'] = str(self.config_path)
         sent_path = self.operation / 'source-payment.json'
-        sent = json.loads(sent_path.read_text()) if sent_path.exists() else self.run('send-zcash', [self.config['ethereum'], 'swap', '--deployment', self.config['deployment'], '--config', self.config['consensus'], '--directory', self.config['taker'], 'payment-send', '--journal', payment, '--swap', swap, '--order', order / 'order.backup', '--evidence', reservation_evidence, '--source', source_receipt, '--continuation', self.current_headers('payment'), '--transport', REPOSITORY / 'scripts/source_transport.py'], env=env)
-        if not sent_path.exists():
+        if sent_path.exists():
+            sent = json.loads(sent_path.read_text())
+        else:
+            reservation_evidence = self.evidence('reservation', 'reservation', payment / 'request.json')
+            self.emit('reserved', 'USDC reservation finalized and independently verified', swap)
+            self.emit('awaiting_authorization', 'Checking current Zcash headers before signing', swap)
+            env = {**os.environ, 'ZUTTI_OWNER_CONFIG': str(self.config_path)}
+            sent = self.run('send-zcash', [self.config['ethereum'], 'swap', '--deployment', self.config['deployment'], '--config', self.config['consensus'], '--directory', self.config['taker'], 'payment-send', '--journal', payment, '--swap', swap, '--order', order / 'order.backup', '--evidence', reservation_evidence, '--source', source_receipt, '--continuation', self.current_headers('payment'), '--transport', REPOSITORY / 'scripts/source_transport.py'], env=env)
             atomic_save(sent_path, sent)
         self.emit('payment_confirming', 'Shielded Zcash payment broadcast', swap)
         deadline = time.monotonic() + 7200
@@ -204,13 +208,24 @@ class Settlement:
                     output.write(data)
         window = self.operation / 'window'
         admission = self.operation / 'admission'
+        previous = self.config.get('admission_previous', {'receipt': str(source_receipt), 'height': self.deployment['source_height']})
+        predecessor = Path(previous['receipt'])
+        offset = previous['height'] - self.deployment['source_height']
+        if offset < 0 or previous['height'] >= height + 10:
+            raise ValueError('Invalid admitted source predecessor')
+        admission_headers = self.operation / 'admission-headers.bin'
+        if not admission_headers.exists():
+            data = headers.read_bytes()[offset * 1487:]
+            descriptor = os.open(admission_headers, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            with os.fdopen(descriptor, 'wb') as output:
+                output.write(data)
         if not window.exists():
             self.native('payment-window', 'taker', 'window-prepare', '--funding', funding / 'witness.bin', '--headers', headers, '--block', block, '--out', window)
         if not admission.exists():
-            self.run('payment-admission', [self.config['spv'], 'prepare-admission', '--header-program', self.root / 'programs/source/program.elf', '--previous', source_receipt, '--stable-headers', headers, '--confirmations', confirmations, '--out', admission])
+            self.run('payment-admission', [self.config['spv'], 'prepare-admission', '--header-program', self.root / 'programs/source/program.elf', '--previous', predecessor, '--stable-headers', admission_headers, '--confirmations', confirmations, '--out', admission])
         self.emit('claimable', 'Proving confirmed payment and source admission', swap)
         window_job = self.proof_start('demo-window-1', 'source', window / 'witness.bin', [source_receipt], 4000000000)
-        admission_job = self.proof_start('demo-admission-2', 'admission', admission / 'witness.bin', [source_receipt], 4000000000)
+        admission_job = self.proof_start('demo-admission-2', 'admission', admission / 'witness.bin', [predecessor], 4000000000)
         with ThreadPoolExecutor(max_workers=2) as executor:
             window_future = executor.submit(self.proof_finish, 'demo-window-1', window_job)
             admission_future = executor.submit(self.proof_finish, 'demo-admission-2', admission_job)
@@ -229,7 +244,10 @@ class Settlement:
             self.run('reserved-pool-events', ['python3', REPOSITORY / 'scripts/pool_inventory.py', '--deployment', self.config['deployment'], '--block-hash', reservation_tx['receipt']['blockHash'], '--out', events])
         settlement = self.operation / 'settlement'
         if not settlement.exists():
-            self.native('prepare-settlement', 'taker', 'settlement-prepare', '--funding', funding / 'witness.bin', '--window', window / 'journal.bin', '--events', events, '--out', settlement)
+            record = self.operation / 'recovery/swap.backup'
+            if not record.exists():
+                record = payment / 'swap.backup'
+            self.native('prepare-settlement', 'taker', 'settlement-prepare', '--record', record, '--window', window / 'journal.bin', '--events', events, '--out', settlement)
         self.emit('settling', 'Proving the fixed private USDC payout', swap)
         payout_proof = self.proof('demo-payout-1', 'pool', settlement / 'witness.bin', [funding_proof, window_proof], 1500000000)
         payout = self.pool_send('swap-payout', settlement / 'witness.bin', payout_proof, 'taker')
@@ -237,11 +255,15 @@ class Settlement:
         owned = json.loads((inventory / 'inventory.json').read_text())['notes']
         if len(owned) != 1:
             raise ValueError('Expected one exact taker payout note')
-        atomic_save(self.operation / 'payout-note-request.json', owned[0]['request'])
+        if not (self.operation / 'payout-note-request.json').exists():
+            atomic_save(self.operation / 'payout-note-request.json', owned[0]['request'])
         evidence = self.evidence('payout', 'note', self.operation / 'payout-note-request.json')
         self.run('verify-owned-payout', [self.config['ethereum'], 'owned-note', '--config', self.config['consensus'], '--deployment', self.config['deployment'], '--directory', self.config['taker'], '--inventory', inventory / 'inventory.backup', '--evidence', evidence, '--position', owned[0]['position']])
         receipt = {'outcome': 'settled', 'swap_id': swap, 'received': self.offer['output'], 'source_payment': {'chain': 'zcash', 'block_hash': tx['blockhash'], 'height': str(height), 'transaction_id': sent['txid'], 'policy_id': self.deployment['source_policy_id']}, 'pool_settlement': {'chain': 'ethereum', 'block_hash': payout['receipt']['blockHash'], 'height': str(int(payout['receipt']['blockNumber'], 16)), 'transaction_id': payout['hash'], 'policy_id': self.deployment['source_policy_id']}, 'confirmed_at': int(time.time() * 1000)}
-        atomic_save(self.operation / 'settled-receipt.json', receipt)
+        if not (self.operation / 'settled-receipt.json').exists():
+            atomic_save(self.operation / 'settled-receipt.json', receipt)
+        else:
+            receipt = json.loads((self.operation / 'settled-receipt.json').read_text())
         self.emit('settled', 'Private USDC payout finalized and ownership verified', swap)
         print(json.dumps({'type': 'receipt', 'value': receipt}), flush=True)
 
