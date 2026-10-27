@@ -1,1 +1,3 @@
 crates/wallet/ethereum/tests/fixtures/**/*.yaml whitespace=-blank-at-eol
+*.bin binary
+*.elf binary
