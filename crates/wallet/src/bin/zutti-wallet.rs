@@ -657,7 +657,7 @@ fn inventory(
     out: PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
     use zutti_protocol::encoding::Writer;
-    use zutti_wallet::{inventory::PoolInventory, private_note::EncryptedNote};
+    use zutti_wallet::inventory::{PoolInventory, PoolOutput};
     if out.try_exists()? {
         return Err("inventory output already exists".into());
     }
@@ -700,7 +700,7 @@ fn inventory(
         if encoded.len() > 8194 {
             return Err("pool output exceeds its bound".into());
         }
-        let encrypted = EncryptedNote::from_bytes(&hex::decode(encoded.trim_start_matches("0x"))?)?;
+        let encrypted = PoolOutput::from_bytes(&hex::decode(encoded.trim_start_matches("0x"))?)?;
         if encrypted.commitment().to_string()
             != event["commitment"]
                 .as_str()
@@ -711,7 +711,7 @@ fn inventory(
         }
         outputs.push((position, encrypted));
     }
-    let inventory = PoolInventory::scan(domain, account.note_keys(), &outputs, root, size)?;
+    let inventory = PoolInventory::scan_outputs(domain, account.note_keys(), &outputs, root, size)?;
     let mut writer = Writer::default();
     writer.fixed(b"ZUTTIINV");
     writer.u16(1);

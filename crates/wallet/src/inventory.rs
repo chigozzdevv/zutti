@@ -9,6 +9,48 @@ use zutti_protocol::{
     private_note::PrivateNote,
 };
 
+const ESCROW_CIPHERTEXT_BYTES: usize = 8 + 2 + 3 * 32 + 16 + 2 * 32 + 16;
+
+#[derive(Debug)]
+pub enum PoolOutput {
+    Note(EncryptedNote),
+    Escrow { domain: Digest, commitment: Digest },
+}
+
+impl PoolOutput {
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        if bytes.starts_with(b"ZUTTIENC") {
+            return Ok(Self::Note(EncryptedNote::from_bytes(bytes)?));
+        }
+        let mut reader = Reader::new(bytes);
+        if reader.fixed::<8>()? != *b"ZUTTIECT" || reader.u16()? != 1 {
+            return Err(zutti_protocol::Error::Version.into());
+        }
+        let domain = Digest::nonzero(reader.fixed()?)?;
+        let commitment = Digest::nonzero(reader.fixed()?)?;
+        let _nonce = reader.fixed::<24>()?;
+        if reader.bytes(256)?.len() != ESCROW_CIPHERTEXT_BYTES {
+            return Err(Error::Archive);
+        }
+        reader.finish()?;
+        Ok(Self::Escrow { domain, commitment })
+    }
+
+    pub fn domain(&self) -> Digest {
+        match self {
+            Self::Note(note) => note.domain(),
+            Self::Escrow { domain, .. } => *domain,
+        }
+    }
+
+    pub fn commitment(&self) -> Digest {
+        match self {
+            Self::Note(note) => note.commitment(),
+            Self::Escrow { commitment, .. } => *commitment,
+        }
+    }
+}
+
 pub struct OwnedNote {
     pub note: PrivateNote,
     pub path: PoolPath,
@@ -92,6 +134,20 @@ impl PoolInventory {
         expected_root: Digest,
         expected_size: u32,
     ) -> Result<Self> {
+        let outputs: Vec<_> = outputs
+            .iter()
+            .map(|(position, note)| (*position, PoolOutput::Note(note.clone())))
+            .collect();
+        Self::scan_outputs(domain, keys, &outputs, expected_root, expected_size)
+    }
+
+    pub fn scan_outputs(
+        domain: Digest,
+        keys: &NoteKeys,
+        outputs: &[(u32, PoolOutput)],
+        expected_root: Digest,
+        expected_size: u32,
+    ) -> Result<Self> {
         if outputs.len() > 65_536 || outputs.len() != expected_size as usize {
             return Err(Error::Archive);
         }
@@ -105,7 +161,9 @@ impl PoolInventory {
             {
                 return Err(Error::Archive);
             }
-            if let Ok(note) = keys.decrypt(encrypted, domain) {
+            if let PoolOutput::Note(encrypted) = encrypted
+                && let Ok(note) = keys.decrypt(encrypted, domain)
+            {
                 if note.recipient() != recipient {
                     return Err(Error::Archive);
                 }
