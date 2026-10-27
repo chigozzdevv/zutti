@@ -57,6 +57,11 @@ path = "../../wallet/tests/account.rs"
 required-features = ["native"]
 
 [[test]]
+name = "wallet-cli"
+path = "tests/wallet_cli.rs"
+required-features = ["wallet"]
+
+[[test]]
 name = "wallet-deposit"
 path = "../../wallet/tests/deposit.rs"
 required-features = ["native", "spv-pool"]

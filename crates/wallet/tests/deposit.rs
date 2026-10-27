@@ -1,3 +1,4 @@
+#![cfg(all(feature = "native", feature = "spv-pool"))]
 #![allow(clippy::unwrap_used)]
 use zcash_protocol::consensus::NetworkType;
 use zutti_protocol::{

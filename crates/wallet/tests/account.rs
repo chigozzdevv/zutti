@@ -1,3 +1,4 @@
+#![cfg(feature = "native")]
 #![allow(clippy::unwrap_used)]
 use zutti_wallet::account::WalletAccount;
 
