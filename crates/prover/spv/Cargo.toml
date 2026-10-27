@@ -12,6 +12,7 @@ default = ["spv", "spv-pool"]
 spv = ["zutti-wallet/spv"]
 spv-pool = ["spv", "zutti-wallet/spv-pool"]
 native = ["zutti-wallet/native"]
+wallet = ["native"]
 recovery = ["native", "spv-pool"]
 
 [dependencies]
@@ -44,6 +45,16 @@ zebra-chain = { version = "=14.0.0", default-features = false }
 [[test]]
 name = "source-difficulty"
 path = "tests/difficulty.rs"
+
+[[bin]]
+name = "zutti-wallet"
+path = "../../wallet/src/bin/zutti-wallet.rs"
+required-features = ["wallet"]
+
+[[test]]
+name = "wallet-account"
+path = "../../wallet/tests/account.rs"
+required-features = ["native"]
 
 [[test]]
 name = "spv"

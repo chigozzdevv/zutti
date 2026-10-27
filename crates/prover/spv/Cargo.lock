@@ -4730,6 +4730,7 @@ dependencies = [
  "tempfile",
  "thiserror",
  "x25519-dalek 2.0.1",
+ "zcash_address",
  "zcash_note_encryption",
  "zcash_primitives",
  "zcash_protocol",
