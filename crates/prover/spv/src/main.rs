@@ -288,15 +288,15 @@ fn bootstrap(command: BootstrapCommand) -> Result<()> {
             valid_through,
         } => {
             let program = bounded(&program, 32 * 1024 * 1024)?;
-            let policy = Policy::new(
-                image(&program)?,
-                NetworkType::Test,
-                confirmations,
-                window_blocks,
-                valid_through,
-            )?;
             match (genesis, checkpoint) {
                 (Some(genesis), None) => {
+                    let policy = Policy::new(
+                        image(&program)?,
+                        NetworkType::Test,
+                        confirmations,
+                        window_blocks,
+                        valid_through,
+                    )?;
                     Bootstrap::init(&state, &program, &bounded(&genesis, HEADER_BYTES)?, policy)?
                         .status()?
                 }

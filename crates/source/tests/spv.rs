@@ -31,6 +31,21 @@ fn policy() -> Policy {
 }
 
 #[test]
+fn longer_checkpoint_windows_allow_payments_without_expanding_absence_searches() {
+    assert!(Policy::new(Digest([1; 32]), NetworkType::Test, 10, 129, 5_000_000).is_err());
+    let paid =
+        Policy::from_checkpoint(Digest([1; 32]), 10, 512, 5_000_000, Digest([2; 32])).unwrap();
+    assert!(paid.paid_only());
+    assert_eq!(Policy::from_bytes(&paid.to_bytes().unwrap()).unwrap(), paid);
+    assert!(Policy::from_checkpoint(Digest([1; 32]), 10, 513, 5_000_000, Digest([2; 32])).is_err());
+    assert_eq!(zutti_source::spv::MAX_WINDOW_BLOCKS, 128);
+    let mut legacy = paid.to_bytes().unwrap();
+    legacy[8..10].copy_from_slice(&1_u16.to_le_bytes());
+    legacy.truncate(legacy.len() - 32);
+    assert!(Policy::from_bytes(&legacy).is_err());
+}
+
+#[test]
 fn checkpoint_origin_binds_the_complete_context_and_rejects_genesis_substitution() {
     let original = HeaderClaim::genesis(policy(), &raw(0)[..HEADER_BYTES])
         .unwrap()

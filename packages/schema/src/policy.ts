@@ -26,7 +26,7 @@ export const swap_policy = z
     source_checkpoint: source_checkpoint.optional(),
   })
   .refine((value) => value.min_source_window_blocks <= value.max_source_window_blocks)
-  .refine((value) => !value.source_checkpoint || value.max_source_window_blocks <= 128);
+  .refine((value) => !value.source_checkpoint || value.max_source_window_blocks <= 512);
 export const rfq_domain = z
   .strictObject({ network, deployment_id: digest, policy: swap_policy })
   .refine((value) => value.network === "testnet" || value.policy.source_checkpoint === undefined);

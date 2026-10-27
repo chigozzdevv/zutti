@@ -42,7 +42,8 @@ test("checkpoint profiles bind a Testnet origin and reject reverse quotes", () =
   });
   assert.doesNotThrow(() => require_pair(policy, "ZEC", "USDC"));
   assert.throws(() => require_pair(policy, "USDC", "ZEC"), { code: "invalid_input" });
-  assert.equal(swap_policy.safeParse({ ...policy, max_source_window_blocks: 129 }).success, false);
+  assert.equal(swap_policy.safeParse({ ...policy, max_source_window_blocks: 512 }).success, true);
+  assert.equal(swap_policy.safeParse({ ...policy, max_source_window_blocks: 513 }).success, false);
   assert.ok(
     rfq_domain.safeParse({ network: "testnet", deployment_id: "77".repeat(32), policy }).success,
   );

@@ -7,6 +7,7 @@ use zutti_protocol::{
 
 pub const MAX_HEADERS: usize = 4096;
 pub const MAX_WINDOW_BLOCKS: u32 = 128;
+pub const MAX_PAID_WINDOW_BLOCKS: u32 = 512;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Policy {
@@ -45,14 +46,14 @@ impl Policy {
         checkpoint: Digest,
     ) -> zutti_protocol::Result<Self> {
         Digest::nonzero(checkpoint.0)?;
-        let mut policy = Self::new(
+        let policy = Self {
             program,
-            NetworkType::Test,
+            network: NetworkType::Test,
             confirmations,
             window_blocks,
             valid_through,
-        )?;
-        policy.checkpoint = Some(checkpoint);
+            checkpoint: Some(checkpoint),
+        };
         policy.to_bytes()?;
         Ok(policy)
     }
@@ -88,7 +89,12 @@ impl Canonical for Policy {
         if self.confirmations == 0
             || self.confirmations > 1000
             || self.window_blocks == 0
-            || self.window_blocks > MAX_WINDOW_BLOCKS
+            || self.window_blocks
+                > if self.paid_only() {
+                    MAX_PAID_WINDOW_BLOCKS
+                } else {
+                    MAX_WINDOW_BLOCKS
+                }
             || self.valid_through == 0
             || self.valid_through >= 500_000_000
         {
@@ -127,19 +133,26 @@ impl Canonical for Policy {
             2 => NetworkType::Test,
             _ => return Err(Error::Invalid("SPV network")),
         };
-        let mut policy = Self::new(
-            program,
-            network,
-            reader.u32()?,
-            reader.u32()?,
-            reader.u32()?,
-        )?;
-        if version == 2 {
+        let confirmations = reader.u32()?;
+        let window_blocks = reader.u32()?;
+        let valid_through = reader.u32()?;
+        let checkpoint = if version == 2 {
             if network != NetworkType::Test {
                 return Err(Error::Invalid("checkpoint network"));
             }
-            policy.checkpoint = Some(Digest::nonzero(reader.fixed()?)?);
-        }
+            Some(Digest::nonzero(reader.fixed()?)?)
+        } else {
+            None
+        };
+        let policy = Self {
+            program,
+            network,
+            confirmations,
+            window_blocks,
+            valid_through,
+            checkpoint,
+        };
+        policy.to_bytes()?;
         Ok(policy)
     }
 }

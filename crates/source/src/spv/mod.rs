@@ -12,7 +12,7 @@ pub use block::parse_block;
 pub use chain::HeaderClaim;
 pub use coverage::{CoverageClaim, CoveragePrevious, CoverageWitness};
 pub use header::{HEADER_BYTES, parse_header};
-pub use policy::{MAX_HEADERS, MAX_WINDOW_BLOCKS, Policy};
+pub use policy::{MAX_HEADERS, MAX_PAID_WINDOW_BLOCKS, MAX_WINDOW_BLOCKS, Policy};
 pub use window::{Branch, WindowClaim, WindowTerms, WindowWitness};
 pub use witness::{Evaluation, MAX_WITNESS, Witness};
 
