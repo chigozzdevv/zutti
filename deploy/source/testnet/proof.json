@@ -58,7 +58,7 @@
   "schema": 1,
   "source_admitted": true,
   "funded_swap": true,
-  "swap_executed": false,
+  "swap_executed": true,
   "registry_freshness_deadline": 1793111936,
   "submit_transaction": "0x9771102587bfc2eb08de30ba505f60df4cf5310a60cce5879caef359d590f96e",
   "finalize_transaction": "0x241340b8386545816b39205d368bdb49948fbd45071784a986aeeb060dc3b50a"

@@ -19,7 +19,7 @@
   "source_height": 4547456,
   "source_prefix": "e2e63532cec49e587cd5c07a6b173e3f4b803c9a2651dd60e33304498b52a029",
   "source_admitted": true,
-  "swap_executed": false,
+  "swap_executed": true,
   "ethereum_finality_verified": true,
   "code_hashes": {
     "registry": "0xf14cd29549e86a4cef538a0338b9e327eea031471c693ec12bc1b60038590bc6",
@@ -75,5 +75,39 @@
   "legacy_deployment": "../legacy/20261027-r2/ethereum/sepolia.json",
   "source_refresh_required": true,
   "reservation_applied": true,
-  "current_swap": "swap-proof.json"
+  "current_swap": "swap-proof.json",
+  "completed_swap": "swap-proof.json",
+  "pool_backing_after_demo_units": 0,
+  "demo_transactions": {
+    "maker-reservation": {
+      "transaction_id": "0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3",
+      "block_hash": "0x82a15b7176eae7417664dd50983d458d81088d265df33deebbff6f9256213df0",
+      "height": 12005633,
+      "status": 1
+    },
+    "source-payment-submit": {
+      "transaction_id": "0x2d8fb718d569ac0a59a436dfa7be5be7762617dfc14cac68aa38be9220c9bfdc",
+      "block_hash": "0xe212183f85590671537321eda899dca583f5674d0ac1ed3775f3a76432adcf89",
+      "height": 12006122,
+      "status": 1
+    },
+    "source-payment-finalize": {
+      "transaction_id": "0x584ea4a5058d4a41b90cc5262a1772f328b8da25f489e6aca1ce0e8b156d595c",
+      "block_hash": "0xde50abc56827540a57a197d0af508c76d9c32096427cd2a14f079c947ca6ce0e",
+      "height": 12006134,
+      "status": 1
+    },
+    "swap-payout": {
+      "transaction_id": "0x5a7f3ba4957a6c227030b1379e58c8ddb463df168f43156deef441b70007eca7",
+      "block_hash": "0x43d8740d2c7d0fcfdb48d122e95f19b7ce9fba8c0c12694d1988adea6d7a58db",
+      "height": 12006190,
+      "status": 1
+    },
+    "taker-withdrawal": {
+      "transaction_id": "0x4ac40981f66bb1044b0f6bd409c4aa5e68b84e5beced22f1e7d7a9180afb5592",
+      "block_hash": "0x5a9a9a51618b82ca3e4d79fc8c37b80596a4cbd0db9bf176acd7fb2447f64b56",
+      "height": 12006336,
+      "status": 1
+    }
+  }
 }

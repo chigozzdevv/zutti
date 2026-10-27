@@ -28,8 +28,8 @@
     },
     "program": "binding-program.elf",
     "receipt": "binding-receipt.bin",
-    "seal": "binding-seal.bin",
-    "journal": "binding-journal.bin"
+    "journal": "binding-journal.bin",
+    "seal": "binding-seal.bin"
   },
   "reservation": {
     "verification": {
@@ -60,8 +60,122 @@
     },
     "program": "pool-program.elf",
     "receipt": "reservation-receipt.bin",
-    "seal": "reservation-seal.bin",
-    "journal": "reservation-journal.bin"
+    "journal": "reservation-journal.bin",
+    "seal": "reservation-seal.bin"
+  },
+  "window": {
+    "verification": {
+      "canonicality_admitted": false,
+      "chain_id": 8453,
+      "collection_seconds": 3845.451329292,
+      "image_id": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
+      "journal_sha256": "fd324dfda64fd39c97db924ba13215ba6d5e876eb5e639e089dbc27d2c06dd11",
+      "proof_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483fca7b9a4",
+      "request_to_receipt_seconds": 3929,
+      "swap_executed": false
+    },
+    "market": {
+      "chain_id": 8453,
+      "fulfilled_at": 1793115843,
+      "fulfillment_block": 53163248,
+      "fulfillment_transaction": "0x203d5eb416db9a1eae7962e25c45f85472d24b6a6883a7cf6404674f788689f0",
+      "image_id": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
+      "input_visibility": "public",
+      "lock_to_fulfillment_seconds": 3892,
+      "locked_at": 1793111951,
+      "price_wei": "34166666666666",
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483fca7b9a4",
+      "submission_to_fulfillment_seconds": 3918,
+      "submitted_at": 1793111925,
+      "version": 1
+    },
+    "program": "../source/testnet/source-program.elf",
+    "receipt": "window-receipt.bin",
+    "journal": "window-journal.bin",
+    "seal": "window-seal.bin"
+  },
+  "payment-admission": {
+    "verification": {
+      "canonicality_admitted": false,
+      "chain_id": 8453,
+      "collection_seconds": 4038.140305417,
+      "image_id": "1462124d09d5e9e0c505abe0a6f5876f5a8fdc37d50c84e34826136a22d8f124",
+      "journal_sha256": "430c7bfb622f1523076cd3a61434546c8593cce91945e1b1cc6d46b18e4a4d7b",
+      "proof_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748380db4175",
+      "request_to_receipt_seconds": 4052,
+      "swap_executed": false
+    },
+    "market": {
+      "chain_id": 8453,
+      "fulfilled_at": 1793116037,
+      "fulfillment_block": 53163345,
+      "fulfillment_transaction": "0x3df4d6193a05c6f7c9471da9c662735105991346b13e59d93745b4e342f335c6",
+      "image_id": "1462124d09d5e9e0c505abe0a6f5876f5a8fdc37d50c84e34826136a22d8f124",
+      "input_visibility": "public",
+      "lock_to_fulfillment_seconds": 4016,
+      "locked_at": 1793112021,
+      "price_wei": "35000000000000",
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748380db4175",
+      "submission_to_fulfillment_seconds": 4043,
+      "submitted_at": 1793111994,
+      "version": 1
+    },
+    "program": "../source/testnet/admission-program.elf",
+    "receipt": "payment-admission-receipt.bin",
+    "journal": "payment-admission-journal.bin",
+    "seal": "payment-admission-seal.bin"
+  },
+  "payout": {
+    "verification": {
+      "canonicality_admitted": false,
+      "chain_id": 8453,
+      "collection_seconds": 577.190133666,
+      "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+      "journal_sha256": "1e442019f22a638e125e85cc369265e0ba87ebebe38eee2dd7bf46283298c841",
+      "proof_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c9ba98e4",
+      "request_to_receipt_seconds": 598,
+      "swap_executed": false
+    },
+    "market": {
+      "chain_id": 8453,
+      "fulfilled_at": 1793116851,
+      "fulfillment_block": 53163752,
+      "fulfillment_transaction": "0xb35f2d9e181c0fbe48518331d532904e510a29f6f8d4c5de26154bd5ca4ea7ea",
+      "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+      "input_visibility": "public",
+      "lock_to_fulfillment_seconds": 564,
+      "locked_at": 1793116287,
+      "price_wei": "31666666666666",
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c9ba98e4",
+      "submission_to_fulfillment_seconds": 587,
+      "submitted_at": 1793116264,
+      "version": 1
+    },
+    "program": "pool-program.elf",
+    "receipt": "payout-receipt.bin",
+    "journal": "payout-journal.bin",
+    "seal": "payout-seal.bin"
+  },
+  "withdrawal": {
+    "operation_id": "f79d2cad71378ec7f33e47d6e63e65a4cc110b8ed4a2464095d90b78b0e1e7a6",
+    "kind": "withdrawal",
+    "amount": {
+      "asset": "USDC",
+      "amount": "1"
+    },
+    "output_mode": "public_erc20",
+    "to": "0xFa48895f139df6A9fbfaf85dBCfCD043C343AD3d",
+    "evidence": {
+      "chain": "ethereum",
+      "block_hash": "0x5a9a9a51618b82ca3e4d79fc8c37b80596a4cbd0db9bf176acd7fb2447f64b56",
+      "height": "12006336",
+      "transaction_id": "0x4ac40981f66bb1044b0f6bd409c4aa5e68b84e5beced22f1e7d7a9180afb5592",
+      "policy_id": "6dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bc"
+    },
+    "confirmed_at": 1793119620812
   },
   "schema": 1,
   "swap_id": "f79d2cad71378ec7f33e47d6e63e65a4cc110b8ed4a2464095d90b78b0e1e7a6",
@@ -80,9 +194,9 @@
   "zec_signed": true,
   "zec_broadcast": true,
   "reservation_applied": true,
-  "swap_executed": false,
-  "private_payout_applied": false,
-  "withdrawal_applied": false,
+  "swap_executed": true,
+  "private_payout_finality_verified": true,
+  "private_payout_ownership_verified": true,
   "recovery_record_restored": true,
   "owner_window_recovery": {
     "owner_recovery_window_reproduced": true,
@@ -94,6 +208,15 @@
       "payment_inclusion_checked": true,
       "proof_generated": false
     }
+  },
+  "owner_record_used_for_payout": true,
+  "recovery_record_published": false,
+  "source_payment": {
+    "chain": "zcash",
+    "block_hash": "00002c59e02c09360146ff090d22da2cfff4467fc9ad029549823c90272932fe",
+    "height": "4547730",
+    "transaction_id": "eca18c82bf3bb690f23a11f98ea0cbf6d664e8b87f400385fe0780ac8c38c11b",
+    "policy_id": "6dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bc"
   },
   "maker_zec_receipt": {
     "amount_units": 1000000,
@@ -135,26 +258,146 @@
     "transaction_submitted": false,
     "paid_proof_jobs": 0
   },
-  "source_payment": {
-    "transaction_id": "eca18c82bf3bb690f23a11f98ea0cbf6d664e8b87f400385fe0780ac8c38c11b",
-    "height": 4547730,
-    "confirmation_height": 4547750
+  "pool_settlement": {
+    "chain": "ethereum",
+    "block_hash": "0x43d8740d2c7d0fcfdb48d122e95f19b7ce9fba8c0c12694d1988adea6d7a58db",
+    "height": "12006190",
+    "transaction_id": "0x5a7f3ba4957a6c227030b1379e58c8ddb463df168f43156deef441b70007eca7",
+    "policy_id": "6dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bc"
   },
-  "reservation_transaction": {
-    "transaction_id": "0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3",
-    "height": 12005633,
-    "ethereum_finality_verified": true
+  "transactions": {
+    "maker-reservation": {
+      "transaction_id": "0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3",
+      "block_hash": "0x82a15b7176eae7417664dd50983d458d81088d265df33deebbff6f9256213df0",
+      "height": 12005633,
+      "status": 1
+    },
+    "source-payment-submit": {
+      "transaction_id": "0x2d8fb718d569ac0a59a436dfa7be5be7762617dfc14cac68aa38be9220c9bfdc",
+      "block_hash": "0xe212183f85590671537321eda899dca583f5674d0ac1ed3775f3a76432adcf89",
+      "height": 12006122,
+      "status": 1
+    },
+    "source-payment-finalize": {
+      "transaction_id": "0x584ea4a5058d4a41b90cc5262a1772f328b8da25f489e6aca1ce0e8b156d595c",
+      "block_hash": "0xde50abc56827540a57a197d0af508c76d9c32096427cd2a14f079c947ca6ce0e",
+      "height": 12006134,
+      "status": 1
+    },
+    "swap-payout": {
+      "transaction_id": "0x5a7f3ba4957a6c227030b1379e58c8ddb463df168f43156deef441b70007eca7",
+      "block_hash": "0x43d8740d2c7d0fcfdb48d122e95f19b7ce9fba8c0c12694d1988adea6d7a58db",
+      "height": 12006190,
+      "status": 1
+    },
+    "taker-withdrawal": {
+      "transaction_id": "0x4ac40981f66bb1044b0f6bd409c4aa5e68b84e5beced22f1e7d7a9180afb5592",
+      "block_hash": "0x5a9a9a51618b82ca3e4d79fc8c37b80596a4cbd0db9bf176acd7fb2447f64b56",
+      "height": 12006336,
+      "status": 1
+    }
+  },
+  "balances_before": {
+    "timestamp": 1793109235,
+    "recipient": "0xFa48895f139df6A9fbfaf85dBCfCD043C343AD3d",
+    "recipient_usdc_units": 0,
+    "pool_usdc_units": 1000000,
+    "maker_usdc_units": 9000000,
+    "deployer_sepolia_eth_wei": "49999931189936162"
+  },
+  "balances_after": {
+    "observed_at": 1793119649,
+    "recipient": "0xFa48895f139df6A9fbfaf85dBCfCD043C343AD3d",
+    "recipient_usdc_units": 1000000,
+    "pool_usdc_units": 0,
+    "maker_usdc_units": 9000000,
+    "withdrawal_transfer_finality_verified": true
   },
   "testnet_witnesses_public": true,
   "signing_and_viewing_keys_local": true,
   "source_bootstrap": "operator-selected-checkpoint",
   "source_validity": "SPV with miner transaction-validity assumption",
   "automatic_nonpayment_refunds": false,
-  "pending_proofs": [
-    "demo2-window-1",
-    "demo2-admission-2"
-  ],
-  "payout_and_withdrawal_proofs_submitted": false,
+  "original_sdk_accept_interrupted": true,
+  "settlement_continued_from_persisted_owner_operation": true,
+  "sdk_withdrawal_confirmed": true,
+  "spending": {
+    "total_actual_prover_fees_wei": "475833333333327",
+    "authorized_total_cap_wei": "625000000000000",
+    "per_request_cap_wei": "62500000000000",
+    "requests": [
+      {
+        "name": "swap-source-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74831e5d8de3",
+        "actual_fee_wei": "38333333333333"
+      },
+      {
+        "name": "demo-source-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483d174d3b3",
+        "actual_fee_wei": "28333333333333"
+      },
+      {
+        "name": "demo-admission-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483071ed32d",
+        "actual_fee_wei": "31666666666666"
+      },
+      {
+        "name": "demo-deposit-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483624c9c43",
+        "actual_fee_wei": "29166666666666"
+      },
+      {
+        "name": "demo-binding-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74830dd37240",
+        "actual_fee_wei": "28333333333333"
+      },
+      {
+        "name": "demo-reservation-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c727dbd2",
+        "actual_fee_wei": "29166666666666"
+      },
+      {
+        "name": "demo-source-refresh-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483b95340de",
+        "actual_fee_wei": "47500000000000"
+      },
+      {
+        "name": "demo-admission-refresh-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483653c99f2",
+        "actual_fee_wei": "55833333333333"
+      },
+      {
+        "name": "demo2-binding-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483fd553540",
+        "actual_fee_wei": "28333333333333"
+      },
+      {
+        "name": "demo2-reservation-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74831ae78043",
+        "actual_fee_wei": "29166666666666"
+      },
+      {
+        "name": "demo2-window-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483fca7b9a4",
+        "actual_fee_wei": "34166666666666"
+      },
+      {
+        "name": "demo2-admission-2",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748380db4175",
+        "actual_fee_wei": "35000000000000"
+      },
+      {
+        "name": "demo2-payout-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c9ba98e4",
+        "actual_fee_wei": "31666666666666"
+      },
+      {
+        "name": "demo2-withdrawal-1",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74837b15a5e8",
+        "actual_fee_wei": "29166666666666"
+      }
+    ]
+  },
   "files": {
     "binding-receipt.bin": {
       "bytes": 954,
@@ -179,6 +422,54 @@
     "reservation-journal.bin": {
       "bytes": 405,
       "sha256": "c1da8d8690e6497f4d67775aa8a4d283cf9ad3052cb320ba522e47ade2b1477c"
+    },
+    "window-receipt.bin": {
+      "bytes": 962,
+      "sha256": "a4ffdeb50c1e73797904e607e05191d539cf6b240f609188f5cae65a532ca68f"
+    },
+    "window-seal.bin": {
+      "bytes": 260,
+      "sha256": "ee457be17dc4a1a6196465565839d32025a127c96e7a99aa6242e5bba9e5d01d"
+    },
+    "window-journal.bin": {
+      "bytes": 238,
+      "sha256": "fd324dfda64fd39c97db924ba13215ba6d5e876eb5e639e089dbc27d2c06dd11"
+    },
+    "payment-admission-receipt.bin": {
+      "bytes": 1060,
+      "sha256": "ccdd6a78fe3f227a446e1d5f57cb2ca2ef195c39e9212b3732e08961fd8260af"
+    },
+    "payment-admission-seal.bin": {
+      "bytes": 260,
+      "sha256": "bfc0efb9d3bea6e9c0d890f6889739130ed3e249a1b92aac620c1549dfe44c4e"
+    },
+    "payment-admission-journal.bin": {
+      "bytes": 287,
+      "sha256": "430c7bfb622f1523076cd3a61434546c8593cce91945e1b1cc6d46b18e4a4d7b"
+    },
+    "payout-receipt.bin": {
+      "bytes": 1296,
+      "sha256": "6a2037fc17067ecda31bc194d7c782333bbf2bbdfcc9e38c0da34578395b2131"
+    },
+    "payout-seal.bin": {
+      "bytes": 260,
+      "sha256": "752f18d9dc73ecb3bb6a80f05c3614318b80ef670e1bf2a38fdda79dd4026512"
+    },
+    "payout-journal.bin": {
+      "bytes": 405,
+      "sha256": "1e442019f22a638e125e85cc369265e0ba87ebebe38eee2dd7bf46283298c841"
+    },
+    "withdrawal-receipt.bin": {
+      "bytes": 1296,
+      "sha256": "d0467d185eb0cad3ce9df278be790ac2583d15d2024cdaed33d57f660b554986"
+    },
+    "withdrawal-seal.bin": {
+      "bytes": 260,
+      "sha256": "ac1e69e06d0af0f51890d0a5f9598b884a430f8f0a18dc3a205814d4f43fd39f"
+    },
+    "withdrawal-journal.bin": {
+      "bytes": 405,
+      "sha256": "d8b675b51af385a81612ea81c8ba5d8b962d09d568b8b18e231efaa5eb65a26d"
     }
   }
 }

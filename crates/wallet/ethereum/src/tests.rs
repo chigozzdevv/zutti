@@ -568,3 +568,34 @@ fn retained_live_sepolia_reservation_authenticates_funded_escrow_and_source() {
     wrong.source.as_mut().unwrap().checkpoint = alloy::primitives::B256::repeat_byte(255);
     assert!(verify(&config, &wrong, &evidence, now).is_err());
 }
+
+#[test]
+fn retained_live_withdrawal_authenticates_the_real_usdc_transfer() {
+    use crate::transfers::{TransferEvidence, TransferRequest};
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/ethereum");
+    let config: ConsensusConfig =
+        serde_json::from_slice(&std::fs::read(path.join("sepolia-consensus.json")).unwrap())
+            .unwrap();
+    let request_bytes = std::fs::read(path.join("withdrawal-transfer-request.json")).unwrap();
+    let request: TransferRequest = serde_json::from_slice(&request_bytes).unwrap();
+    let evidence: TransferEvidence = serde_json::from_slice(
+        &std::fs::read(path.join("withdrawal-transfer-evidence.json")).unwrap(),
+    )
+    .unwrap();
+    let record: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(path.join("swap-proof.json")).unwrap()).unwrap();
+    let now = record["withdrawal"]["confirmed_at"].as_u64().unwrap() / 1000;
+    let verified = crate::transfers::verify(&config, &request, &evidence, now).unwrap();
+    assert_eq!(verified.value, U256::from(1_000_000));
+    assert_eq!(verified.recipient, request.to);
+    for field in ["to", "value", "transaction_id"] {
+        let mut changed: serde_json::Value = serde_json::from_slice(&request_bytes).unwrap();
+        changed[field] = match field {
+            "value" => "0x1".into(),
+            "to" => format!("0x{}", "11".repeat(20)).into(),
+            _ => format!("0x{}", "11".repeat(32)).into(),
+        };
+        let changed = serde_json::from_value(changed).unwrap();
+        assert!(crate::transfers::verify(&config, &changed, &evidence, now).is_err());
+    }
+}

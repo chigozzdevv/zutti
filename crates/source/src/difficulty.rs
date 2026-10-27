@@ -603,10 +603,8 @@ mod tests {
         assert_eq!(header.time - state.timestamp().unwrap(), 153);
         assert_eq!(header.bits, 0x1e3115bf);
         assert_eq!(state.expected_bits(header.time).unwrap(), header.bits);
-        let mut minimum = include_bytes!(
-            "../../../tests/fixtures/spv/nu7-difficulty-header.bin"
-        )
-        .to_vec();
+        let mut minimum =
+            include_bytes!("../../../tests/fixtures/spv/nu7-difficulty-header.bin").to_vec();
         minimum[104..108].copy_from_slice(&0x2007ffff_u32.to_le_bytes());
         let minimum = crate::spv::parse_header(&minimum).unwrap();
         assert!(state.append_header(&minimum).is_err());

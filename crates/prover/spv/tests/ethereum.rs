@@ -161,3 +161,56 @@ fn genuine_reservation_receipt_preserves_the_bound_payment_and_deployment() {
     changed.pool.reservation = Digest([254; 32]);
     assert!(verify(&reservation, program, &changed.to_bytes().unwrap()).is_err());
 }
+
+#[test]
+fn genuine_live_swap_receipts_bind_payment_admission_payout_and_withdrawal() {
+    use std::{collections::BTreeMap, fs, path::Path};
+    use zutti_protocol::{encoding::Canonical, pool::OperationKind};
+    use zutti_source::spv::{AdmissionClaim, WindowClaim};
+    use zutti_spv_prototype::{image, read_receipt, verify};
+    use zutti_wallet::{binding::PaymentBindingClaim, spv_pool::SpvPoolClaim};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/ethereum");
+    let source = root.join("../source/testnet");
+    let pool_image = image(&fs::read(root.join("pool-program.elf")).unwrap()).unwrap();
+    let source_image = image(&fs::read(source.join("source-program.elf")).unwrap()).unwrap();
+    let binding_image = image(&fs::read(root.join("binding-program.elf")).unwrap()).unwrap();
+    let admission_image = image(&fs::read(source.join("admission-program.elf")).unwrap()).unwrap();
+    let mut receipts = BTreeMap::new();
+    for (role, program) in [
+        ("binding", binding_image),
+        ("reservation", pool_image),
+        ("window", source_image),
+        ("payment-admission", admission_image),
+        ("payout", pool_image),
+        ("withdrawal", pool_image),
+    ] {
+        let receipt = read_receipt(&root.join(format!("{role}-receipt.bin"))).unwrap();
+        verify(&receipt, program, &receipt.journal.bytes).unwrap();
+        receipts.insert(role, receipt);
+    }
+    let binding = PaymentBindingClaim::from_bytes(&receipts["binding"].journal.bytes).unwrap();
+    let reservation = SpvPoolClaim::from_bytes(&receipts["reservation"].journal.bytes).unwrap();
+    let window = WindowClaim::from_bytes(&receipts["window"].journal.bytes).unwrap();
+    let admission =
+        AdmissionClaim::from_bytes(&receipts["payment-admission"].journal.bytes).unwrap();
+    let mut payout = SpvPoolClaim::from_bytes(&receipts["payout"].journal.bytes).unwrap();
+    let withdrawal = SpvPoolClaim::from_bytes(&receipts["withdrawal"].journal.bytes).unwrap();
+    assert_eq!(reservation.pool.order, binding.order());
+    assert_eq!(window.policy, binding.policy());
+    assert_eq!(window.reservation, binding.source_reservation());
+    assert_eq!(admission.stable.prefix, window.checkpoint);
+    assert_eq!(admission.stable.height, window.height);
+    assert_eq!(payout.policy, binding.policy());
+    assert_eq!(payout.pool.domain, binding.domain());
+    assert_eq!(payout.pool.kind, OperationKind::Settle);
+    assert_eq!(payout.pool.checkpoint, window.checkpoint);
+    assert_eq!(withdrawal.pool.domain, binding.domain());
+    assert_eq!(withdrawal.pool.kind, OperationKind::Withdraw);
+    assert_eq!(withdrawal.pool.value, 1_000_000);
+    assert_eq!(
+        hex::encode(withdrawal.pool.owner),
+        "fa48895f139df6a9fbfaf85dbcfcd043c343ad3d"
+    );
+    payout.pool.checkpoint = Digest([253; 32]);
+    assert!(verify(&receipts["payout"], pool_image, &payout.to_bytes().unwrap()).is_err());
+}

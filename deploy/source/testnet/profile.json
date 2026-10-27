@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "payment-confirmed-payout-pending",
+  "status": "completed-testnet-swap-record",
   "deployment_allowed": false,
   "network": "testnet",
   "settlement_chain_id": "11155111",
@@ -157,5 +157,5 @@
     }
   },
   "requires_live_freshness_check": true,
-  "swap_executed": false
+  "swap_executed": true
 }
