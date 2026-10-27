@@ -63,6 +63,9 @@ impl Domain {
     pub const fn pool(&self) -> [u8; 20] {
         self.pool
     }
+    pub const fn token(&self) -> [u8; 20] {
+        self.token
+    }
     pub const fn destination_chain(&self) -> u64 {
         self.destination_chain
     }

@@ -72,6 +72,7 @@ impl AuthorizationProfile {
             return Err(Error::Profile);
         }
         Ok(ReservationRequest {
+            source: None,
             chain_id: self.domain.destination_chain(),
             pool: Address::from(self.domain.pool()),
             pool_code_hash: self.pool_code_hash,

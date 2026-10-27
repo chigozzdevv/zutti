@@ -23,7 +23,81 @@ pub struct FundingEvidence<'a> {
     pub anchor: &'a Receipt,
 }
 
+pub struct NoteFundingEvidence<'a> {
+    pub ethereum: &'a crate::notes::NoteEvidence,
+    pub binding: &'a Receipt,
+    pub anchor: &'a Receipt,
+    pub headers: &'a [Vec<u8>],
+}
+
 impl SpvFundingProfile<'_> {
+    pub fn authorize_from_note(
+        &self,
+        plan: SpvFundingPlan,
+        consent: &FundingConsent<'_>,
+        keys: &NoteKeys,
+        evidence: NoteFundingEvidence<'_>,
+        now: u64,
+    ) -> Result<SpvPoolWitness> {
+        plan.check(consent, keys).map_err(|_| Error::Profile)?;
+        let request = self.request(&plan, keys)?;
+        if request.nullifiers.len() != 1
+            || !matches!(
+                evidence.binding.inner,
+                InnerReceipt::Succinct(_) | InnerReceipt::Groth16(_)
+            )
+        {
+            return Err(Error::Proof);
+        }
+        verify_receipt(
+            self.swap.binding_program,
+            &plan
+                .reservation()
+                .binding
+                .to_bytes()
+                .map_err(|_| Error::Profile)?,
+            evidence.binding,
+        )?;
+        verify_receipt(
+            self.swap.policy.program(),
+            &plan
+                .reservation()
+                .anchor
+                .to_bytes()
+                .map_err(|_| Error::Profile)?,
+            evidence.anchor,
+        )?;
+        let current =
+            crate::spv_authorization::extend_source(&plan.reservation().anchor, evidence.headers)?;
+        plan.reservation()
+            .terms
+            .window()
+            .require_remaining(
+                current.height().map_err(|_| Error::Source)?,
+                self.swap.minimum_blocks,
+            )
+            .map_err(|_| Error::Source)?;
+        let timestamp = u64::from(current.timestamp().map_err(|_| Error::Source)?);
+        if timestamp > now.saturating_add(self.swap.future_drift)
+            || u64::from(current.maximum_time()) > now.saturating_add(self.swap.future_drift)
+            || now > timestamp.saturating_add(self.swap.maximum_source_age)
+        {
+            return Err(Error::Source);
+        }
+        crate::notes::verify(
+            &self.swap.ethereum,
+            &crate::notes::NoteRequest {
+                chain_id: request.chain_id,
+                pool: request.pool,
+                pool_code_hash: request.pool_code_hash,
+                root: request.root,
+                nullifier: request.nullifiers[0],
+            },
+            evidence.ethereum,
+            now,
+        )?;
+        plan.authorize(consent, keys).map_err(|_| Error::Profile)
+    }
     pub fn request(&self, plan: &SpvFundingPlan, keys: &NoteKeys) -> Result<InventoryRequest> {
         let swap = self.swap;
         let claim = plan.claim();
@@ -34,6 +108,10 @@ impl SpvFundingProfile<'_> {
             || swap.policy != plan.reservation().anchor.policy()
             || claim.binding_program != swap.binding_program
             || claim.pool_program != swap.pool_program
+            || self.registry != swap.source
+            || self.registry_code_hash != swap.source_code_hash
+            || self.registry.is_zero()
+            || self.registry_code_hash.is_zero()
             || swap.minimum_blocks == 0
             || swap.minimum_blocks > swap.policy.window_blocks()
         {

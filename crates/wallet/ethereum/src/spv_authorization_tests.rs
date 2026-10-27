@@ -1,5 +1,38 @@
 #![allow(clippy::unwrap_used)]
 use super::*;
+
+#[test]
+fn genuine_source_receipt_can_be_extended_by_locally_verified_headers() {
+    use bincode::Options;
+    let root =
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/source/testnet");
+    let receipt: Receipt = bincode::DefaultOptions::new()
+        .with_fixint_encoding()
+        .reject_trailing_bytes()
+        .deserialize(&std::fs::read(root.join("source-receipt.bin")).unwrap())
+        .unwrap();
+    let head = HeaderClaim::from_bytes(&receipt.journal.bytes).unwrap();
+    verify_receipt(head.policy().program(), &head.to_bytes().unwrap(), &receipt).unwrap();
+    let headers: Vec<_> = std::fs::read(root.join("confirmations.bin"))
+        .unwrap()
+        .chunks_exact(zutti_source::spv::HEADER_BYTES)
+        .map(<[u8]>::to_vec)
+        .collect();
+    assert_eq!(
+        extend_source(&head, &[]).unwrap().id().unwrap(),
+        head.id().unwrap()
+    );
+    let advanced = extend_source(&head, &headers).unwrap();
+    assert_eq!(advanced.height().unwrap(), head.height().unwrap() + 10);
+    assert_eq!(advanced.policy(), head.policy());
+    let mut corrupt = headers.clone();
+    corrupt[0][4] ^= 1;
+    assert!(extend_source(&head, &corrupt).is_err());
+    assert!(extend_source(&head, &headers[1..]).is_err());
+    let mut corrupt = headers;
+    corrupt[0][140] ^= 1;
+    assert!(extend_source(&head, &corrupt).is_err());
+}
 use crate::test_support::{fixture, support};
 use risc0_zkvm::{FakeReceipt, ReceiptClaim};
 
@@ -17,6 +50,8 @@ fn profile(record: &SpvSwapRecord) -> SpvAuthorizationProfile {
         domain: record.terms().domain().clone(),
         ethereum,
         pool_code_hash: B256::repeat_byte(5),
+        source: Address::repeat_byte(9),
+        source_code_hash: B256::repeat_byte(10),
         binding_program: support::digest(52),
         pool_program: support::digest(60),
         policy: record.reservation().anchor.policy(),

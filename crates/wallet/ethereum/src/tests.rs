@@ -143,6 +143,7 @@ fn trie(leaves: Vec<(B256, Vec<u8>)>, keys: &[B256]) -> (B256, Vec<Vec<Bytes>>) 
 
 fn reserved() -> (ReservationRequest, EIP1186AccountProofResponse, B256) {
     let expected = ReservationRequest {
+        source: None,
         chain_id: 11155111,
         pool: Address::repeat_byte(1),
         pool_code_hash: B256::repeat_byte(2),
@@ -227,6 +228,79 @@ fn verifies_inclusion_and_non_membership_at_the_same_authenticated_root() {
             verify_reserved_storage(&expected, &altered, root).is_err(),
             "accepted mutation {change}"
         );
+    }
+}
+
+#[test]
+fn source_guard_rejects_authenticated_halts_and_unaccepted_checkpoints() {
+    let guard = SourceGuard {
+        address: Address::repeat_byte(7),
+        code_hash: B256::repeat_byte(8),
+        checkpoint: B256::repeat_byte(9),
+    };
+    for (halted, accepted) in [(false, true), (true, true), (false, false)] {
+        let keys = [
+            B256::from(U256::from(4).to_be_bytes::<32>()),
+            mapping_key(guard.checkpoint, 19),
+        ];
+        let values = [
+            U256::from(123)
+                + if halted {
+                    U256::from(1) << 64_usize
+                } else {
+                    U256::ZERO
+                },
+            U256::from(u8::from(accepted)),
+        ];
+        let (storage_root, paths) = trie(
+            keys.iter()
+                .zip(values)
+                .filter(|(_, value)| !value.is_zero())
+                .map(|(key, value)| (*key, rlp::encode(value)))
+                .collect(),
+            &keys,
+        );
+        let account = TrieAccount {
+            nonce: 1,
+            balance: U256::ZERO,
+            storage_root,
+            code_hash: guard.code_hash,
+        };
+        let account_key = Nibbles::unpack(keccak256(guard.address));
+        let mut builder =
+            HashBuilder::default().with_proof_retainer(ProofRetainer::new(vec![account_key]));
+        builder.add_leaf(account_key, &rlp::encode(account));
+        let root = builder.root();
+        let nodes = builder.take_proof_nodes();
+        let proof = EIP1186AccountProofResponse {
+            address: guard.address,
+            nonce: 1,
+            balance: U256::ZERO,
+            storage_hash: storage_root,
+            code_hash: guard.code_hash,
+            account_proof: nodes
+                .matching_nodes_sorted(&account_key)
+                .into_iter()
+                .map(|(_, value)| value)
+                .collect(),
+            storage_proof: keys
+                .into_iter()
+                .zip(values)
+                .zip(paths)
+                .map(|((key, value), proof)| EIP1186StorageProof {
+                    key: key.into(),
+                    value,
+                    proof,
+                })
+                .collect(),
+        };
+        assert_eq!(
+            verify_source_guard(&guard, &proof, root).is_ok(),
+            !halted && accepted
+        );
+        let mut wrong = root;
+        wrong[0] ^= 1;
+        assert!(verify_source_guard(&guard, &proof, wrong).is_err());
     }
 }
 

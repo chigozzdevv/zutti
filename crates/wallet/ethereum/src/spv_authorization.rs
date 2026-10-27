@@ -26,10 +26,13 @@ pub enum Error {
 }
 pub type Result<T> = std::result::Result<T, Error>;
 
+#[derive(Clone)]
 pub struct SpvAuthorizationProfile {
     pub domain: Domain,
     pub ethereum: ConsensusConfig,
     pub pool_code_hash: B256,
+    pub source: Address,
+    pub source_code_hash: B256,
     pub binding_program: Digest,
     pub pool_program: Digest,
     pub policy: Policy,
@@ -45,6 +48,7 @@ pub struct SpvSourceEvidence<'a> {
     pub receipt: &'a Receipt,
     pub head: &'a HeaderClaim,
     pub headers_from_anchor: &'a [Vec<u8>],
+    pub continuation: &'a [Vec<u8>],
 }
 pub struct AuthorizedSpvPayment<'a> {
     journal: &'a SpvPaymentJournal,
@@ -64,6 +68,8 @@ impl SpvAuthorizationProfile {
             || self.domain.payment_profile() != zutti_wallet::binding::payment_profile()
             || self.ethereum.chain_id != self.domain.destination_chain()
             || self.pool_code_hash.is_zero()
+            || self.source.is_zero()
+            || self.source_code_hash.is_zero()
             || self.binding_program == Digest::default()
             || self.pool_program == Digest::default()
             || record.funding().pool_program != self.pool_program
@@ -79,6 +85,11 @@ impl SpvAuthorizationProfile {
             return Err(Error::Profile);
         }
         Ok(ReservationRequest {
+            source: Some(crate::SourceGuard {
+                address: self.source,
+                code_hash: self.source_code_hash,
+                checkpoint: B256::from(record.funding().pool.checkpoint.0),
+            }),
             chain_id: self.domain.destination_chain(),
             pool: Address::from(self.domain.pool()),
             pool_code_hash: self.pool_code_hash,
@@ -123,24 +134,19 @@ impl SpvAuthorizationProfile {
         if source.head.policy() != self.policy {
             return Err(Error::Source);
         }
-        let observed_height = source.head.height().map_err(|_| Error::Source)?;
+        let proved_height = source.head.height().map_err(|_| Error::Source)?;
         let anchor_height = record
             .reservation()
             .anchor
             .height()
             .map_err(|_| Error::Source)?;
-        if observed_height
+        if proved_height
             .checked_sub(anchor_height)
             .map(|distance| distance as usize)
             != Some(source.headers_from_anchor.len())
         {
             return Err(Error::Source);
         }
-        record
-            .terms()
-            .window()
-            .require_remaining(observed_height, self.minimum_blocks)
-            .map_err(|_| Error::Source)?;
         let expected = if source.headers_from_anchor.is_empty() {
             record.reservation().anchor.clone()
         } else {
@@ -155,10 +161,16 @@ impl SpvAuthorizationProfile {
         {
             return Err(Error::Source);
         }
-        let height = observed_height;
-        let time = u64::from(source.head.timestamp().map_err(|_| Error::Source)?);
+        let current = extend_source(source.head, source.continuation)?;
+        let height = current.height().map_err(|_| Error::Source)?;
+        record
+            .terms()
+            .window()
+            .require_remaining(height, self.minimum_blocks)
+            .map_err(|_| Error::Source)?;
+        let time = u64::from(current.timestamp().map_err(|_| Error::Source)?);
         source_time(time, self.maximum_source_age, self.future_drift, now)?;
-        if u64::from(source.head.maximum_time()) > now.saturating_add(self.future_drift) {
+        if u64::from(current.maximum_time()) > now.saturating_add(self.future_drift) {
             return Err(Error::Source);
         }
         let reservation = crate::verify(&self.ethereum, &request, ethereum, now)?;
@@ -173,6 +185,17 @@ impl SpvAuthorizationProfile {
             maximum_ethereum_age: self.ethereum.max_finalized_age,
             future_drift: self.future_drift,
         })
+    }
+}
+
+pub(crate) fn extend_source(head: &HeaderClaim, headers: &[Vec<u8>]) -> Result<HeaderClaim> {
+    if headers.len() > head.policy().window_blocks() as usize {
+        return Err(Error::Source);
+    }
+    if headers.is_empty() {
+        Ok(head.clone())
+    } else {
+        head.advance(headers).map_err(|_| Error::Source)
     }
 }
 fn verify_consent(record: &SpvSwapRecord, consent: &SpvPaymentConsent<'_>) -> Result<()> {

@@ -2,6 +2,7 @@
 pub mod authorization;
 pub mod inventory;
 pub mod notes;
+pub mod transfers;
 #[cfg(feature = "spv-fulfillment")]
 pub mod spv_authorization;
 #[cfg(feature = "spv-fulfillment")]
@@ -113,6 +114,15 @@ pub struct ReservationRequest {
     pub escrow: B256,
     pub order_tag: B256,
     pub nullifier: B256,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source: Option<SourceGuard>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SourceGuard {
+    pub address: Address,
+    pub code_hash: B256,
+    pub checkpoint: B256,
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -129,6 +139,8 @@ pub struct FinalityEvidence {
 pub struct Evidence {
     pub consensus: FinalityEvidence,
     pub account: EIP1186AccountProofResponse,
+    #[serde(default)]
+    pub source: Option<EIP1186AccountProofResponse>,
 }
 #[derive(Debug, Serialize)]
 pub struct VerifiedExecution {
@@ -165,6 +177,11 @@ pub fn verify(
     let finalized = verify_finalized(config, &evidence.consensus, now)?;
     let execution = &finalized.header;
     verify_reserved_storage(expected, &evidence.account, execution.state_root)?;
+    match (&expected.source, &evidence.source) {
+        (Some(guard), Some(proof)) => verify_source_guard(guard, proof, execution.state_root)?,
+        (None, None) => {}
+        _ => return Err(Error::Storage),
+    }
     Ok(VerifiedReservation {
         chain_id: config.chain_id,
         pool: expected.pool,
@@ -174,6 +191,34 @@ pub fn verify(
         finalized_slot: finalized.finalized_slot,
         execution_timestamp: execution.timestamp,
     })
+}
+
+fn verify_source_guard(
+    guard: &SourceGuard,
+    proof: &EIP1186AccountProofResponse,
+    root: B256,
+) -> Result<()> {
+    if guard.address.is_zero() || guard.code_hash.is_zero() || guard.checkpoint.is_zero() {
+        return Err(Error::Configuration);
+    }
+    verify_account(guard.address, guard.code_hash, proof, root)?;
+    let key = B256::from(U256::from(4).to_be_bytes::<32>());
+    let control = proof
+        .storage_proof
+        .iter()
+        .find(|value| value.key.as_b256() == key)
+        .ok_or(Error::Storage)?
+        .value;
+    if !(control >> 64_usize).is_zero() {
+        return Err(Error::Storage);
+    }
+    verify_storage(
+        proof,
+        &[
+            (key, control),
+            (mapping_key(guard.checkpoint, 19), U256::from(1)),
+        ],
+    )
 }
 
 pub fn verify_finalized(

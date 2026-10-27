@@ -16,6 +16,8 @@ fn setup() -> (SpvFundingPlan, SpvAuthorizationProfile) {
         domain: record.terms().domain().clone(),
         ethereum,
         pool_code_hash: B256::repeat_byte(5),
+        source: Address::repeat_byte(9),
+        source_code_hash: B256::repeat_byte(10),
         binding_program: support::digest(52),
         pool_program: support::digest(60),
         policy: record.reservation().anchor.policy(),
@@ -121,4 +123,53 @@ fn source_receipt_verification_uses_genuine_evidence_and_rejects_substitution() 
         journal.clone(),
     );
     assert!(verify_receipt(program, &journal, &fake).is_err());
+}
+
+#[test]
+fn note_based_funding_never_accepts_matching_fake_payment_proofs() {
+    use risc0_zkvm::{FakeReceipt, ReceiptClaim};
+    let (plan, swap) = setup();
+    let maker = fixture::keys(20);
+    let terms = plan.reservation().terms.clone();
+    let consent = FundingConsent {
+        terms: &terms,
+        refund: maker.recipient().unwrap(),
+        policy: swap.policy,
+        binding_program: swap.binding_program,
+        pool_program: swap.pool_program,
+    };
+    let binding = plan.reservation().binding.to_bytes().unwrap();
+    let anchor = plan.reservation().anchor.to_bytes().unwrap();
+    let fake = |image: Digest, journal: Vec<u8>| {
+        Receipt::new(
+            InnerReceipt::Fake(FakeReceipt::new(ReceiptClaim::ok(image.0, journal.clone()))),
+            journal,
+        )
+    };
+    let binding = fake(swap.binding_program, binding);
+    let anchor = fake(swap.policy.program(), anchor);
+    let evidence: crate::notes::NoteEvidence = serde_json::from_str(include_str!(
+        "../../../../deploy/ethereum/maker-note-evidence.json"
+    ))
+    .unwrap();
+    let profile = SpvFundingProfile {
+        swap: &swap,
+        registry: Address::repeat_byte(9),
+        registry_code_hash: B256::repeat_byte(10),
+    };
+    assert!(matches!(
+        profile.authorize_from_note(
+            plan,
+            &consent,
+            &maker,
+            NoteFundingEvidence {
+                ethereum: &evidence,
+                binding: &binding,
+                anchor: &anchor,
+                headers: &[]
+            },
+            1_800_000_000
+        ),
+        Err(Error::Proof)
+    ));
 }

@@ -7,6 +7,8 @@ use std::{
 use zutti_ethereum::{
     ConsensusConfig, Evidence, FinalityEvidence, ReservationRequest, verify, verify_finalized,
 };
+#[cfg(feature = "spv-fulfillment")]
+mod execution;
 
 #[derive(Debug, Parser)]
 struct Args {
@@ -15,6 +17,16 @@ struct Args {
 }
 #[derive(Debug, Subcommand)]
 enum Command {
+    Transfer {
+        #[arg(long)]
+        config: PathBuf,
+        #[arg(long)]
+        request: PathBuf,
+        #[arg(long)]
+        evidence: PathBuf,
+    },
+    #[cfg(feature = "spv-fulfillment")]
+    Swap(execution::Args),
     #[cfg(feature = "spv-fulfillment")]
     OwnedNote {
         #[arg(long)]
@@ -91,7 +103,11 @@ fn proof_keys(
         }
         EvidenceKind::Reservation => {
             let value = read::<ReservationRequest>(request, 16_384)?;
-            serde_json::json!({"account":{"address":value.pool,"keys":[mapping_key(value.escrow,70),mapping_key(value.order_tag,71),mapping_key(value.nullifier,69)]}})
+            let mut keys = serde_json::json!({"account":{"address":value.pool,"keys":[mapping_key(value.escrow,70),mapping_key(value.order_tag,71),mapping_key(value.nullifier,69)]}});
+            if let Some(source) = value.source {
+                keys["source"] = serde_json::json!({"address":source.address,"keys":[B256::from(U256::from(4).to_be_bytes::<32>()),mapping_key(source.checkpoint,19)]});
+            }
+            keys
         }
         EvidenceKind::Inventory => {
             let value = read::<zutti_ethereum::inventory::InventoryRequest>(request, 16_384)?;
@@ -123,6 +139,8 @@ fn read<T: serde::de::DeserializeOwned>(
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     match Args::parse().command {
+        #[cfg(feature = "spv-fulfillment")]
+        Command::Swap(args) => execution::run(args, now)?,
         #[cfg(feature = "spv-fulfillment")]
         Command::OwnedNote {
             config,
@@ -183,6 +201,21 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&ConsensusConfig::sepolia(checkpoint)?)?
+            );
+        }
+        Command::Transfer {
+            config,
+            request,
+            evidence,
+        } => {
+            println!(
+                "{}",
+                serde_json::to_string(&zutti_ethereum::transfers::verify(
+                    &read::<ConsensusConfig>(&config, 65_536)?,
+                    &read::<zutti_ethereum::transfers::TransferRequest>(&request, 16_384)?,
+                    &read::<zutti_ethereum::transfers::TransferEvidence>(&evidence, 16_777_216)?,
+                    now,
+                )?)?
             );
         }
         Command::ProofKeys { kind, request } => {
