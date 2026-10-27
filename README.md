@@ -6,7 +6,7 @@ The Testnet demo uses checkpoint-bootstrapped SPV. A release pins one selected T
 
 ## Status
 
-Protocol rules, wallet authorization gates, SPV programs, private-pool contracts, recovery tooling and RFQ packages are implemented. Checkpoint policy encoding, context import, durable bootstrap and payment-only guards have native test coverage. The source, admission, binding and pool guests are built; the [checkpoint candidate](deploy/source/checkpoint/profile.json) records their exact identities and public source inputs. Historical genesis-based source receipts remain valid only for their original program identities. The checkpoint release still needs genuine proof receipts, a live Sepolia deployment and an operational SDK `accept()` flow.
+Protocol rules, wallet authorization gates, SPV programs, private-pool contracts, recovery tooling and RFQ packages are implemented. Checkpoint policy encoding, context import, durable bootstrap and payment-only guards have native test coverage. The [checkpoint profile](deploy/source/checkpoint/profile.json) retains a genuine Groth16 source receipt through Testnet height 4,545,439 from the pinned checkpoint at 4,545,419. Local verification, tamper checks and read-only verification against Sepolia's deployed RISC Zero router passed. The admission, binding and pool guests are built but still need the complete genuine proof chain, a live deployment and an operational SDK `accept()` flow.
 
 The [remaining work](#remaining-work) separates compiled programs, execution checks, genuine proof receipts and live transactions. The [refund security review](zutti.md#94-refund-security-review) concerns future refund support; the checkpoint demo rejects nonpayment settlement rather than treating missing evidence as a refund.
 
@@ -73,7 +73,7 @@ Paid jobs, rentals and parameter downloads require an explicit budget. Routine s
 
 ## Remaining work
 
-1. Obtain genuine receipts for the built checkpoint programs and the selected checkpoint's following headers. Execution over the selected checkpoint plus 20 real headers passed at 117,906,565 cycles; this is not a proof receipt.
+1. Generate the source-admission proof using the genuine checkpoint receipt and its confirmation headers. The source receipt covers 20 real descendants at 117,906,565 guest cycles; its measured prover fee was 0.000029166666666666 ETH and submission-to-fulfillment time was 238 seconds. These are one job's results, not a complete swap cost or latency estimate.
 2. Generate genuine binding, pool deposit/reservation, qualifying payment, payout and withdrawal proofs under exact release identities, with Ethereum-compatible wrapping where required.
 3. Maintain source admission from the pinned checkpoint through the payment and required confirmations; do not submit the deferred full-history bootstrap.
 4. Keep reverse swaps and nonpayment refunds disabled in the checkpoint profile. Unavailable or unproved payment evidence leaves a reservation pending. Refund support needs the separate [lower-bound review](zutti.md#94-refund-security-review).
@@ -84,6 +84,14 @@ Paid jobs, rentals and parameter downloads require an explicit budget. Routine s
 Completion needs genuine proof receipts, real chain transactions, actual token backing and usable recovery. A proof submission, synchronized node or successful component test is insufficient. Permanent source-halt recovery remains unresolved; conditional funds can remain locked when accepted source evidence becomes unavailable or invalidated. No administrator or timer may turn that failure into a refund for an already-paid trade.
 
 ## Checkpoint workflow
+
+Recheck the retained genuine source receipt without submitting or purchasing another proof:
+
+```sh
+"$SPV" verify --program deploy/source/checkpoint/source-program.elf \
+  --receipt deploy/source/checkpoint/source-receipt.bin \
+  --journal deploy/source/checkpoint/source-journal.bin
+```
 
 Export the selected checkpoint's 113-header validation context with `scripts/spv_checkpoint.py`. The node endpoint and cookie are local operational configuration. The exporter pins the block hash and checks that the source branch stays unchanged during export. Work is measured relative to the retained context; it is not a claim about total genesis-to-tip work.
 
