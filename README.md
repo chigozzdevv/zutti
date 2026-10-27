@@ -1,244 +1,89 @@
 # Zutti
 
-Cross-chain RFQ swaps between native shielded ZEC on Zcash Testnet and private USDC notes backed by Sepolia USDC.
+Encrypted RFQ swaps from native shielded ZEC to private USDC notes on Ethereum.
 
-The Testnet demo uses checkpoint-bootstrapped SPV. A release pins one selected Testnet checkpoint and its validation context; subsequent headers and payment inclusion require proofs. Zutti relies on that initial checkpoint selection and on miners enforcing transaction validity. The demo profile permits ZEC → USDC settlement on payment evidence. Reverse swaps and nonpayment refunds are disabled for this profile. Full-history bootstrap is deferred.
+The Testnet prototype uses a deployment-pinned Zcash checkpoint and SPV proofs. It relies on that selected checkpoint and on miners enforcing transaction validity. The active profile supports ZEC → USDC; reverse swaps and nonpayment refunds are disabled.
 
 ## Status
 
-The [Testnet source profile](deploy/source/testnet/profile.json) retains genuine source and admission receipts through height 4,547,456, with ten confirmation headers. The [deployment record](deploy/ethereum/sepolia.json) pins the Sepolia registry, private pool, token, program identities and transactions. Its 1-USDC deposit has been spent into the actual swap reservation. The earlier deployment and its separate 10-USDC deposit remain preserved under [legacy deployment records](deploy/legacy/20261027-r2/ethereum/sepolia.json).
+**One funded Testnet swap and withdrawal are complete:** 0.01 shielded Testnet ZEC → 1 private Sepolia USDC → 1 public USDC at the taker's withdrawal address. The source payment, funded reservation, private payout and withdrawal used genuine proofs and real chain transactions.
 
-An authenticated encrypted RFQ selected 0.01 Testnet ZEC for 1 Sepolia USDC. The reservation is funded and verified against Ethereum finality. The shielded Zcash payment mined at height 4,547,730 and has twenty following blocks. The maker wallet decrypted the 0.01-ZEC receipt; the taker recovered 0.9899 ZEC of change after a 0.0001-ZEC network fee. The owner's restored backup independently reproduced the payment-window witness. [Current swap evidence](deploy/ethereum/swap-proof.json) records those results and a read-only deployed-pool rejection of a forged withdrawal.
+| Step | Observed result | Evidence |
+| --- | --- | --- |
+| Reservation | 1 USDC reserved and verified against Ethereum finality | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3) |
+| Zcash payment | 0.01 shielded ZEC received; mined at 4547730 with twenty following blocks | `eca18c82bf3bb690f23a11f98ea0cbf6d664e8b87f400385fe0780ac8c38c11b` |
+| Private payout | 1-USDC note decrypted; ownership and unspent state verified against Ethereum finality | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x5a7f3ba4957a6c227030b1379e58c8ddb463df168f43156deef441b70007eca7) |
+| Withdrawal | 1 USDC transferred to the taker; transaction and receipt roots authenticated against Ethereum finality | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x4ac40981f66bb1044b0f6bd409c4aa5e68b84e5beced22f1e7d7a9180afb5592) |
 
-Payment-window and source-admission proof requests are submitted. Private payout and withdrawal remain pending; no completed swap is claimed. Historical source snapshots still require live freshness checks before new reservations.
+The maker wallet recovered the 0.01-ZEC note. The taker recovered 0.9899 ZEC of change after a 0.0001-ZEC network fee. Its public USDC balance increased from zero to 1, and the active pool's token balance returned to zero. The quoted 100-USDC-per-ZEC rate was a chosen demo quote.
 
-The [remaining work](#remaining-work) separates compiled programs, execution checks, genuine proof receipts and live transactions. The [refund security review](zutti.md#94-refund-security-review) concerns future refund support; the checkpoint demo rejects nonpayment settlement rather than treating missing evidence as a refund.
+[The evidence record](deploy/ethereum/swap-proof.json) retains proof identities, journals, seals, actual transactions, fee records, owner-recovery checks and a deployed-pool rejection of a forged withdrawal. Fourteen proof requests, including setup and earlier attempts, cost **0.00047583 ETH**, within the approved 0.000625-ETH cap. These were real proving fees; ZEC, USDC and settlement gas used Testnet assets.
+
+[The deployment record](deploy/ethereum/sepolia.json) pins the actual contracts, token and programs. The [source profile](deploy/source/testnet/profile.json) retains the shared header/admission receipts through height 4,547,456; the payment-specific admission in the swap evidence advances the accepted stable prefix to 4,547,740, with head 4,547,750. Historical snapshots require fresh evidence before new reservations. The earlier deployment's separate 10-USDC deposit and recovery records remain under [legacy records](deploy/legacy/20261027-r2/ethereum/sepolia.json).
+
+## Flow
+
+1. The wallet requests encrypted, authenticated maker quotes and accepts fixed terms.
+2. The maker spends prefunded private USDC into the agreed conditional reservation.
+3. The payer verifies the finalized reservation, accepted source state and remaining payment window before signing ZEC.
+4. A native Ironwood payment is broadcast. Its binding and confirmed inclusion are proved under the pinned source policy.
+5. The pool verifies the proofs and creates the precommitted private USDC note.
+6. The owner verifies that note and explicitly authorizes a public ERC-20 withdrawal.
+
+The private receiving key owns a note backed by tokens in the pool. It is not an ERC-20 address. The recorded flow uses the headless SDK RFQ, persistent native owner coordinator and SDK withdrawal adapter. [Quote execution](scripts/quote_testnet.mjs) and [withdrawal execution](scripts/withdraw_testnet.mjs) show the adapters. The application client and browser wallet connectors remain unfinished. [zutti.md](zutti.md) separates the broader intended SDK from implemented capabilities.
+
+## Boundaries
+
+- The source model is checkpoint-bootstrapped SPV. It does not independently prove all Zcash transaction validity or genesis-to-tip history. PoW reorganizations, unavailable data and source conflicts remain relevant.
+- Testnet proving inputs are public through Boundless/IPFS, including note openings and test private-USDC nullifier secrets. Signing and viewing keys stay local. This demo does not establish production witness confidentiality.
+- Nonpayment, missing evidence or a source halt cannot trigger an administrator or timer refund. Reservations can remain locked. Reverse swaps and nonpayment refunds need separate protocol work and review.
+
+The owner's restored encrypted record reproduced the payment-window witness and supplied the actual payout witness without the maker's private funding data. That establishes the recorded paid-claim recovery path; it is not a nonpayment-refund demonstration.
 
 ## Layout
 
 ```text
-crates/protocol/        encodings, commitments, fixed swap terms and note rules
-crates/wallet/          payment preparation, private notes and recovery records
-crates/wallet/ethereum/ Ethereum finality, storage evidence and authorization
-crates/source/          Zcash parsing, header verification and payment coverage
-crates/prover/          proof verification, artifacts and operation tooling
-crates/prover/methods/  isolated RISC Zero guest programs
-crates/prover/spv/      active SPV host, bootstrap CLI and proof regression tests
+crates/protocol/        encodings, commitments, fixed terms and note rules
+crates/wallet/          native Zcash payments, private notes and recovery
+crates/wallet/ethereum/ finality, storage evidence and authorization
+crates/source/          Zcash parsing, headers and payment coverage
+crates/prover/          proof programs, verification and artifacts
+crates/prover/spv/      active SPV host and proof regression tests
 crates/boundless/       proof-market submission and collection
 crates/recovery/        standalone recovery CLI
 contracts/             source registry and USDC-backed private pool
 packages/sdk/          application SDK
 packages/maker-sdk/    maker quoting SDK
-packages/runtime/      RFQ transport, encryption, persistence and orchestration
-packages/schema/       shared message validation
+packages/runtime/      encrypted RFQ and persistence
+packages/schema/       shared validation
 packages/bindings/     native and contract interfaces
 server/src/features/   RFQ relay
 server/src/shared/     HTTP utilities
-scripts/               build, verification and source workers
-deploy/source/         checkpoints, headers and source evidence
-deploy/ethereum/       deployed contracts and genuine proof records
-deploy/legacy/         previous deployment and recovery records
+scripts/               build, verification and owner workers
+deploy/                retained deployments and genuine evidence
 ```
 
-Authenticated offers bind the maker's Zcash and private-USDC receiving descriptors. The native wallet builds the exact unsigned payment and encrypted recovery record from the selected offer and an owned Ironwood note. Native transaction proving stays local. The headless SDK connects `intent().offers()`, `accept({ offer_id, on_status })` and `account().withdraw()` to native execution capabilities. The owner coordinator persists proof requests and transaction nonces, verifies reservation finality before signing ZEC, and authenticates withdrawal transactions and receipts against a finalized Ethereum block. Live settlement and the application client remain unfinished. [zutti.md](zutti.md) separates the proposed broader API from implemented capabilities.
+## Development and verification
 
-## Development
-
-Use the pinned Rust toolchain, RISC Zero 3.0.5, Foundry, Node.js and pnpm versions declared in the repository. `pnpm setup` fetches dependencies; existing caches can be reused with `CARGO_HOME` and `CARGO_TARGET_DIR`.
+Use the pinned Rust, RISC Zero 3.0.5, Foundry, Node.js and pnpm versions. Existing caches can be reused through `CARGO_HOME` and `CARGO_TARGET_DIR`.
 
 ```sh
 pnpm build
-pnpm lint
 pnpm typecheck
-pnpm test
-```
-
-For the active SPV path without rebuilding the legacy guest workspace:
-
-```sh
-cargo build --locked --manifest-path crates/prover/spv/Cargo.toml
-cargo test --locked --manifest-path crates/prover/spv/Cargo.toml --features recovery --tests
-cargo clippy --locked --manifest-path crates/prover/spv/Cargo.toml --all-targets --features recovery -- -D warnings
+pnpm lint:ts
+pnpm test:ts
+cargo test --locked --manifest-path crates/prover/spv/Cargo.toml --features recovery --test ethereum
+cargo test --locked --manifest-path crates/prover/spv/Cargo.toml --features wallet-proving,recovery --test wallet_inventory
 cargo test --locked --manifest-path crates/wallet/ethereum/Cargo.toml --features spv-fulfillment
-python3 -m unittest discover -s scripts -p 'test_spv_*.py'
-python3 -m unittest discover -s crates/prover/spv -p 'test_*.py'
 forge test --root contracts
 ```
 
-Set `ZUTTI_SPV_BINARY` to the built `zutti-spv-prototype` executable to include the source-worker CLI integration test. Routine tests verify retained receipts and do not purchase proofs. `pnpm test:proofs` generates expensive local proofs; `pnpm test:boundless` submits a paid request.
+These tests verify retained genuine receipts and replay finalized Ethereum evidence at its recorded verification time. Live funding, signing and withdrawals enforce current freshness. Tests do not purchase proofs. `pnpm test:proofs` generates expensive local proofs; `pnpm test:boundless` submits a paid request.
 
-## Proving and settlement
-
-RISC Zero supplies the proof programs; Boundless supplies remote proving compute. Public source history is shared across swaps. Each demo swap additionally needs payment binding, reservation, qualifying payment coverage and terminal payout evidence.
-
-The current Boundless transport publishes program inputs through IPFS. The Testnet demo explicitly permits public swap witnesses, including note openings and test private-USDC nullifier secrets. Wallet signing and viewing keys remain local. This demo profile does not establish production witness privacy.
-
-The adapter exports public SPV jobs, checks their program/input/journal hashes and imports cryptographically verified Groth16 receipts. Recursive jobs use separately built guests that verify predecessor seals inside the zkVM; the pinned [Boundless input format](https://docs.rs/boundless-market/2.0.1/boundless_market/input/struct.GuestEnv.html) cannot carry native host assumptions. Two genuine Boundless source receipts now compose through Testnet block 4, and both pass read-only verification against the deployed Sepolia RISC Zero router. This establishes early header-prefix composition, not current-chain admission or live settlement. The current release separately retains checkpoint-based source/admission receipts and successful Sepolia admission transactions for their recorded prefix. Destination settlement remains on Sepolia regardless of the market used to buy compute.
-
-Paid jobs, rentals and parameter downloads require an explicit budget. Routine setup does not launch them. Faucet-funded marketplace capacity has not been established.
+RISC Zero supplies the proof programs and Boundless supplies remote compute. The owner coordinator retains requests and transaction identities across interruptions; confirmed operations are collected without resubmission. The test-run ledger is scoped to the completed trade and closes after authenticated withdrawal. No new spending is implicit in setup or verification.
 
 ## Remaining work
 
-1. Maintain the source feed using genuine linked extensions and admission updates under the deployed policy. An admitted prefix does not prove later headers or stay fresh indefinitely.
-2. Collect and verify the submitted payment-window and source-admission proofs, then apply the matching source update. The 1-USDC deposit, reservation and native Zcash payment have executed.
-3. Complete the private payout and explicit withdrawal with genuine proofs, then authenticate note ownership and the actual token transfer against Ethereum finality. The source-halt, remaining-window and finality checks remain mandatory.
-4. Keep reverse swaps and nonpayment refunds disabled. Unavailable or unproved payment evidence leaves a reservation pending; future refund support needs the separate [lower-bound review](zutti.md#94-refund-security-review).
-5. Demonstrate a real ZEC → USDC payout, private balance and withdrawal, rejection of wrong evidence, pending behavior and recovery. Then deliver the application flow and submission materials.
-
-Completion needs genuine proof receipts, real chain transactions, actual token backing and usable recovery. A proof submission, synchronized node or successful component test is insufficient. Permanent source-halt recovery remains unresolved; conditional funds can remain locked when accepted source evidence becomes unavailable or invalidated. No administrator or timer may turn that failure into a refund for an already-paid trade.
-
-## Native Testnet accounts
-
-Build the account CLI without downloading proving parameters:
-
-```sh
-CARGO_TARGET_DIR="$TARGET" cargo build --offline --locked \
-  --manifest-path crates/prover/spv/Cargo.toml --features wallet --bin zutti-wallet
-"$TARGET/debug/zutti-wallet" init --directory "$ACCOUNT"
-"$TARGET/debug/zutti-wallet" address --directory "$ACCOUNT"
-```
-
-`init` refuses an existing directory. The account contains independently generated Zcash and private-USDC keys. Its public output includes a Testnet unified address and a private-pool receiving descriptor, not an ERC-20 address. `account.backup` is authenticated encryption; the owner-only `account.key` unlocks it. Preserve both files for restoration. `deposit --directory "$MAKER_ACCOUNT" --deployment deploy/ethereum/sepolia.json --amount 10 --out "$DEPOSIT"` prepares an owned private note, encrypted recovery material and a local proving witness. It does not generate a proof or move USDC.
-
-`inventory` reconstructs the complete pool output tree, checks its root and retains encrypted owned-note paths. `scan` trial-decrypts Ironwood outputs locally, processes revealed nullifiers and checks the resulting commitment tree. `prepare-payment` builds an unsigned, fully shielded payment with the exact accepted terms and change, then exports the redacted binding witness. The optional `wallet-proving` feature adds `prove-payment` for native Halo2 proving. These commands cannot bypass finalized reservation verification or broadcast an unsigned payment.
-
-## Checkpoint workflow
-
-The deployed profile is `deploy/source/testnet/profile.json`. Its two genuine receipts, exact ELFs, journals, seals and verification records are retained beside the profile. It uses the post-NU7 Testnet minimum-difficulty threshold of 450 seconds. A real header at height 4,546,261 exposed an incorrect 150-second threshold in the earlier program; real-header and Zebra-parameter regressions cover the correction. The retired program cannot authorize a new deployment.
-
-Recheck the historical genuine source receipt without submitting or purchasing another proof:
-
-```sh
-"$SPV" verify --program deploy/source/checkpoint/source-program.elf \
-  --receipt deploy/source/checkpoint/source-receipt.bin \
-  --journal deploy/source/checkpoint/source-journal.bin
-```
-
-Export the selected checkpoint's 113-header validation context with `scripts/spv_checkpoint.py`. The node endpoint and cookie are local operational configuration. The exporter pins the block hash and checks that the source branch stays unchanged during export. Work is measured relative to the retained context; it is not a claim about total genesis-to-tip work.
-
-```sh
-"$SPV" build --kind source --boundless --guest-target "$GUEST_TARGET" --out "$SOURCE_PROGRAM_DIR"
-
-python3 scripts/spv_checkpoint.py --endpoint "$SOURCE_RPC" --cookie "$SOURCE_COOKIE" \
-  --height "$CHECKPOINT_HEIGHT" --out "$CHECKPOINT_EXPORT"
-"$SPV" checkpoint --headers "$CHECKPOINT_EXPORT/headers.bin" \
-  --height "$CHECKPOINT_HEIGHT" --work "$CHECKPOINT_WORK" --out "$CHECKPOINT_CONTEXT"
-"$SPV" bootstrap init --state "$STATE" --program "$SOURCE_PROGRAM_DIR/program.elf" \
-  --checkpoint "$CHECKPOINT_CONTEXT/checkpoint.bin" --confirmations 10 \
-  --window-blocks 128 --valid-through 5000000
-"$SPV" bootstrap prepare --state "$STATE" --headers "$FOLLOWING_HEADERS"
-"$SPV" bootstrap status --state "$STATE"
-```
-
-`CHECKPOINT_WORK` is the exported `work` field. Policy version 2 commits to the complete selected context and maximum timestamp. A changed context requires a new policy and deployment profile. Initialization alone does not create a verified receipt or admit source history. The worker starts after the checkpoint and checks its pinned branch before preparing subsequent headers.
-
-The following genesis workflow remains available for historical regression and future full bootstrap work. It is not the selected demo profile.
-
-## SPV workflow
-
-The host is an isolated Cargo workspace. Set `CARGO_HOME` to the populated Cargo cache and `SPV` to the built `zutti-spv-prototype` executable. Each output directory must be new. Use reviewed source-policy values; the tiny regression policy is not a deployment profile.
-
-```sh
-"$SPV" build --kind source --guest-target "$GUEST_TARGET" --out "$SOURCE_PROGRAM_DIR"
-
-python3 scripts/spv_headers.py \
-  --endpoint "$SOURCE_RPC" --cookie "$SOURCE_COOKIE" \
-  --start-height 0 --count 1 --out "$EXPORTS/genesis"
-
-"$SPV" bootstrap init --state "$STATE" --program "$SOURCE_PROGRAM_DIR/program.elf" \
-  --genesis "$EXPORTS/genesis/headers.bin" --confirmations "$CONFIRMATIONS" \
-  --window-blocks "$WINDOW_BLOCKS" --valid-through "$VALID_THROUGH"
-
-python3 scripts/spv_source.py --binary "$SPV" --state "$STATE" --work "$WORK" \
-  --endpoint "$SOURCE_RPC" --cookie "$SOURCE_COOKIE" --batch-size 16
-
-"$SPV" bootstrap status --state "$STATE"
-```
-
-The exporter uses loopback RPC and an owner-only cookie beside an existing node. Supply `--container` when using the node's Docker network namespace. It exports consecutive 1,487-byte headers in atomic bounded batches and checks RPC hash/link consistency. Export does not authenticate consensus or generate proofs. The Rust preparation step independently verifies its own header rules and predecessor.
-
-The source worker prepares by default; `--prove` explicitly enables supervised local proving. `--follow` continues within job/time limits. `--proof-seconds`, `--rss-mib`, `--cycle-limit` and `--segment-po2` are separate guards. The supervisor is `crates/prover/spv/run.py`; it limits child threads and blocks HTTP downloads through child proxy settings. These guards constrain a process, not a provider's billing. Smaller segments can reduce peak memory while increasing overhead. Public headers may use composite receipts; other proof dependencies retain their required succinct/Groth16 formats even when Testnet witnesses are public.
-
-The store keeps exact programs, policies, witness/journal manifests and genuine receipts. Status derives progress from verified receipts, not a mutable cursor or server label. Restart rechecks accepted evidence and rejects changed programs, journals, seals, missing jobs and incompatible predecessors. One pending batch is retained on failure; resizing/cancellation is not implemented. Preserve the complete state directory.
-
-Import an externally generated genuine header receipt with its exact pending batch:
-
-```sh
-"$SPV" bootstrap accept --state "$STATE" --batch "$BATCH" --receipt "$RECEIPT"
-```
-
-The Sepolia deployment script is `contracts/script/DeployTestnet.s.sol`. It reads `ZUTTI_PROFILE`, rejects undeployable profiles and other chains, and pins Circle Testnet USDC and the RISC Zero router. A prepared profile remains undeployable until its proof and release checks are complete. Deployed profiles disable further deployment. `scripts/submit_testnet.py` uses live RPC gas estimation and preflight, keeps a cumulative Testnet fee budget, and persists nonce/hash evidence; repeating an operation collects its receipt without resubmitting. Local simulation substantially underestimated this network's creation gas, so live estimates are required.
-
-An empty registry initializes from a genuinely proved stable prefix plus the required confirmations. For the demo, that proof begins at the checkpoint committed by the deployment policy; runtime servers cannot replace it. Admission preparation and execution are separate from proof generation and Ethereum wrapping: After genuine admission fulfillment, `export-admission` verifies the receipt and its exact policy before emitting Sepolia `SpvRegistry.submit` calldata; it does not broadcast or finalize admission.
-
-```sh
-"$SPV" prepare-admission --header-program "$SOURCE_PROGRAM_DIR/program.elf" \
-  --previous "$STABLE_RECEIPT" --confirmations "$CONFIRMATION_HEADERS" --out "$ADMISSION_INPUT"
-
-"$SPV" run-admission --program "$ADMISSION_PROGRAM" \
-  --witness "$ADMISSION_INPUT/witness.bin" --previous "$STABLE_RECEIPT" --out "$ADMISSION_OUTPUT"
-```
-
-`run-admission` executes by default; `--prove` requests proof generation. Later advances also supply `--stable-headers` to preparation and name the genuine prior prefix. Freshness, work, competing-history observation and real contract verification still apply.
-
-The `payment-binding`, `coverage` and `settlement` Cargo examples exercise the corresponding relations. Use `--help` for their exact proof inputs. Execution with unresolved assumptions is not settlement evidence. Signing keys are not part of the public proving transport.
-
-### Boundless jobs
-
-Build source, admission and pool programs with `build --boundless`. This pins a different image and source policy from the native-assumption profile. Existing receipts do not authenticate the replacement program. Binding is stateless and uses its existing build. Use the adapter commands to execute these inputs; the native `run`, `pool` and `run-admission` commands use host assumptions instead.
-
-```sh
-"$SPV" build --kind source --boundless --guest-target "$GUEST_TARGET" --out "$SOURCE_PROGRAM_DIR"
-
-"$SPV" boundless export --kind source --public \
-  --program "$SOURCE_PROGRAM_DIR/program.elf" --witness "$WITNESS" \
-  --dependency "$PREVIOUS_RECEIPT" --cycles "$CYCLE_LIMIT" --out "$JOB_DIR"
-
-"$SPV" boundless execute --job "$JOB_DIR/job.json"
-
-"$BOUNDLESS" --network "$MARKET_NETWORK" --config "$BOUNDLESS_CONFIG" \
-  submit --job "$JOB_DIR/job.json" --request "$REQUEST"
-
-"$BOUNDLESS" --network "$MARKET_NETWORK" --config "$BOUNDLESS_CONFIG" \
-  collect --request "$REQUEST" --out "$FULFILLMENT"
-
-"$SPV" boundless import --job "$JOB_DIR/job.json" --proof "$FULFILLMENT" --out "$RECEIPT_DIR"
-"$SPV" bootstrap accept --state "$STATE" --batch "$BATCH" --receipt "$RECEIPT_DIR/receipt.bin"
-```
-
-`--public` explicitly authorizes publishing the witness. Omit `--dependency` for genesis, binding and stateless pool operations. Supply one exact predecessor receipt for source/admission and two in the required order for reservation/settlement. Every supplied dependency must already have a genuine Groth16 seal under the pinned parameters; composite or succinct receipts must be wrapped first. Native-assumption guests cannot accept dependencies through this transport.
-
-Export and execution do not purchase proofs. `submit` can spend the configured market budget; `collect` retains fulfillment data, while `import` cryptographically verifies it before publishing `receipt.bin`, `seal.bin` and verification metadata. Program, stdin and journal changes invalidate a version-2 job. Import and export refuse an existing output directory. Source acceptance rechecks the exact pending batch and does not imply admission to the on-chain registry.
-
-The adapter and submission client permit at most 34,359,738,368 cycles per job. This is Zutti's software guard, not a Boundless network limit. The source witness accepts at most 4,096 headers. Large requests require successful bounded execution before submission, a separately approved fee cap and suitable deadlines; changing the allowance does not change the guest identity or authenticate additional headers. Provider cycle/input limits and pricing remain independent market constraints. The existing timeout calculation uses a conservative one-million-cycle-per-second allowance; its deadline is not a measured completion time.
-
-The prepared continuation for heights 5–4,100 passed execution at 23,931,789,154 cycles with one genuine predecessor, matching output and zero host assumptions. Its allowance is 32 billion cycles; no paid request or new receipt was produced. The retained capacity review independently checks foreign Groth16 seals and successful fulfillment transactions for a 36.94-billion-cycle October 16 job and an older 53.98-billion-cycle job. These observations support a larger-job trial; they do not establish Zutti's price, full-bootstrap funding or completion time. Details remain in [evidence.json](crates/prover/spv/evidence.json).
-
-The retained execution measurements show about 48% fewer pool-operation cycles after removing duplicate validation. Separately, the receipt-verification probe consumed 183,494,181 cycles for one genuine historical Groth16 receipt, with zero host assumptions. Each inline dependency adds verification work; these figures are not complete proof-time or market-price estimates. `build --kind receipt-check` builds that regression probe, not a settlement program. No new SPV composed proof was generated by these execution checks.
-
-## Ethereum evidence
-
-`scripts/ethereum_evidence.py` collects public beacon updates and EIP-1186 proofs, then invokes the native verifier before publishing accepted evidence. Use `--capture-only` to retain a recent storage proof when the RPC's proof window is shorter than finality, followed by `--capture FILE` after finalization. The verifier authenticates the captured execution header through at most 128 hash-linked descendants to the signed finalized header. A pending capture is not verified evidence.
-
-`deploy/ethereum/sepolia-consensus.json` pins the selected Ethereum bootstrap root and Sepolia fork schedule. The retained `maker-note-evidence.json` and `maker-note-request.json` reproduce genuine finalized membership and unspent-state verification. They contain public Testnet evidence. The owning keys and decrypted recovery records remain local. `owned-note`, built with `--features spv-fulfillment`, additionally checks the account's note ownership and pool membership path before returning its amount.
-
-```sh
-cargo run --locked --manifest-path crates/wallet/ethereum/Cargo.toml -- \
-  finality --config CONFIG.json --evidence FINALITY.json
-
-cargo run --locked --manifest-path crates/wallet/ethereum/Cargo.toml -- \
-  reservation --config CONFIG.json --request REQUEST.json --evidence RESERVATION.json
-
-cargo run --locked --manifest-path crates/wallet/ethereum/Cargo.toml -- \
-  inventory --config CONFIG.json --request INVENTORY_REQUEST.json --evidence INVENTORY.json
-```
-
-The native verifier checks pinned Ethereum consensus/bootstrap configuration, finalized execution-header binding and EIP-1186 account/storage proofs. Inventory proofs authenticate pool and source-registry state under the same finalized root. Locally accepted terms, code hashes and proof identities come from the pinned deployment profile, never replacement values chosen by the evidence server. Successful CLI JSON is a local verification result, not transferable proof authority.
-
-Use the full `SpvFundingProfile::authorize` entry point for funder authorization. Local consent checks alone do not authenticate chain state. The ZEC-payer adapter separately verifies the finalized reservation before releasing spending authorization. [zutti.md](zutti.md#115-implemented-spv-composition-and-ethereum-authorization) specifies the relation and bootstrap assumptions.
-
-## Evidence and specification
-
-[Retained evidence](crates/prover/spv/evidence.json) records exact program identities, the genuine genesis proof/audit, two linked Boundless source receipts with actual fees and fulfillment times, historical execution samples and failed bounded proof attempts. Public proof regression data remains in the component fixtures. Its scope and upstream provenance are documented in [zutti.md](zutti.md#24-verification-parameters-and-fixture-provenance).
-
-[zutti.md](zutti.md) contains the architecture, SDK contract, source/payment/refund rules, trust and privacy boundaries, security-review questions and acceptance criteria. These two root files are the project's documentation. Earlier experiments and removed narrative files remain recoverable from Git history.
+1. Package the application and wallet connectors around the demonstrated headless flow.
+2. Operate and measure a continuous source feed and multiuser maker/prover service.
+3. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).

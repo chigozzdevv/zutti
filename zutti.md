@@ -18,9 +18,9 @@ An earned payout has no claim deadline. A delayed proof, disconnected wallet, un
 
 Zutti consists of a headless client SDK, a maker SDK, a shared protocol core, a private USDC pool, and source-verification infrastructure. Applications own their interface and use the public SDK to request offers, accept a trade and manage its outcome. The Zutti application uses that same SDK.
 
-The workspace implements protocol rules, Ironwood preparation, private notes, SPV header/window programs, conditional pool predicates, Ethereum authorization gates, encrypted recovery records and RFQ packages. Genuine source and admission receipts cover stable height 4,547,456 and confirmed head 4,547,466. The Sepolia registry admitted that update. The active pool's proved 1-USDC deposit has been spent into the funded swap reservation. Older deployments and their receipts, including the separate 10-USDC deposit, remain preserved for recovery.
+The workspace implements protocol rules, Ironwood preparation, private notes, SPV header/window programs, conditional pool predicates, Ethereum authorization gates, encrypted recovery records and RFQ packages. Shared header/admission receipts cover stable height 4,547,456 and head 4,547,466. The actual payment-specific admission advances the accepted stable prefix to 4,547,740 and head 4,547,750. Older deployments and their receipts, including the separate 10-USDC deposit, remain preserved for recovery.
 
-The authenticated quote selected 0.01 Testnet ZEC for 1 USDC. The wallet verified reservation finality before signing; the shielded payment mined at height 4,547,730 with twenty following blocks. The maker wallet decrypted the expected ZEC note. The taker's restored record independently reproduced the payment-window witness. Genuine payment-window and source-admission proof requests are submitted; private payout and withdrawal remain pending. The headless execution adapters are implemented; the broader API below remains a product specification. Historical receipts certify only their recorded program identities and chain states.
+One 0.01-Testnet-ZEC → 1-USDC swap and explicit withdrawal completed with genuine proofs. The wallet verified reservation finality before signing; the shielded payment mined at height 4,547,730 with twenty following blocks. The maker decrypted the expected ZEC note. The taker's restored record reproduced the payment-window witness and supplied the actual private payout witness. The wallet verified ownership and unspent state of the 1-USDC payout against Ethereum finality, then completed the SDK withdrawal and authenticated the actual USDC transfer. The broader API below remains a product specification; the application client and browser wallet connectors are unfinished. Historical receipts certify their recorded program identities and chain states, not continuous future availability.
 
 ### Demo execution profile
 
@@ -109,7 +109,7 @@ The research checkout of `zcash-light-client` in this workspace is an SPV/transp
 
 RISC Zero 3.0.5 supplies the programs and Boundless supplies remote proving compute. The Testnet demo permits public swap witnesses through the existing Pinata/IPFS transport. Those inputs are readable by provers and anyone obtaining the published objects. Wallet signing keys remain local. This demo policy does not establish production witness confidentiality.
 
-The SPV adapter exports hashed public jobs and imports cryptographically verified Groth16 receipts. Source-prefix composition has fulfilled on Boundless; the remaining admission, payment/window and pool profiles still need genuine proof composition and live settlement validation. A mock proof, an execution result or an unresolved proof assumption cannot authorize settlement.
+The SPV adapter exports hashed public jobs and imports cryptographically verified Groth16 receipts. Source, admission, payment binding, reservation, payment-window, payout and withdrawal programs have genuine receipts in the completed Testnet flow. A mock proof, an execution result or an unresolved proof assumption cannot authorize settlement.
 
 ### 3.3 Configuration and versions
 
