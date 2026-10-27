@@ -156,7 +156,7 @@ fn genuine_reservation_receipt_preserves_the_bound_payment_and_deployment() {
     assert_eq!(claim.policy, binding.policy());
     assert_eq!(claim.binding_program, binding_image);
     assert_eq!(claim.pool_program, program);
-    assert_eq!(claim.expiry, 4_547_479);
+    assert_eq!(claim.expiry, 4_547_968);
     let mut changed = claim;
     changed.pool.reservation = Digest([254; 32]);
     assert!(verify(&reservation, program, &changed.to_bytes().unwrap()).is_err());

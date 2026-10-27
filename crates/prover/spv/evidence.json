@@ -808,8 +808,8 @@
     "source_admitted": true,
     "contracts_deployed": true,
     "funded_swap": false,
-    "verified_height": 4546967,
-    "confirmation_head_height": 4546977,
+    "verified_height": 4547456,
+    "confirmation_head_height": 4547466,
     "deployment": "../../../deploy/ethereum/sepolia.json",
     "proof_evidence": "../../../deploy/source/testnet/proof.json",
     "ethereum_finality_verified": true,
@@ -818,9 +818,10 @@
     "private_pool_evidence": "../../../deploy/ethereum/maker-deposit.json",
     "payment_binding_proof_verified": true,
     "reservation_proof_verified": true,
-    "reservation_applied": false,
+    "reservation_applied": true,
     "swap_executed": false,
     "swap_proof_evidence": "../../../deploy/ethereum/swap-proof.json",
-    "source_refresh_required": true
+    "source_refresh_required": true,
+    "zec_payment_mined": true
   }
 }

@@ -3,86 +3,68 @@
     "verification": {
       "canonicality_admitted": false,
       "chain_id": 8453,
-      "collection_seconds": 448.439849417,
+      "collection_seconds": 450.884695042,
       "image_id": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
-      "journal_sha256": "755bb3a468e226bc7e384659426bc69b0f52f890a1e92ff21eeee9a82677075c",
+      "journal_sha256": "0cd554e79df815dfe04bfddf22044e6ca3c700017cfed81d956a48d088a13673",
       "proof_verified": true,
-      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74830dd37240",
-      "request_to_receipt_seconds": 463,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483fd553540",
+      "request_to_receipt_seconds": 465,
       "swap_executed": false
-    },
-    "execution": {
-      "cycles": 54732539,
-      "host_assumptions": 0,
-      "image_id": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
-      "journal_matches": true,
-      "paid_jobs": 0,
-      "proof_generated": false,
-      "seconds": 1.131286708
     },
     "market": {
       "chain_id": 8453,
-      "fulfilled_at": 1793098265,
-      "fulfillment_block": 53154459,
-      "fulfillment_transaction": "0xf0388a1910f2ce0488df5323688729fcffead39a5bddb0ce761f567cdf925f04",
+      "fulfilled_at": 1793107077,
+      "fulfillment_block": 53158865,
+      "fulfillment_transaction": "0x839363988dec641c4b72adcfa8fd69529ba153cffdc1f4ab279312700ca708dc",
       "image_id": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
       "input_visibility": "public",
-      "lock_to_fulfillment_seconds": 436,
-      "locked_at": 1793097829,
+      "lock_to_fulfillment_seconds": 442,
+      "locked_at": 1793106635,
       "price_wei": "28333333333333",
-      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74830dd37240",
-      "submission_to_fulfillment_seconds": 455,
-      "submitted_at": 1793097810,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483fd553540",
+      "submission_to_fulfillment_seconds": 461,
+      "submitted_at": 1793106616,
       "version": 1
     },
     "program": "binding-program.elf",
     "receipt": "binding-receipt.bin",
-    "journal": "binding-journal.bin",
-    "seal": "binding-seal.bin"
+    "seal": "binding-seal.bin",
+    "journal": "binding-journal.bin"
   },
   "reservation": {
     "verification": {
       "canonicality_admitted": false,
       "chain_id": 8453,
-      "collection_seconds": 1326.26042825,
+      "collection_seconds": 596.140588042,
       "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
-      "journal_sha256": "fc641bdbfe287d4a4c93753024da5180c1436d82d3b0168aeafa1f8089fa2654",
+      "journal_sha256": "c1da8d8690e6497f4d67775aa8a4d283cf9ad3052cb320ba522e47ade2b1477c",
       "proof_verified": true,
-      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c727dbd2",
-      "request_to_receipt_seconds": 1340,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74831ae78043",
+      "request_to_receipt_seconds": 611,
       "swap_executed": false
-    },
-    "execution": {
-      "cycles": 383259387,
-      "host_assumptions": 0,
-      "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
-      "journal_matches": true,
-      "paid_jobs": 0,
-      "proof_generated": false,
-      "seconds": 6.271136209
     },
     "market": {
       "chain_id": 8453,
-      "fulfilled_at": 1793100275,
-      "fulfillment_block": 53155464,
-      "fulfillment_transaction": "0x9e568f0f11e7117c30c529f4f5fceadf413e6bcb23ceee1e9eaf47ec4ce7702d",
+      "fulfilled_at": 1793108569,
+      "fulfillment_block": 53159611,
+      "fulfillment_transaction": "0x738b72c0ff666fa611c3b00749e8ca5c10a4cc1b726a098e3c87044a7e04e77f",
       "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
       "input_visibility": "public",
-      "lock_to_fulfillment_seconds": 1308,
-      "locked_at": 1793098967,
+      "lock_to_fulfillment_seconds": 580,
+      "locked_at": 1793107989,
       "price_wei": "29166666666666",
-      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c727dbd2",
-      "submission_to_fulfillment_seconds": 1328,
-      "submitted_at": 1793098947,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74831ae78043",
+      "submission_to_fulfillment_seconds": 600,
+      "submitted_at": 1793107969,
       "version": 1
     },
     "program": "pool-program.elf",
     "receipt": "reservation-receipt.bin",
-    "journal": "reservation-journal.bin",
-    "seal": "reservation-seal.bin"
+    "seal": "reservation-seal.bin",
+    "journal": "reservation-journal.bin"
   },
   "schema": 1,
-  "swap_id": "a599b05208a041eb45270722e8cea3d2fd3f5566c977dedb13f89d775874d0dc",
+  "swap_id": "f79d2cad71378ec7f33e47d6e63e65a4cc110b8ed4a2464095d90b78b0e1e7a6",
   "direction": "ZEC/USDC",
   "input": {
     "asset": "ZEC",
@@ -92,58 +74,111 @@
     "asset": "USDC",
     "amount": "1"
   },
+  "source_expiry_height": 4547968,
   "rfq_authenticated_locally": true,
   "native_zcash_proof_generated": true,
-  "zec_signed": false,
-  "zec_broadcast": false,
-  "reservation_applied": false,
+  "zec_signed": true,
+  "zec_broadcast": true,
+  "reservation_applied": true,
   "swap_executed": false,
+  "private_payout_applied": false,
+  "withdrawal_applied": false,
   "recovery_record_restored": true,
-  "reservation_tamper_checks": {
-    "changed_proof_rejected": true,
-    "changed_receipt_journal_rejected": true,
-    "development_mode": false,
-    "settlement_authority": false,
-    "valid_receipt_verified": true,
-    "wrong_expected_journal_rejected": true,
-    "wrong_image_rejected": true
+  "owner_window_recovery": {
+    "owner_recovery_window_reproduced": true,
+    "maker_funding_witness_used": false,
+    "exact_window_witness_matches": true,
+    "exact_window_journal_matches": true,
+    "native_result": {
+      "height": 4547740,
+      "payment_inclusion_checked": true,
+      "proof_generated": false
+    }
   },
-  "ethereum_preflight": {
-    "transaction_broadcast": false,
-    "revert": "InvalidOperation()",
-    "source_fresh": false,
-    "source_freshness_deadline": 1793100001
+  "maker_zec_receipt": {
+    "amount_units": 1000000,
+    "block": "68fd73b98d86d3536dd29c732f60f3ce91522cb1f98a3a9b1521eae4171b0000",
+    "height": 4547750,
+    "ironwood_notes": 1,
+    "transaction_validity_verified": false,
+    "source_transaction": "eca18c82bf3bb690f23a11f98ea0cbf6d664e8b87f400385fe0780ac8c38c11b",
+    "payment_height": 4547730,
+    "confirmation_height": 4547750,
+    "received_amount": {
+      "asset": "ZEC",
+      "amount": "0.01"
+    },
+    "viewing_and_signing_keys_local": true
+  },
+  "taker_zec_change": {
+    "amount_units": 98990000,
+    "block": "68fd73b98d86d3536dd29c732f60f3ce91522cb1f98a3a9b1521eae4171b0000",
+    "height": 4547750,
+    "ironwood_notes": 1,
+    "transaction_validity_verified": false,
+    "source_fee_units": 10000,
+    "source_payment_units": 1000000,
+    "viewing_and_signing_keys_local": true
+  },
+  "deployed_pool_rejection": {
+    "chain_id": 11155111,
+    "pool": "0x25b324a015164b76f4481bac8c70bab40bb68cf6",
+    "checked_at": 1793114265,
+    "funded_escrow_nullifier_unspent": true,
+    "known_pool_root": "0x9892119af2c828c5f272317b1ad0c3aa1c40d913eaeb73ce0a70e0d01cc0dded",
+    "attempted_withdrawal_units": 1000000,
+    "proof_source": "genuine reservation receipt used for a different operation",
+    "expected_error": "VerificationFailed()",
+    "expected_selector": "0x439cc0cd",
+    "actual_selector": "0x439cc0cd",
+    "forged_withdrawal_rejected": true,
+    "transaction_submitted": false,
+    "paid_proof_jobs": 0
+  },
+  "source_payment": {
+    "transaction_id": "eca18c82bf3bb690f23a11f98ea0cbf6d664e8b87f400385fe0780ac8c38c11b",
+    "height": 4547730,
+    "confirmation_height": 4547750
+  },
+  "reservation_transaction": {
+    "transaction_id": "0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3",
+    "height": 12005633,
+    "ethereum_finality_verified": true
   },
   "testnet_witnesses_public": true,
   "signing_and_viewing_keys_local": true,
+  "source_bootstrap": "operator-selected-checkpoint",
+  "source_validity": "SPV with miner transaction-validity assumption",
+  "automatic_nonpayment_refunds": false,
+  "pending_proofs": [
+    "demo2-window-1",
+    "demo2-admission-2"
+  ],
+  "payout_and_withdrawal_proofs_submitted": false,
   "files": {
     "binding-receipt.bin": {
       "bytes": 954,
-      "sha256": "bbc6f8ef424189a41225b7a44aaa6fde54190a5fbb942daafeebc2cf13f79d4d"
+      "sha256": "a1bb3a7bfbc30b1965e577e122c6b49540fffff44a84ba6c3574266ec19c436a"
     },
     "binding-seal.bin": {
       "bytes": 260,
-      "sha256": "97eb2a01895feab0a520ace5df6e661ee42a195c0dac632071e1ecd828d23216"
+      "sha256": "6c8ea74f62c0e2137dd7e70420df7f5e4493b55ec156227a431923879c4bb373"
     },
     "binding-journal.bin": {
       "bytes": 234,
-      "sha256": "755bb3a468e226bc7e384659426bc69b0f52f890a1e92ff21eeee9a82677075c"
+      "sha256": "0cd554e79df815dfe04bfddf22044e6ca3c700017cfed81d956a48d088a13673"
     },
     "reservation-receipt.bin": {
       "bytes": 1296,
-      "sha256": "dc2d55f1776a51fb234c719f27cf5659f7c2b5b48ef463d8df1ecf7cd3a563ab"
+      "sha256": "436b3f619a5b7679cafc184014e29ed091bf55b147290cc62dafd21562dab168"
     },
     "reservation-seal.bin": {
       "bytes": 260,
-      "sha256": "c6ce562cbbd8d463145611127d500c7e618c5f853c7a073c5ea0b87101131bb1"
+      "sha256": "ebcda1b04cf050131c3a48e91b317824c8326442d22cc216276d0f460fd9a3be"
     },
     "reservation-journal.bin": {
       "bytes": 405,
-      "sha256": "fc641bdbfe287d4a4c93753024da5180c1436d82d3b0168aeafa1f8089fa2654"
-    },
-    "binding-program.elf": {
-      "bytes": 1519584,
-      "sha256": "8c8e0c58ad58b8256c340223cb91e63d9f4d0de589b3fa6972141ff81e3b9e7a"
+      "sha256": "c1da8d8690e6497f4d67775aa8a4d283cf9ad3052cb320ba522e47ade2b1477c"
     }
   }
 }

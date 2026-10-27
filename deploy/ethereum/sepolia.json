@@ -16,7 +16,7 @@
   "proof_profile_id": "ad6e8011c9d302158e6609fc4c27bbdd2122ab2b43905d83e72883d988b607bc",
   "domain": "ea13c69e75035e6175559dc35482344538e84a1f0a9f1d109d40a6313651fa85",
   "domain_encoding": "5a55545449444f4d0100382c4a332661c7ed0671f32a34d724619f086c61873bce7c99859dd9920aa605a736aa000000000025b324a015164b76f4481bac8c70bab40bb68cf61c7d4b196cb0c7b01d743fbc6116a902379c72384bb5604f4ae4c18f51e97e7e9fd4362fc295c5f5bd26ac8a7236d0c679e390606dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bcad6e8011c9d302158e6609fc4c27bbdd2122ab2b43905d83e72883d988b607bc",
-  "source_height": 4546967,
+  "source_height": 4547456,
   "source_prefix": "e2e63532cec49e587cd5c07a6b173e3f4b803c9a2651dd60e33304498b52a029",
   "source_admitted": true,
   "swap_executed": false,
@@ -71,6 +71,9 @@
     "note_unspent_verified": true,
     "amount_units": 1000000
   },
-  "source_freshness_deadline": 1793100001,
-  "legacy_deployment": "../legacy/20261027-r2/ethereum/sepolia.json"
+  "source_freshness_deadline": 1793111936,
+  "legacy_deployment": "../legacy/20261027-r2/ethereum/sepolia.json",
+  "source_refresh_required": true,
+  "reservation_applied": true,
+  "current_swap": "swap-proof.json"
 }
