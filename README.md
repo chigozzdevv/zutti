@@ -6,9 +6,11 @@ The Testnet demo uses checkpoint-bootstrapped SPV. A release pins one selected T
 
 ## Status
 
-The [Testnet source profile](deploy/source/testnet/profile.json) retains genuine source and admission receipts through height 4,546,967, with ten confirmation headers. The [deployment record](deploy/ethereum/sepolia.json) pins the Sepolia registry, private pool, token, program identities and transactions. The new pool holds a proved 1-USDC deposit whose ownership and unspent state were verified against Ethereum finality. The previous deployment and its separate 10-USDC deposit remain preserved under [legacy deployment records](deploy/legacy/20261027-r2/ethereum/sepolia.json).
+The [Testnet source profile](deploy/source/testnet/profile.json) retains genuine source and admission receipts through height 4,547,456, with ten confirmation headers. The [deployment record](deploy/ethereum/sepolia.json) pins the Sepolia registry, private pool, token, program identities and transactions. Its 1-USDC deposit has been spent into the actual swap reservation. The earlier deployment and its separate 10-USDC deposit remain preserved under [legacy deployment records](deploy/legacy/20261027-r2/ethereum/sepolia.json).
 
-The native wallet scanned an actual faucet-funded 1-TAZ Ironwood note and generated a shielded payment proof. An encrypted RFQ selected 0.01 Testnet ZEC for 1 Sepolia USDC. [Genuine payment-binding and reservation receipts](deploy/ethereum/swap-proof.json) verify under the deployed program identities. The source snapshot aged during setup and proving, so Ethereum preflight refused the reservation before broadcasting it. USDC remains unreserved and ZEC unsigned. A fresh source update is required before continuing; no completed swap is claimed.
+An authenticated encrypted RFQ selected 0.01 Testnet ZEC for 1 Sepolia USDC. The reservation is funded and verified against Ethereum finality. The shielded Zcash payment mined at height 4,547,730 and has twenty following blocks. The maker wallet decrypted the 0.01-ZEC receipt; the taker recovered 0.9899 ZEC of change after a 0.0001-ZEC network fee. The owner's restored backup independently reproduced the payment-window witness. [Current swap evidence](deploy/ethereum/swap-proof.json) records those results and a read-only deployed-pool rejection of a forged withdrawal.
+
+Payment-window and source-admission proof requests are submitted. Private payout and withdrawal remain pending; no completed swap is claimed. Historical source snapshots still require live freshness checks before new reservations.
 
 The [remaining work](#remaining-work) separates compiled programs, execution checks, genuine proof receipts and live transactions. The [refund security review](zutti.md#94-refund-security-review) concerns future refund support; the checkpoint demo rejects nonpayment settlement rather than treating missing evidence as a refund.
 
@@ -78,8 +80,8 @@ Paid jobs, rentals and parameter downloads require an explicit budget. Routine s
 ## Remaining work
 
 1. Maintain the source feed using genuine linked extensions and admission updates under the deployed policy. An admitted prefix does not prove later headers or stay fresh indefinitely.
-2. Execute the already-proved reservation after source freshness is restored. Payment binding and reservation proofs are retained; qualifying-payment, payout and withdrawal proofs still require the actual subsequent chain events. The new 1-USDC deposit is proved and executed in `deploy/ethereum/maker-deposit.json`.
-3. Run the connected wallet/SDK path through finalized reservation verification, native Zcash signing and broadcast, payment confirmation, private payout and verified withdrawal. The existing source-halt, remaining-window and finality checks remain mandatory.
+2. Collect and verify the submitted payment-window and source-admission proofs, then apply the matching source update. The 1-USDC deposit, reservation and native Zcash payment have executed.
+3. Complete the private payout and explicit withdrawal with genuine proofs, then authenticate note ownership and the actual token transfer against Ethereum finality. The source-halt, remaining-window and finality checks remain mandatory.
 4. Keep reverse swaps and nonpayment refunds disabled. Unavailable or unproved payment evidence leaves a reservation pending; future refund support needs the separate [lower-bound review](zutti.md#94-refund-security-review).
 5. Demonstrate a real ZEC → USDC payout, private balance and withdrawal, rejection of wrong evidence, pending behavior and recovery. Then deliver the application flow and submission materials.
 
