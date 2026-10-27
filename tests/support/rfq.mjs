@@ -13,7 +13,7 @@ import { create_relay_server } from "../../server/dist/app.js";
 import { create_zutti } from "../../packages/sdk/dist/index.js";
 import { create_zutti_maker } from "../../packages/maker-sdk/dist/index.js";
 
-import { domain, profile } from "./rfq-domain.mjs";
+import { domain, profile, receiving } from "./rfq-domain.mjs";
 export { domain, profile, options } from "./rfq-domain.mjs";
 export async function setup({ checkpoint } = {}) {
   const active_domain = checkpoint
@@ -50,6 +50,7 @@ export async function setup({ checkpoint } = {}) {
       },
     },
     preflight: async () => {},
+    receiving: async () => structuredClone(receiving),
     price: async () => {
       price_calls++;
       const now = Date.now();

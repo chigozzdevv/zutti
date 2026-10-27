@@ -29,6 +29,8 @@ export async function verify_offer(
     offer.gross_output.asset !== request.to ||
     offer.maker_fee.amount.asset !== request.to ||
     canonical(offer.policy) !== canonical(domain.policy) ||
+    (domain.network === "testnet" && !/^(?:utest1|zutest1)/.test(offer.receiving.zcash)) ||
+    (domain.network === "mainnet" && !/^(?:u1|zu1)/.test(offer.receiving.zcash)) ||
     core.compare(request.from, offer.input.amount, request.amount) !== 0
   )
     throw new ZuttiError("invalid_message", "Offer does not match the retained request");

@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { create_native_core } from "../../bindings/dist/native.js";
 import { digest, verify_offer } from "../dist/index.js";
-import { domain } from "../../../tests/support/rfq-domain.mjs";
+import { domain, receiving } from "../../../tests/support/rfq-domain.mjs";
 
 test("even a correctly identified maker cannot hide wrong fee arithmetic or change request terms", async () => {
   const core = create_native_core(process.env.ZUTTI_CORE_BINARY);
@@ -12,6 +12,7 @@ test("even a correctly identified maker cannot hide wrong fee arithmetic or chan
     intent_id: "55".repeat(32),
     request_id: "66".repeat(32),
     maker_id: "77".repeat(32),
+    receiving,
     input: { asset: "ZEC", amount: "5" },
     gross_output: { asset: "USDC", amount: "200" },
     maker_fee: { bps: 50, amount: { asset: "USDC", amount: "1" } },
@@ -66,6 +67,9 @@ test("even a correctly identified maker cannot hide wrong fee arithmetic or chan
     },
     (value) => {
       value.policy.source_policy_id = "99".repeat(32);
+    },
+    (value) => {
+      value.receiving.zcash = `u1${"q".repeat(100)}`;
     },
     (value) => {
       value.fees.pop();

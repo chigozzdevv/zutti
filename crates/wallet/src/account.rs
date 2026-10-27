@@ -144,4 +144,57 @@ impl WalletAccount {
     pub fn private_receiver(&self) -> Result<NoteRecipient> {
         Ok(self.notes.recipient()?)
     }
+
+    pub fn sign_payment(
+        &self,
+        bytes: &[u8],
+    ) -> Result<Vec<pczt::roles::signer::SpendAuthSignature>> {
+        use orchard::keys::SpendAuthorizingKey;
+        use pczt::{
+            Pczt,
+            roles::signer::{Signer, extract_orchard_spend_auth_signatures},
+        };
+        use rand::{rand_core::UnwrapErr, rngs::SysRng};
+        let pczt = Pczt::parse(bytes).map_err(|_| Error::Pczt)?;
+        let viewing = self.source_viewing_key();
+        let mut owned = Vec::new();
+        let pczt = pczt::roles::verifier::Verifier::new(pczt)
+            .with_ironwood::<(), _>(|bundle| {
+                bundle.verify_cross_address_restriction()?;
+                for (index, action) in bundle.actions().iter().enumerate() {
+                    if action
+                        .spend()
+                        .value()
+                        .is_some_and(|value| value.inner() > 0)
+                    {
+                        action.spend().verify_nullifier(Some(&viewing))?;
+                        action.spend().verify_rk(Some(&viewing))?;
+                        owned.push(index);
+                    }
+                }
+                Ok(())
+            })
+            .map_err(|_| Error::Signatures)?
+            .finish();
+        if owned.is_empty() {
+            return Err(Error::Signatures);
+        }
+        let mut signer = Signer::new(pczt).map_err(|_| Error::Signatures)?;
+        for index in &owned {
+            signer
+                .sign_ironwood(
+                    UnwrapErr(SysRng),
+                    *index,
+                    &SpendAuthorizingKey::from(&self.source),
+                )
+                .map_err(|_| Error::Signatures)?;
+        }
+        Ok(extract_orchard_spend_auth_signatures(&signer.finish())
+            .into_iter()
+            .filter(|signature| {
+                signature.value_pool() == orchard::ValuePool::Ironwood
+                    && owned.contains(&signature.action_index())
+            })
+            .collect())
+    }
 }

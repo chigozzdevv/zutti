@@ -42,10 +42,19 @@ export const fee_quote = z.strictObject({
   max_amount: amount,
   estimated_amount: amount.nullable(),
 });
+export const receiving_descriptor = z.strictObject({
+  zcash: z.string().min(50).max(512).regex(/^(?:utest1|u1|zutest1|zu1)[a-z0-9]+$/),
+  usdc: z.strictObject({
+    owner: z.string().regex(/^(?:02|03)[0-9a-f]{64}$/),
+    viewing: digest,
+    nullifier_key_commitment: digest,
+  }),
+});
 export const offer_body = z.strictObject({
   intent_id: digest,
   request_id: digest,
   maker_id: digest,
+  receiving: receiving_descriptor,
   input: asset_amount,
   gross_output: asset_amount,
   maker_fee: z.strictObject({ bps: z.number().int().min(0).max(9999), amount: asset_amount }),
@@ -99,6 +108,7 @@ export type MakerAnnouncementBody = z.infer<typeof maker_announcement_body>;
 export type RequestBody = z.infer<typeof request_body>;
 export type WireOffer = z.infer<typeof wire_offer>;
 export type OfferBody = z.infer<typeof offer_body>;
+export type ReceivingDescriptor = z.infer<typeof receiving_descriptor>;
 export type Envelope = z.infer<typeof envelope>;
 export type EnvelopeHeader = z.infer<typeof envelope_header>;
 export type MailboxAuth = z.infer<typeof mailbox_auth>;

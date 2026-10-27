@@ -34,7 +34,7 @@ scripts/               build, verification and source workers
 deploy/source/         Testnet node configuration
 ```
 
-The application client and live wallet/settlement adapters remain unfinished. [zutti.md](zutti.md) specifies the intended product and SDK contract; it does not claim that every proposed method is operational.
+Authenticated offers bind the maker's Zcash and private-USDC receiving descriptors. The native wallet builds the exact unsigned payment and encrypted recovery record from the selected offer and an owned Ironwood note. Native transaction proving stays local. The application client and SDK settlement execution remain unfinished. [zutti.md](zutti.md) specifies the intended product and SDK contract; it does not claim that every proposed method is operational.
 
 ## Development
 

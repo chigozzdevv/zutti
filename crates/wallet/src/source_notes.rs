@@ -290,7 +290,15 @@ pub fn scan_ironwood(
     blocks: &[Vec<u8>],
     expected_anchor: [u8; 32],
 ) -> Result<SourceScan> {
-    if blocks.is_empty() || blocks.len() > 128 || tree_bytes.len() > 4096 {
+    if blocks.is_empty()
+        || blocks.len() > 4096
+        || tree_bytes.len() > 4096
+        || blocks
+            .iter()
+            .map(Vec::len)
+            .try_fold(0_usize, usize::checked_add)
+            .is_none_or(|bytes| bytes > 16_777_216)
+    {
         return Err(Error::SourceState("scan bounds"));
     }
     let mut input = tree_bytes;

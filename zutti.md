@@ -188,6 +188,8 @@ An offer binds the request, maker identity, input/output assets, exact input, ne
 
 An offer ID identifies immutable signed content. The client retains the displayed offer and its digest; a server cannot reuse that ID for revised amounts, fees or policy. Settlement details fixed during preparation must satisfy that signed offer and receive the corresponding owner's approval.
 
+The signed offer includes the maker's Zcash receiver and private-USDC receiving descriptor. Native preparation checks the Unified Address and receiving keys, derives the private payout from the taker's own account, and binds both outcomes to the exact amounts, fees, payment identity and inclusion window. The encrypted prepared-order archive retains the unsigned PCZT and reservation opening. Sharing a reservation does not share source spending or viewing keys.
+
 The SDK verifies offer authentication, request binding, units, policy support, freshness and complete costs before presenting an offer as actionable. It does not replace a selected offer with a different price or maker without new user approval. Selecting a maker does not authorize payment until the subsequent checks and wallet approval succeed.
 
 ### 5.4 Three different timing rules

@@ -34,3 +34,11 @@ export const options = {
     max_active_swaps: 20,
   },
 };
+export const receiving = {
+  zcash: `utest1${"q".repeat(100)}`,
+  usdc: {
+    owner: `02${"11".repeat(32)}`,
+    viewing: "12".repeat(32),
+    nullifier_key_commitment: "13".repeat(32),
+  },
+};

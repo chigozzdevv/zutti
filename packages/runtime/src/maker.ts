@@ -14,6 +14,7 @@ import type {
   MakerStartOptions,
   OfferBody,
   RfqDomain,
+  ReceivingDescriptor,
 } from "@zutti/schema";
 import type { ProtocolCore } from "@zutti/bindings";
 import { canonical, digest, random_id } from "./encoding.js";
@@ -44,6 +45,7 @@ export interface MakerRuntimeConfig {
   price(request: Readonly<IntentInput>): Promise<PriceQuote>;
   capacity(): Promise<{ ZEC: string; USDC: string; ETH: string }>;
   fees(request: Readonly<IntentInput>): Promise<readonly FeeQuote[]>;
+  receiving(): Promise<ReceivingDescriptor>;
 }
 const response_record = z.strictObject({
   request_digest: z.string(),
@@ -74,7 +76,7 @@ export class RfqMaker {
       const range = options.limits.per_trade[asset];
       this.config.core.amount(asset, range.min);
       this.config.core.amount(asset, range.max);
-      this.config.core.amount(asset, options.limits.max_committed[asset]);
+      this.config.core.amount(asset, options.limits.max_committed[asset], false);
       if (this.config.core.compare(asset, range.min, range.max) > 0)
         throw new ZuttiError("invalid_input", "Maker trade limits are reversed");
     }
@@ -328,6 +330,7 @@ export class RfqMaker {
       intent_id: payload.intent_id,
       request_id: payload.request_id,
       maker_id: this.config.identity.id,
+      receiving: await this.provider(this.config.receiving(), signal),
       input: { asset: request.from, amount: amounts.input },
       gross_output: { asset: request.to, amount: amounts.gross },
       maker_fee: { bps: options.fee_bps, amount: { asset: request.to, amount: amounts.fee } },

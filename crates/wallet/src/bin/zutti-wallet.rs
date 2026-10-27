@@ -19,6 +19,30 @@ struct Args {
 
 #[derive(Subcommand)]
 enum Command {
+    ShareOrder {
+        #[arg(long)]
+        directory: PathBuf,
+        #[arg(long)]
+        deployment: PathBuf,
+        #[arg(long)]
+        order: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Order {
+        #[arg(long)]
+        directory: PathBuf,
+        #[arg(long)]
+        deployment: PathBuf,
+        #[arg(long)]
+        notes: PathBuf,
+        #[arg(long)]
+        anchor: PathBuf,
+        #[arg(long)]
+        offer: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+    },
     Init {
         #[arg(long)]
         directory: PathBuf,
@@ -61,7 +85,7 @@ enum Command {
         #[arg(long)]
         trees: PathBuf,
         #[arg(long)]
-        block: PathBuf,
+        block: Vec<PathBuf>,
         #[arg(long)]
         out: PathBuf,
     },
@@ -96,6 +120,40 @@ enum Command {
 
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let account = match Args::parse().command {
+        Command::ShareOrder {
+            directory,
+            deployment,
+            order,
+            out,
+        } => {
+            let profile = read_deployment(deployment)?;
+            let (domain, _) = deployment_context(&profile)?;
+            WalletAccount::open(&directory)?;
+            let key = backup::read_private(&directory.join("account.key"), 32)?;
+            let key = Secret32::from_bytes(key.as_slice().try_into()?)?;
+            let prepared = zutti_wallet::order::PreparedOrder::from_bytes(&backup::open(
+                domain.id()?,
+                &backup::read_private(&order, 262_144)?,
+                &key,
+            )?)?;
+            if prepared.reservation().terms.domain() != &domain {
+                return Err("order deployment mismatch".into());
+            }
+            backup::persist_new(&out, &prepared.reservation().to_bytes()?)?;
+            println!(
+                "{}",
+                serde_json::json!({"reservation_shared":true,"authorized":false})
+            );
+            return Ok(());
+        }
+        Command::Order {
+            directory,
+            deployment,
+            notes,
+            anchor,
+            offer,
+            out,
+        } => return order(directory, deployment, notes, anchor, offer, out),
         Command::Init { directory } => WalletAccount::create(&directory)?,
         Command::Address { directory } => WalletAccount::open(&directory)?,
         Command::Deposit {
@@ -211,6 +269,215 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+fn canonical_json(value: &serde_json::Value) -> Result<String, Box<dyn std::error::Error>> {
+    use serde_json::Value;
+    Ok(match value {
+        Value::Object(fields) => {
+            let mut keys: Vec<_> = fields.keys().collect();
+            keys.sort();
+            let fields = keys
+                .into_iter()
+                .map(|key| {
+                    Ok(format!(
+                        "{}:{}",
+                        serde_json::to_string(key)?,
+                        canonical_json(&fields[key])?
+                    ))
+                })
+                .collect::<Result<Vec<_>, Box<dyn std::error::Error>>>()?;
+            format!("{{{}}}", fields.join(","))
+        }
+        Value::Array(values) => format!(
+            "[{}]",
+            values
+                .iter()
+                .map(canonical_json)
+                .collect::<Result<Vec<_>, _>>()?
+                .join(",")
+        ),
+        Value::Number(number) => {
+            let value = number.as_i64().ok_or("RFQ numbers must be safe integers")?;
+            if value.unsigned_abs() > 9_007_199_254_740_991 {
+                return Err("RFQ number exceeds its bound".into());
+            }
+            value.to_string()
+        }
+        _ => serde_json::to_string(value)?,
+    })
+}
+
+fn order(
+    directory: PathBuf,
+    deployment: PathBuf,
+    notes: PathBuf,
+    anchor: PathBuf,
+    offer: PathBuf,
+    out: PathBuf,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use sha2::Digest as _;
+    use zutti_protocol::{amount::FeeBps, private_note::NoteRecipient};
+    use zutti_wallet::{
+        order::{MakerRecipients, OrderContext, PreparedOrder, QuoteTerms},
+        source_notes::SourceScan,
+    };
+    if out.try_exists()? {
+        return Err("order output already exists".into());
+    }
+    let profile = read_deployment(deployment)?;
+    let (domain, policy) = deployment_context(&profile)?;
+    let account = WalletAccount::open(&directory)?;
+    let key = backup::read_private(&directory.join("account.key"), 32)?;
+    let key = Secret32::from_bytes(key.as_slice().try_into()?)?;
+    let scan = SourceScan::from_bytes(&backup::open(
+        ZCASH_TESTNET_GENESIS,
+        &backup::read_private(&notes, 262_144)?,
+        &key,
+    )?)?;
+    let mut anchor_bytes = Vec::new();
+    fs::File::open(anchor)?
+        .take(16_385)
+        .read_to_end(&mut anchor_bytes)?;
+    if anchor_bytes.len() > 16_384 {
+        return Err("source anchor exceeds its bound".into());
+    }
+    let anchor = zutti_source::spv::HeaderClaim::from_bytes(&anchor_bytes)?;
+    let mut offer: serde_json::Value =
+        serde_json::from_slice(&backup::read_private(&offer, 65_536)?)?;
+    let id = Digest::from_hex(
+        offer
+            .as_object_mut()
+            .ok_or("invalid offer")?
+            .remove("id")
+            .and_then(|value| value.as_str().map(str::to_owned))
+            .ok_or("missing offer ID")?
+            .as_str(),
+    )?;
+    let hash=sha2::Sha256::digest(canonical_json(&serde_json::json!({"protocol":"zutti-rfq","version":1,"purpose":"offer","value":offer}))?.as_bytes());
+    if Digest(hash.into()) != id {
+        return Err("offer commitment mismatch".into());
+    }
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_millis();
+    if offer["deadline"]
+        .as_u64()
+        .is_none_or(|deadline| u128::from(deadline) <= now)
+        || offer["input"]["asset"] != "ZEC"
+        || offer["gross_output"]["asset"] != "USDC"
+        || offer["output"]["asset"] != "USDC"
+        || offer["maker_fee"]["amount"]["asset"] != "USDC"
+        || offer["policy"]["source_policy_id"] != domain.source_policy().to_string()
+        || offer["policy"]["payment_profile_id"] != domain.payment_profile().to_string()
+        || offer["policy"]["proof_profile_id"] != domain.proof_profile().to_string()
+        || offer["policy"]["ethereum_finality"] != "finalized"
+    {
+        return Err("offer terms or deployment mismatch".into());
+    }
+    let text = |value: &serde_json::Value| -> Result<String, Box<dyn std::error::Error>> {
+        Ok(value.as_str().ok_or("missing offer field")?.to_owned())
+    };
+    let zec = Amount::parse(Asset::Zec, &text(&offer["input"]["amount"])?)?;
+    let gross = Amount::parse(Asset::Usdc, &text(&offer["gross_output"]["amount"])?)?;
+    let fee = FeeBps::new(u16::try_from(
+        offer["maker_fee"]["bps"]
+            .as_u64()
+            .ok_or("missing maker fee")?,
+    )?)?;
+    let net = gross.net_after_fee(fee);
+    if net != Amount::parse(Asset::Usdc, &text(&offer["output"]["amount"])?)?
+        || gross.checked_sub(net)?
+            != Amount::parse(Asset::Usdc, &text(&offer["maker_fee"]["amount"]["amount"])?)?
+    {
+        return Err("offer fee arithmetic mismatch".into());
+    }
+    let mut caps = [
+        Amount::from_units(Asset::Zec, 0)?,
+        Amount::from_units(Asset::Eth, 0)?,
+        Amount::from_units(Asset::Usdc, 0)?,
+    ];
+    let mut seen = std::collections::BTreeSet::new();
+    for item in offer["fees"].as_array().ok_or("missing fee caps")? {
+        let kind = text(&item["kind"])?;
+        let (index, asset) = match kind.as_str() {
+            "source_network" => (0, Asset::Zec),
+            "ethereum_execution" => (1, Asset::Eth),
+            "submission" => (2, Asset::Usdc),
+            _ => return Err("unsupported fee kind".into()),
+        };
+        if !seen.insert(index) || item["asset"] != ["ZEC", "ETH", "USDC"][index] {
+            return Err("invalid or duplicate fee cap".into());
+        }
+        caps[index] = Amount::parse(asset, &text(&item["max_amount"])?)?;
+    }
+    if !seen.contains(&0) || !seen.contains(&1) {
+        return Err("missing network fee caps".into());
+    }
+    let descriptor = &offer["receiving"];
+    let refund = NoteRecipient::new(
+        hex::decode(text(&descriptor["usdc"]["owner"])?)?
+            .try_into()
+            .map_err(|_| "invalid note owner")?,
+        hex::decode(text(&descriptor["usdc"]["viewing"])?)?
+            .try_into()
+            .map_err(|_| "invalid note viewing key")?,
+        Digest::from_hex(&text(&descriptor["usdc"]["nullifier_key_commitment"])?)?,
+    )?;
+    let maker = MakerRecipients::from_address(&text(&descriptor["zcash"])?, refund)?;
+    let prepared = PreparedOrder::prepare(
+        OrderContext {
+            domain: domain.clone(),
+            policy,
+            anchor,
+            source: &scan,
+            account: &account,
+        },
+        QuoteTerms {
+            offer: id,
+            zec,
+            gross_usdc: gross,
+            fee_bps: fee,
+            fee_caps: caps,
+            nonce: Digest::from_hex(&text(&offer["nonce"])?)?,
+        },
+        maker,
+    )?;
+    let parent = out
+        .parent()
+        .filter(|path| !path.as_os_str().is_empty())
+        .unwrap_or(std::path::Path::new("."));
+    let stage = tempfile::Builder::new()
+        .prefix(".zutti-order-")
+        .tempdir_in(parent)?;
+    let reservation = prepared.reservation();
+    let plaintext = zeroize::Zeroizing::new(prepared.to_bytes()?);
+    backup::persist_new(
+        &stage.path().join("order.backup"),
+        &backup::seal(domain.id()?, &plaintext, &key)?,
+    )?;
+    backup::persist_new(
+        &stage.path().join("binding-witness.bin"),
+        &prepared.binding_witness()?.to_bytes()?,
+    )?;
+    backup::persist_new(&stage.path().join("unsigned.pczt"), prepared.payment())?;
+    backup::persist_new(
+        &stage.path().join("terms.bin"),
+        &reservation.terms.to_bytes()?,
+    )?;
+    backup::persist_new(
+        &stage.path().join("randomness.key"),
+        reservation.order_randomness.expose(),
+    )?;
+    let summary = serde_json::json!({"offer":id.to_string(),"txid":reservation.txid.to_string(),"source_height":scan.height,"expiry":reservation.terms.window().expiry(),"zec":zec.to_string(),"usdc":net.to_string(),"authorized":false,"broadcast":false});
+    backup::persist_new(
+        &stage.path().join("order.json"),
+        &serde_json::to_vec_pretty(&summary)?,
+    )?;
+    fs::rename(stage.path(), &out)?;
+    fs::File::open(parent)?.sync_all()?;
+    println!("{summary}");
+    Ok(())
+}
+
 fn prepare_payment(
     directory: PathBuf,
     deployment: PathBuf,
@@ -284,7 +551,7 @@ fn prepare_payment(
 fn scan(
     directory: PathBuf,
     trees: PathBuf,
-    block: PathBuf,
+    block: Vec<PathBuf>,
     out: PathBuf,
 ) -> Result<(), Box<dyn std::error::Error>> {
     use zutti_protocol::encoding::Writer;
@@ -305,7 +572,10 @@ fn scan(
             .as_u64()
             .ok_or("missing previous height")?,
     )?;
-    if current["height"].as_u64() != Some(u64::from(height) + 1) {
+    if block.is_empty()
+        || block.len() > 4096
+        || current["height"].as_u64() != Some(u64::from(height) + block.len() as u64)
+    {
         return Err("tree state height mismatch".into());
     }
     let mut parent = hex::decode(previous["hash"].as_str().ok_or("missing previous hash")?)?;
@@ -321,19 +591,27 @@ fn scan(
             .as_str()
             .ok_or("missing Ironwood anchor")?,
     )?;
-    let mut block_data = Vec::new();
-    fs::File::open(block)?
-        .take(2_000_001)
-        .read_to_end(&mut block_data)?;
-    if block_data.len() > 2_000_000 {
-        return Err("block exceeds its bound".into());
+    let mut blocks = Vec::new();
+    let mut total = 0_usize;
+    for file in block {
+        let mut block_data = Vec::new();
+        fs::File::open(file)?
+            .take(2_000_001)
+            .read_to_end(&mut block_data)?;
+        total = total
+            .checked_add(block_data.len())
+            .ok_or("block range overflow")?;
+        if block_data.len() > 2_000_000 || total > 16_777_216 {
+            return Err("scan blocks exceed their bound".into());
+        }
+        blocks.push(block_data);
     }
     let scan = zutti_wallet::source_notes::scan_ironwood(
         &account.source_viewing_key(),
         height,
         parent,
         &tree,
-        &[block_data],
+        &blocks,
         anchor.try_into().map_err(|_| "invalid anchor")?,
     )?;
     if scan.block.to_string()
