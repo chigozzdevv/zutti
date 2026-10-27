@@ -1,13 +1,17 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { format, resolveConfig } from "prettier";
 
 const root = new URL("../../", import.meta.url);
 const contracts = {
   PrivatePool: "private-pool",
   SourceRegistry: "source-registry",
   PreparationVerifier: "preparation-verifier",
+  SpvPool: "spv-pool",
+  SpvRegistry: "spv-registry",
 };
 const destination = new URL("src/generated/", import.meta.url);
+const formatting = await resolveConfig(fileURLToPath(root));
 await mkdir(destination, { recursive: true });
 for (const [contract, file] of Object.entries(contracts)) {
   const artifact: unknown = JSON.parse(
@@ -22,7 +26,10 @@ for (const [contract, file] of Object.entries(contracts)) {
     throw new Error(`Missing ABI: ${contract}`);
   await writeFile(
     new URL(`${file}.ts`, destination),
-    `export const abi = ${JSON.stringify(artifact.abi, null, 2)} as const;\n`,
+    await format(`export const abi = ${JSON.stringify(artifact.abi, null, 2)} as const;\n`, {
+      ...formatting,
+      parser: "typescript",
+    }),
   );
 }
 await writeFile(

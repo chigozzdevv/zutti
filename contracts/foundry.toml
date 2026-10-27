@@ -5,7 +5,7 @@ script = "script"
 out = "out"
 libs = ["lib"]
 remappings = ["openzeppelin/=vendor/openzeppelin/"]
-fs_permissions = [{ access = "read-write", path = "../.data/local-e2e" }, { access = "read", path = "../.data" }, { access = "read", path = "../tests/fixtures" }]
+fs_permissions = [{ access = "read-write", path = "../.data/local-e2e" }, { access = "read", path = "../.data" }, { access = "read", path = "../tests/fixtures" }, { access = "read", path = "../deploy/source" }]
 solc_version = "0.8.30"
 evm_version = "cancun"
 optimizer = true
