@@ -33,6 +33,18 @@ def private_json(path):
     return json.loads(path.read_text())
 
 
+def lock_ledger(lock):
+    deadline = time.monotonic() + 240
+    while True:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                raise RuntimeError("Proof accounting is busy; no request was submitted")
+            time.sleep(0.1)
+
+
 def submit(args):
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", args.name):
         raise ValueError("Invalid proof operation name")
@@ -49,12 +61,21 @@ def submit(args):
     identity = hashlib.sha256(json.dumps({key: job[key] for key in
         ("image_id", "stdin_sha256", "journal_sha256", "cycles")}, sort_keys=True).encode()).hexdigest()
     with args.ledger.with_suffix(".lock").open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_ledger(lock)
         ledger = private_json(args.ledger)
         if (ledger["network"] != "base" or ledger["automatic_resubmission"] is not False
                 or ledger["testnet_witnesses_public"] is not True):
             raise ValueError("Approval does not cover this run")
         records = ledger["requests"]
+        maximum = ledger["maximum_requests"]
+        if maximum is None or ledger.get("scope") is not None:
+            scope = ledger.get("scope", {})
+            if (scope.get("kind") != "single_testnet_swap" or scope.get("completed") is not False
+                    or job["image_id"] not in scope.get("programs", [])
+                    or not any(re.fullmatch(pattern, args.name) for pattern in scope.get("request_names", []))):
+                raise ValueError("Proof is outside the approved Testnet swap scope")
+        if maximum is not None and (not isinstance(maximum, int) or isinstance(maximum, bool) or maximum <= 0):
+            raise ValueError("Invalid proof request limit")
         duplicate = False
         for record in records:
             previous = private_json(Path(record["job"]))
@@ -64,7 +85,7 @@ def submit(args):
         reserved = sum(int(record["reserved_wei"]) for record in records)
         if (cap <= 0 or cap > int(ledger["per_request_cap_wei"])
                 or reserved + cap > int(ledger["total_cap_wei"])
-                or len(records) >= ledger["maximum_requests"]):
+                or (maximum is not None and len(records) >= maximum)):
             raise ValueError("Proof exceeds the approved run budget")
         request = args.ledger.parent / f"{args.name}-request.json"
         log = args.ledger.parent / f"{args.name}-submit.log"
@@ -102,7 +123,7 @@ def submit(args):
 
 def reconcile(args):
     with args.ledger.with_suffix(".lock").open("a") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        lock_ledger(lock)
         ledger = private_json(args.ledger)
         records = [record for record in ledger["requests"] if record["name"] == args.settle]
         if len(records) != 1:

@@ -82,5 +82,26 @@ class BudgetTests(unittest.TestCase):
         self.args.name="renamed"
         with self.assertRaises(ValueError):submit(self.args)
 
+    def test_uncounted_requests_require_explicit_open_scope_and_retain_the_eth_cap(self):
+        ledger=json.loads(self.args.ledger.read_text());ledger['maximum_requests']=None;save(self.args.ledger,ledger)
+        with self.assertRaises(ValueError):submit(self.args)
+        ledger['scope']={'kind':'single_testnet_swap','completed':False,'programs':['11'*32],'request_names':['source-[0-9]+']};save(self.args.ledger,ledger)
+        self.args.name='unrelated'
+        with self.assertRaises(ValueError):submit(self.args)
+        self.args.name='source-1';submit(self.args)
+        self.args.name='source-2';job=json.loads(self.args.job.read_text());job['journal_sha256']='55'*32
+        self.args.job=self.args.job.with_name('second.json');save(self.args.job,job)
+        with self.assertRaises(ValueError):submit(self.args)
+        self.assertEqual(len(json.loads(self.args.ledger.read_text())['requests']),1)
+
+
+    def test_completed_or_mismatched_scope_blocks_even_a_numeric_request_limit(self):
+        ledger=json.loads(self.args.ledger.read_text())
+        scope={'kind':'single_testnet_swap','completed':False,'programs':['11'*32],'request_names':['source-[0-9]+']}
+        for changes in ({'completed':True},{'programs':['22'*32]},{'request_names':['withdrawal-[0-9]+']}):
+            ledger['scope']={**scope,**changes};save(self.args.ledger,ledger)
+            with self.assertRaises(ValueError):submit(self.args)
+            self.assertEqual(json.loads(self.args.ledger.read_text())['requests'],[])
+
 
 if __name__=="__main__":unittest.main()
