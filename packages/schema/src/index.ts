@@ -4,3 +4,4 @@ export * from "./rfq.js";
 export * from "./error.js";
 export * from "./status.js";
 export * from "./maker.js";
+export * from "./settlement.js";
