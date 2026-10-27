@@ -1,0 +1,136 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "checkpoint_height": 4546454,
+  "source_verified_height": 4546474,
+  "confirmed_head_height": 4546484,
+  "proof_requests": 2,
+  "maximum_total_authorized_wei": "125000000000000",
+  "actual_prover_fee_wei": "56666666666666",
+  "public_testnet_inputs": true,
+  "source_admitted": true,
+  "swap_executed": false,
+  "proofs": {
+    "source": {
+      "verification": {
+        "canonicality_admitted": false,
+        "chain_id": 8453,
+        "collection_seconds": 33.68049125,
+        "image_id": "11cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa",
+        "journal_sha256": "8f624d7175cf41fb7a11b67a3a04a98a26b954db70eb70a5218ae9fa5505685b",
+        "proof_verified": true,
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483035dddcb",
+        "request_to_receipt_seconds": 83,
+        "swap_executed": false
+      },
+      "tamper_checks": {
+        "changed_proof_rejected": true,
+        "changed_receipt_journal_rejected": true,
+        "development_mode": false,
+        "settlement_authority": false,
+        "valid_receipt_verified": true,
+        "wrong_expected_journal_rejected": true,
+        "wrong_image_rejected": true
+      },
+      "market": {
+        "chain_id": 8453,
+        "fulfilled_at": 1793080113,
+        "fulfillment_block": 53145383,
+        "fulfillment_transaction": "0x6d50ddf06bb260cdef773a394988500362f37d35c3cebb7331d5cff425394a73",
+        "image_id": "11cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa",
+        "input_visibility": "public",
+        "lock_to_fulfillment_seconds": 48,
+        "locked_at": 1793080065,
+        "price_wei": "28333333333333",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483035dddcb",
+        "submission_to_fulfillment_seconds": 67,
+        "submitted_at": 1793080046,
+        "version": 1
+      },
+      "files": {
+        "source-program.elf": {
+          "bytes": 1547424,
+          "sha256": "14ce0c2c40340a3b3e5fb1d1bb03d0fb3c759ee6a9e06d10cde2f66abc897dce"
+        },
+        "source-receipt.bin": {
+          "bytes": 10700,
+          "sha256": "26844934c442010a4c15cc9220d8b2003159a0a5753d391a766a85c0e13b4346"
+        },
+        "source-seal.bin": {
+          "bytes": 260,
+          "sha256": "fa150c0a2b696e31970ff25dd41d887b93d94708fd72c78820505cfdb7ef5166"
+        },
+        "source-journal.bin": {
+          "bytes": 5107,
+          "sha256": "8f624d7175cf41fb7a11b67a3a04a98a26b954db70eb70a5218ae9fa5505685b"
+        }
+      },
+      "sepolia_router_verification": {
+        "chain_id": 11155111,
+        "block": 12003138,
+        "router": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+        "proof_verified": true,
+        "negative_checks_passed": 3,
+        "transaction_submitted": false
+      }
+    },
+    "admission": {
+      "verification": {
+        "canonicality_admitted": false,
+        "chain_id": 8453,
+        "collection_seconds": 48.940798708,
+        "image_id": "7544ddcafa67f1f654a58eadf10314187e962ae9c7fbdf8f63d4fe06271dcdc1",
+        "journal_sha256": "8257fe7fccc6ccd8ff99608b263f74e823091a715afbcb4febd9b3199c33f1aa",
+        "proof_verified": true,
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748307e9e24f",
+        "request_to_receipt_seconds": 88,
+        "swap_executed": false
+      },
+      "tamper_checks": {
+        "changed_proof_rejected": true,
+        "changed_receipt_journal_rejected": true,
+        "development_mode": false,
+        "settlement_authority": false,
+        "valid_receipt_verified": true,
+        "wrong_expected_journal_rejected": true,
+        "wrong_image_rejected": true
+      },
+      "market": {
+        "chain_id": 8453,
+        "fulfilled_at": 1793080347,
+        "fulfillment_block": 53145500,
+        "fulfillment_transaction": "0x4451c7c9bdfb620a95294ec67ce3d95ba713ee077836284d849794ec9b5c164a",
+        "image_id": "7544ddcafa67f1f654a58eadf10314187e962ae9c7fbdf8f63d4fe06271dcdc1",
+        "input_visibility": "public",
+        "lock_to_fulfillment_seconds": 66,
+        "locked_at": 1793080281,
+        "price_wei": "28333333333333",
+        "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748307e9e24f",
+        "submission_to_fulfillment_seconds": 85,
+        "submitted_at": 1793080262,
+        "version": 1
+      },
+      "files": {
+        "admission-program.elf": {
+          "bytes": 1133980,
+          "sha256": "44b0d679d5da55a2a0f7923c31d475661e177d84d94902a38be71fd890060bbf"
+        },
+        "admission-receipt.bin": {
+          "bytes": 1060,
+          "sha256": "693c4a4957d3c2990ff28613ccd8ef236d3889d3b183aaabcfe9f67cc3aa6bb9"
+        },
+        "admission-seal.bin": {
+          "bytes": 260,
+          "sha256": "57e6abc036bd9c16a0128d808603a40691c60cbbc4d31511cb5f4f1022ac8c35"
+        },
+        "admission-journal.bin": {
+          "bytes": 287,
+          "sha256": "8257fe7fccc6ccd8ff99608b263f74e823091a715afbcb4febd9b3199c33f1aa"
+        }
+      }
+    }
+  },
+  "source_admission_transaction": "0x26f099c7600e184e35d6c4d581c1cd094c0f79b854c3f0b6e752efd3ee1b4dc0",
+  "source_finalization_transaction": "0xa23c65eb627b1b39af929d8a87e92c9a72264e776dc37fe6a777a79f17505e05",
+  "ethereum_finality_verified": false
+}

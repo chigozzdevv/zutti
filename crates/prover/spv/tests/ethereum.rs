@@ -79,3 +79,57 @@ fn a_genuine_unrelated_receipt_cannot_become_source_admission() {
     assert!(admission_call(&receipt, image, Digest([1; 32]), [2; 20]).is_err());
     assert!(admission_call(&receipt, image, Digest([1; 32]), [0; 20]).is_err());
 }
+
+#[test]
+fn genuine_active_admission_binds_the_verified_source_prefix_and_exported_policy() {
+    use std::{fs, path::Path};
+    use zutti_protocol::encoding::Canonical;
+    use zutti_source::spv::{AdmissionClaim, HeaderClaim};
+    use zutti_spv_prototype::{image, read_receipt, verify};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/source/testnet");
+    let profile: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("profile.json")).unwrap()).unwrap();
+    let source = read_receipt(&root.join("source-receipt.bin")).unwrap();
+    let source_image = image(&fs::read(root.join("source-program.elf")).unwrap()).unwrap();
+    verify(&source, source_image, &source.journal.bytes).unwrap();
+    let header = HeaderClaim::from_bytes(&source.journal.bytes).unwrap();
+    let admission = read_receipt(&root.join("admission-receipt.bin")).unwrap();
+    let admission_image = image(&fs::read(root.join("admission-program.elf")).unwrap()).unwrap();
+    let claim = AdmissionClaim::from_bytes(&admission.journal.bytes).unwrap();
+    assert_eq!(claim.stable.prefix, header.id().unwrap());
+    assert_eq!(claim.stable.height, header.height().unwrap());
+    assert_eq!(
+        claim.head.height - claim.stable.height,
+        header.policy().confirmations()
+    );
+    assert_eq!(claim.policy.to_string(), profile["policy"]["id"]);
+    let bundle = admission_call(&admission, admission_image, claim.policy, [22; 20]).unwrap();
+    assert_eq!(bundle["proof_verified"], true);
+    assert!(bundle["data"].as_str().unwrap().starts_with("0x8573d750"));
+    assert!(admission_call(&admission, admission_image, Digest([253; 32]), [22; 20]).is_err());
+    let mut changed = admission;
+    changed.journal.bytes[11] ^= 1;
+    assert!(admission_call(&changed, admission_image, claim.policy, [22; 20]).is_err());
+}
+
+#[test]
+fn genuine_funded_deposit_receipt_binds_the_actual_pool_domain_and_value() {
+    use std::{fs, path::Path};
+    use zutti_protocol::{encoding::Canonical, pool::OperationKind};
+    use zutti_spv_prototype::{image, read_receipt, verify};
+    use zutti_wallet::spv_pool::SpvPoolClaim;
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/ethereum");
+    let deployment: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("sepolia.json")).unwrap()).unwrap();
+    let receipt = read_receipt(&root.join("maker-deposit-receipt.bin")).unwrap();
+    let program = image(&fs::read(root.join("pool-program.elf")).unwrap()).unwrap();
+    verify(&receipt, program, &receipt.journal.bytes).unwrap();
+    let claim = SpvPoolClaim::from_bytes(&receipt.journal.bytes).unwrap();
+    assert_eq!(claim.pool.kind, OperationKind::Deposit);
+    assert_eq!(claim.pool.value, 10_000_000);
+    assert_eq!(claim.pool.domain.to_string(), deployment["domain"]);
+    assert_eq!(claim.pool_program.to_string(), deployment["pool_image"]);
+    let mut changed = claim;
+    changed.pool.value += 1;
+    assert!(verify(&receipt, program, &changed.to_bytes().unwrap()).is_err());
+}

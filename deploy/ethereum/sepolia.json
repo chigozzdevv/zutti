@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "chain_id": 11155111,
+  "registry": "0xe741d4ffbd06b6017c1ddd44e3dfb1aee77787e6",
+  "pool": "0x9a643ba41c15f67dfcf9b6ee16d8372e7af5e8cb",
+  "token": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+  "verifier": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+  "deployer": "0x489649CdA4599ccFD4Eb3d4e8c9eF0E9000D9C2A",
+  "source_policy": "5a55545449535050020011cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa020a00000080000000404b4c003cb33ed455aee2961c121298abd6bd18fe533c5f65581dcf57db5e31fb9e1815",
+  "source_policy_id": "8a78aac9b436ab116e29c9a6cbe51151d47fb29edb03f79f43a97c0275efaa3f",
+  "source_image": "11cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa",
+  "admission_image": "7544ddcafa67f1f654a58eadf10314187e962ae9c7fbdf8f63d4fe06271dcdc1",
+  "pool_image": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+  "binding_image": "e31866af4cfb9c0dce67bc3b975b3474fc6fe8dd1eb41e517b8f84c84de9125a",
+  "proof_profile_id": "c5a0fd4b2f26d49c4881aa282424522121928ea5872a62c94501f800a719a2cd",
+  "domain": "5a3bc6e9238e5a13b12bee70774b26fc26527eed735dda6586639f989341f2a9",
+  "domain_encoding": "5a55545449444f4d0100382c4a332661c7ed0671f32a34d724619f086c61873bce7c99859dd9920aa605a736aa00000000009a643ba41c15f67dfcf9b6ee16d8372e7af5e8cb1c7d4b196cb0c7b01d743fbc6116a902379c72384bb5604f4ae4c18f51e97e7e9fd4362fc295c5f5bd26ac8a7236d0c679e390608a78aac9b436ab116e29c9a6cbe51151d47fb29edb03f79f43a97c0275efaa3fc5a0fd4b2f26d49c4881aa282424522121928ea5872a62c94501f800a719a2cd",
+  "source_height": 4546474,
+  "source_prefix": "c470e814123e979a7158b7ef26e79c2d427e721f6136fa09004819a82527d1e5",
+  "source_admitted": true,
+  "swap_executed": false,
+  "ethereum_finality_verified": false,
+  "transactions": {
+    "registry": {
+      "hash": "0x506fa9c28c02b90ad5cf4b8d0d67d99a82fe625c8e6edca0d5607930ce08b1cf",
+      "block": 12003195,
+      "status": 1,
+      "gas_used": 9150709,
+      "effective_gas_price_wei": 1014
+    },
+    "pool": {
+      "hash": "0x345c44ffa8b30818c28f3195e7830cc5d6e2a252cd837a2259665621febfc6e9",
+      "block": 12003219,
+      "status": 1,
+      "gas_used": 16803589,
+      "effective_gas_price_wei": 1014
+    },
+    "source-submit": {
+      "hash": "0x26f099c7600e184e35d6c4d581c1cd094c0f79b854c3f0b6e752efd3ee1b4dc0",
+      "block": 12003209,
+      "status": 1,
+      "gas_used": 1831746,
+      "effective_gas_price_wei": 1014
+    },
+    "source-finalize": {
+      "hash": "0xa23c65eb627b1b39af929d8a87e92c9a72264e776dc37fe6a777a79f17505e05",
+      "block": 12003222,
+      "status": 1,
+      "gas_used": 594290,
+      "effective_gas_price_wei": 1014
+    },
+    "usdc-approval": {
+      "hash": "0x36d8e4e60dfdedc9d3ba8c1b5575df12398d7077bb3bf9380a46c34d532c084b",
+      "block": 12003281,
+      "status": 1,
+      "gas_used": 137757,
+      "effective_gas_price_wei": 1015
+    },
+    "maker-deposit": {
+      "hash": "0x39243bb22ca8e1a1df30efa3011741bcc5c74a91520779757b399844c73d3782",
+      "block": 12003415,
+      "status": 1,
+      "gas_used": 4518574,
+      "effective_gas_price_wei": 1015
+    }
+  },
+  "onchain_configuration": {
+    "policy": "0x8a78aac9b436ab116e29c9a6cbe51151d47fb29edb03f79f43a97c0275efaa3f",
+    "admission_image": "0x7544ddcafa67f1f654a58eadf10314187e962ae9c7fbdf8f63d4fe06271dcdc1",
+    "stable_prefix": "0xc470e814123e979a7158b7ef26e79c2d427e721f6136fa09004819a82527d1e5",
+    "stable_height": 4546474,
+    "fresh": false,
+    "pool_image": "0x0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+    "binding_image": "0xe31866af4cfb9c0dce67bc3b975b3474fc6fe8dd1eb41e517b8f84c84de9125a",
+    "pool_domain": "0x5a3bc6e9238e5a13b12bee70774b26fc26527eed735dda6586639f989341f2a9",
+    "pool_source": "0x000000000000000000000000e741d4ffbd06b6017c1ddd44e3dfb1aee77787e6",
+    "pool_token": "0x0000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c7238",
+    "backing": 10000000,
+    "token_balance": 10000000,
+    "deployer_usdc_units": 10000000,
+    "next_leaf": 1,
+    "pool_root": "0xf9ff7b34d97fc1b6cd2af859962e10ed96521714226648a75df4de6a083b1a28"
+  },
+  "configuration_is_snapshot": true,
+  "recorded_at": 1793084476,
+  "failed_deployment_attempt": {
+    "transaction": "0xaa0565e7d188a3cf018c690a819fadd37356c2f2ba9b4dea08b0249f68ca032e",
+    "reason": "out of gas after local simulation underestimated live creation costs",
+    "contracts_created": false
+  },
+  "code_hashes": {
+    "registry": "0xeff510900a9cf757b234b7842c52d0d853dcebd9fe9ed5d7c81b63075bb9308d",
+    "pool": "0x7cadb2445ce536cb2a85b0d0a004cb9d2faba35cbbc4988bc8df52200a612706",
+    "token": "0xcd3f29e2ea9c61dadd48bfeaf8b2884b6de9dfee7bf45329452c4c33d0868ceb",
+    "verifier": "0xcb1f7a7a9aef4a0c37d658d1a34f94067dfa1ad84dd944511074de877a40f6e4"
+  },
+  "configuration_observed_block": 12003491,
+  "maker_deposit": {
+    "evidence": "maker-deposit.json",
+    "deposited_units": 10000000,
+    "owned_note_decrypted": true,
+    "pool_backing_verified": true,
+    "transaction": "0x39243bb22ca8e1a1df30efa3011741bcc5c74a91520779757b399844c73d3782"
+  },
+  "proving": {
+    "requests": 3,
+    "total_prover_fee_wei": "84999999999999",
+    "total_authorized_maximum_wei": "187500000000000",
+    "automatic_resubmissions": 0
+  },
+  "private_pool_backing_units": 10000000,
+  "backing_verified_at_block": 12003415,
+  "code_hashes_observed_block": 12003292
+}

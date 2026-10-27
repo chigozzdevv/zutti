@@ -1,0 +1,101 @@
+{
+  "schema": 1,
+  "operation": {
+    "checkpoint": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "expiry": 0,
+    "kind": 1,
+    "nullifiers": [],
+    "order": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "orderTag": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "outputs": [
+      {
+        "ciphertext": "0x5a55545449454e4301005a3bc6e9238e5a13b12bee70774b26fc26527eed735dda6586639f989341f2a9f47b5514e26d28f19eccf2a5134fd5b2f57c4110aa9ad848bfedc5cc46bd6814aac7182769f6f6cff6fe3b9ce44b12f3acf705bf473c9312245526638b46006149858344675e0dfc9b840b56f31554abbe5138495da9172fec000000e8c3f2a034ca4b51d0913646d835132ed649bd81f8c5d8e254e9d9bd3655ff8c3514b170657e553b618b6ed604286d84e7f64c99f93c75d1931039cf72f407ad6857323b55da69e20f26abc7bc8f6b6f2e3c45f7e6f697c8ad92debba959798dc4878f5a14c4cc4ec05b9de9d0771fac7f864385026d20b8ebdfdb6ab5a72dbac7613868eef9bd5f5aaecf17a3c6607141a4012c5a791546c5cf0953dc160cd5387841b3bb09952a5c5de4f7cc2cc11d42e78112a01d0c8dc2ddee08b34aac95b18de1cbb1d7bd453aa3a567b212ac1d55f6ce5daf726eca062da2e3d152103b0096f45c41d4431612e1891f",
+        "commitment": "0xf47b5514e26d28f19eccf2a5134fd5b2f57c4110aa9ad848bfedc5cc46bd6814"
+      }
+    ],
+    "owner": "0x489649cda4599ccfd4eb3d4e8c9ef0e9000d9c2a",
+    "reservation": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "root": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "value": 10000000
+  },
+  "verification": {
+    "canonicality_admitted": false,
+    "chain_id": 8453,
+    "collection_seconds": 1.371468667,
+    "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+    "journal_sha256": "a7b216b5f27a44d4881b94ab53c51f0bfafab767f866f97ec808025b5ba6794a",
+    "proof_verified": true,
+    "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74837773c93c",
+    "request_to_receipt_seconds": 61,
+    "swap_executed": false
+  },
+  "tamper_checks": {
+    "changed_proof_rejected": true,
+    "changed_receipt_journal_rejected": true,
+    "development_mode": false,
+    "settlement_authority": false,
+    "valid_receipt_verified": true,
+    "wrong_expected_journal_rejected": true,
+    "wrong_image_rejected": true
+  },
+  "execution": {
+    "cycles": 4710408,
+    "host_assumptions": 0,
+    "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+    "journal_matches": true,
+    "paid_jobs": 0,
+    "proof_generated": false,
+    "seconds": 0.523609334
+  },
+  "market": {
+    "chain_id": 8453,
+    "fulfilled_at": 1793081957,
+    "fulfillment_block": 53146305,
+    "fulfillment_transaction": "0xec6499c740ad1ca1950a658361296c8a2b366727a95fe8ed6b4ffbfad1b80306",
+    "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+    "input_visibility": "public",
+    "lock_to_fulfillment_seconds": 34,
+    "locked_at": 1793081923,
+    "price_wei": "28333333333333",
+    "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74837773c93c",
+    "submission_to_fulfillment_seconds": 53,
+    "submitted_at": 1793081904,
+    "version": 1
+  },
+  "onchain": {
+    "pool": "0x9a643ba41c15f67dfcf9b6ee16d8372e7af5e8cb",
+    "transaction": "0x39243bb22ca8e1a1df30efa3011741bcc5c74a91520779757b399844c73d3782",
+    "block": 12003415,
+    "status": 1,
+    "deposited_units": 10000000,
+    "pool_token_balance_units": 10000000,
+    "pool_backing_units": 10000000,
+    "note_commitment": "f47b5514e26d28f19eccf2a5134fd5b2f57c4110aa9ad848bfedc5cc46bd6814",
+    "leaf_position": 0,
+    "pool_root": "0xf9ff7b34d97fc1b6cd2af859962e10ed96521714226648a75df4de6a083b1a28",
+    "owned_note_decrypted": true,
+    "ethereum_finality_verified": false,
+    "swap_executed": false
+  },
+  "input_visibility": "public",
+  "public_witness_explicitly_approved": true,
+  "wallet_secret_keys_published": false,
+  "files": {
+    "pool-program.elf": {
+      "bytes": 1403176,
+      "sha256": "043f8a67e060f3c1c2cef6d0492f2128c77e22bf12bdb44d5bfa2583e33d8005"
+    },
+    "maker-deposit-receipt.bin": {
+      "bytes": 1296,
+      "sha256": "ec595292a3b349b3ce0510adf239725bba70d91b0cb5b28f961d91636c7c712a"
+    },
+    "maker-deposit-journal.bin": {
+      "bytes": 405,
+      "sha256": "a7b216b5f27a44d4881b94ab53c51f0bfafab767f866f97ec808025b5ba6794a"
+    },
+    "maker-deposit-seal.bin": {
+      "bytes": 260,
+      "sha256": "8f35fd8c34fe6442c86b51d25e202cd939478ef7ada4d4097e37ab2fe4025b33"
+    }
+  }
+}

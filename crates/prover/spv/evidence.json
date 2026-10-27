@@ -803,8 +803,18 @@
   },
   "active_testnet_profile": {
     "artifacts": "../../../deploy/source/testnet/profile.json",
-    "proof_generated": false,
-    "source_admitted": false,
-    "funded_swap": false
+    "proof_generated": true,
+    "proof_verified": true,
+    "source_admitted": true,
+    "contracts_deployed": true,
+    "funded_swap": false,
+    "verified_height": 4546474,
+    "confirmation_head_height": 4546484,
+    "deployment": "../../../deploy/ethereum/sepolia.json",
+    "proof_evidence": "../../../deploy/source/testnet/proof.json",
+    "ethereum_finality_verified": false,
+    "private_pool_deposit_verified": true,
+    "private_pool_backing_units": 10000000,
+    "private_pool_evidence": "../../../deploy/ethereum/maker-deposit.json"
   }
 }
