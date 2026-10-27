@@ -313,17 +313,18 @@ fn expected_bits(network: NetworkType, height: u32, time: u32, context: &[Header
         NetworkType::Test => TEST_NETWORK.activation_height(NetworkUpgrade::Nu7),
         NetworkType::Regtest => return Err(Error::Network),
     };
-    let (spacing, window) =
+    let (spacing, window, minimum_difficulty_multiplier) =
         if nu7.is_some_and(|activation| BlockHeight::from_u32(height) >= activation) {
-            (25_i64, NU7_AVERAGING_WINDOW)
+            (25_i64, NU7_AVERAGING_WINDOW, 18_i64)
         } else if BlockHeight::from_u32(height) >= blossom {
-            (75_i64, AVERAGING_WINDOW)
+            (75_i64, AVERAGING_WINDOW, 6_i64)
         } else {
-            (150_i64, AVERAGING_WINDOW)
+            (150_i64, AVERAGING_WINDOW, 6_i64)
         };
     if network == NetworkType::Test
         && previous.height >= 299_187
-        && u64::from(time) > u64::from(previous.time) + 6 * spacing as u64
+        && u64::from(time)
+            > u64::from(previous.time) + (minimum_difficulty_multiplier * spacing) as u64
     {
         return compact(&limit);
     }
@@ -534,7 +535,10 @@ mod tests {
                 expected_bits(
                     NetworkType::Test,
                     height,
-                    headers[0].time + 6 * spacing as u32,
+                    headers[0].time
+                        + Upgrade::minimum_difficulty_spacing_for_height(&network, Height(height))
+                            .unwrap()
+                            .num_seconds() as u32,
                     &headers
                 )
                 .unwrap(),
@@ -544,7 +548,11 @@ mod tests {
                 expected_bits(
                     NetworkType::Test,
                     height,
-                    headers[0].time + 6 * spacing as u32 + 1,
+                    headers[0].time
+                        + Upgrade::minimum_difficulty_spacing_for_height(&network, Height(height))
+                            .unwrap()
+                            .num_seconds() as u32
+                        + 1,
                     &headers
                 )
                 .unwrap(),
@@ -579,5 +587,30 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn real_nu7_header_after_a_153_second_gap_uses_normal_difficulty() {
+        let mut state = HeaderCandidate::from_bytes(include_bytes!(
+            "../../../tests/fixtures/spv/nu7-difficulty-context.bin"
+        ))
+        .unwrap();
+        let header = crate::spv::parse_header(include_bytes!(
+            "../../../tests/fixtures/spv/nu7-difficulty-header.bin"
+        ))
+        .unwrap();
+        assert_eq!(state.height().unwrap(), 4_546_260);
+        assert_eq!(header.time - state.timestamp().unwrap(), 153);
+        assert_eq!(header.bits, 0x1e3115bf);
+        assert_eq!(state.expected_bits(header.time).unwrap(), header.bits);
+        let mut minimum = include_bytes!(
+            "../../../tests/fixtures/spv/nu7-difficulty-header.bin"
+        )
+        .to_vec();
+        minimum[104..108].copy_from_slice(&0x2007ffff_u32.to_le_bytes());
+        let minimum = crate::spv::parse_header(&minimum).unwrap();
+        assert!(state.append_header(&minimum).is_err());
+        state.append_header(&header).unwrap();
+        assert_eq!(state.height().unwrap(), 4_546_261);
     }
 }

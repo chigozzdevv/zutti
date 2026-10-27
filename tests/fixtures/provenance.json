@@ -51,5 +51,23 @@
     }
   ],
   "repository": "https://github.com/ZcashFoundation/zebra",
-  "revision": "15d578362448fb8c4a5d29a00dcfe8adb5184082"
+  "revision": "15d578362448fb8c4a5d29a00dcfe8adb5184082",
+  "spv_regressions": [
+    {
+      "file": "spv/nu7-difficulty-context.bin",
+      "network": "testnet",
+      "source": "Zebra RPC raw headers and serialized validation context",
+      "height": 4546260,
+      "sha256": "133a715b2d0a5cdc71a47840e7687bb458665d6de9d0890c8a73995d2032aae6",
+      "scope": "Consensus regression data; not a trusted deployment checkpoint"
+    },
+    {
+      "file": "spv/nu7-difficulty-header.bin",
+      "network": "testnet",
+      "source": "Zebra RPC raw headers and serialized validation context",
+      "height": 4546261,
+      "sha256": "bfbf9bf9165666e6cec61402d834ef44a39d523f818272c9b2ba72f6b913b47a",
+      "scope": "Consensus regression data; not a trusted deployment checkpoint"
+    }
+  ]
 }
