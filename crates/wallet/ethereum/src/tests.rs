@@ -498,7 +498,7 @@ fn retained_live_sepolia_note_evidence_authenticates_the_actual_deployed_pool() 
         .as_u64()
         .unwrap();
     let verified = crate::notes::verify(&config, &request, &evidence, now).unwrap();
-    assert_eq!(verified.execution_height, 12003717);
+    assert_eq!(verified.execution_height, 12004592);
     assert_eq!(verified.pool.to_string().to_lowercase(), deployment["pool"]);
     for change in ["ancestry", "proof", "root", "signature"] {
         let mut changed: serde_json::Value = serde_json::from_slice(&raw).unwrap();

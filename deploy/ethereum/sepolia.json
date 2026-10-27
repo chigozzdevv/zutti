@@ -2,124 +2,75 @@
   "schema": 1,
   "network": "testnet",
   "chain_id": 11155111,
-  "registry": "0xe741d4ffbd06b6017c1ddd44e3dfb1aee77787e6",
-  "pool": "0x9a643ba41c15f67dfcf9b6ee16d8372e7af5e8cb",
+  "registry": "0xe09d5668ae1ba5b939d8cd8d0125e14806a4d5f2",
+  "pool": "0x25b324a015164b76f4481bac8c70bab40bb68cf6",
   "token": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
   "verifier": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
   "deployer": "0x489649CdA4599ccFD4Eb3d4e8c9eF0E9000D9C2A",
-  "source_policy": "5a55545449535050020011cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa020a00000080000000404b4c003cb33ed455aee2961c121298abd6bd18fe533c5f65581dcf57db5e31fb9e1815",
-  "source_policy_id": "8a78aac9b436ab116e29c9a6cbe51151d47fb29edb03f79f43a97c0275efaa3f",
-  "source_image": "11cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa",
-  "admission_image": "7544ddcafa67f1f654a58eadf10314187e962ae9c7fbdf8f63d4fe06271dcdc1",
-  "pool_image": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
-  "binding_image": "e31866af4cfb9c0dce67bc3b975b3474fc6fe8dd1eb41e517b8f84c84de9125a",
-  "proof_profile_id": "c5a0fd4b2f26d49c4881aa282424522121928ea5872a62c94501f800a719a2cd",
-  "domain": "5a3bc6e9238e5a13b12bee70774b26fc26527eed735dda6586639f989341f2a9",
-  "domain_encoding": "5a55545449444f4d0100382c4a332661c7ed0671f32a34d724619f086c61873bce7c99859dd9920aa605a736aa00000000009a643ba41c15f67dfcf9b6ee16d8372e7af5e8cb1c7d4b196cb0c7b01d743fbc6116a902379c72384bb5604f4ae4c18f51e97e7e9fd4362fc295c5f5bd26ac8a7236d0c679e390608a78aac9b436ab116e29c9a6cbe51151d47fb29edb03f79f43a97c0275efaa3fc5a0fd4b2f26d49c4881aa282424522121928ea5872a62c94501f800a719a2cd",
-  "source_height": 4546474,
-  "source_prefix": "c470e814123e979a7158b7ef26e79c2d427e721f6136fa09004819a82527d1e5",
+  "source_policy": "5a5554544953505002007111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19020a00000000020000404b4c005b8544c81939ae60f4d90b63d971cf2d16bb726d98a2236836abc6db2a454dfd",
+  "source_policy_id": "6dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bc",
+  "source_image": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
+  "admission_image": "1462124d09d5e9e0c505abe0a6f5876f5a8fdc37d50c84e34826136a22d8f124",
+  "pool_image": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+  "binding_image": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
+  "proof_profile_id": "ad6e8011c9d302158e6609fc4c27bbdd2122ab2b43905d83e72883d988b607bc",
+  "domain": "ea13c69e75035e6175559dc35482344538e84a1f0a9f1d109d40a6313651fa85",
+  "domain_encoding": "5a55545449444f4d0100382c4a332661c7ed0671f32a34d724619f086c61873bce7c99859dd9920aa605a736aa000000000025b324a015164b76f4481bac8c70bab40bb68cf61c7d4b196cb0c7b01d743fbc6116a902379c72384bb5604f4ae4c18f51e97e7e9fd4362fc295c5f5bd26ac8a7236d0c679e390606dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bcad6e8011c9d302158e6609fc4c27bbdd2122ab2b43905d83e72883d988b607bc",
+  "source_height": 4546967,
+  "source_prefix": "e2e63532cec49e587cd5c07a6b173e3f4b803c9a2651dd60e33304498b52a029",
   "source_admitted": true,
   "swap_executed": false,
-  "ethereum_finality_verified": false,
-  "transactions": {
-    "registry": {
-      "hash": "0x506fa9c28c02b90ad5cf4b8d0d67d99a82fe625c8e6edca0d5607930ce08b1cf",
-      "block": 12003195,
-      "status": 1,
-      "gas_used": 9150709,
-      "effective_gas_price_wei": 1014
-    },
-    "pool": {
-      "hash": "0x345c44ffa8b30818c28f3195e7830cc5d6e2a252cd837a2259665621febfc6e9",
-      "block": 12003219,
-      "status": 1,
-      "gas_used": 16803589,
-      "effective_gas_price_wei": 1014
-    },
-    "source-submit": {
-      "hash": "0x26f099c7600e184e35d6c4d581c1cd094c0f79b854c3f0b6e752efd3ee1b4dc0",
-      "block": 12003209,
-      "status": 1,
-      "gas_used": 1831746,
-      "effective_gas_price_wei": 1014
-    },
-    "source-finalize": {
-      "hash": "0xa23c65eb627b1b39af929d8a87e92c9a72264e776dc37fe6a777a79f17505e05",
-      "block": 12003222,
-      "status": 1,
-      "gas_used": 594290,
-      "effective_gas_price_wei": 1014
-    },
-    "usdc-approval": {
-      "hash": "0x36d8e4e60dfdedc9d3ba8c1b5575df12398d7077bb3bf9380a46c34d532c084b",
-      "block": 12003281,
-      "status": 1,
-      "gas_used": 137757,
-      "effective_gas_price_wei": 1015
-    },
-    "maker-deposit": {
-      "hash": "0x39243bb22ca8e1a1df30efa3011741bcc5c74a91520779757b399844c73d3782",
-      "block": 12003415,
-      "status": 1,
-      "gas_used": 4518574,
-      "effective_gas_price_wei": 1015
-    }
-  },
-  "onchain_configuration": {
-    "policy": "0x8a78aac9b436ab116e29c9a6cbe51151d47fb29edb03f79f43a97c0275efaa3f",
-    "admission_image": "0x7544ddcafa67f1f654a58eadf10314187e962ae9c7fbdf8f63d4fe06271dcdc1",
-    "stable_prefix": "0xc470e814123e979a7158b7ef26e79c2d427e721f6136fa09004819a82527d1e5",
-    "stable_height": 4546474,
-    "fresh": false,
-    "pool_image": "0x0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
-    "binding_image": "0xe31866af4cfb9c0dce67bc3b975b3474fc6fe8dd1eb41e517b8f84c84de9125a",
-    "pool_domain": "0x5a3bc6e9238e5a13b12bee70774b26fc26527eed735dda6586639f989341f2a9",
-    "pool_source": "0x000000000000000000000000e741d4ffbd06b6017c1ddd44e3dfb1aee77787e6",
-    "pool_token": "0x0000000000000000000000001c7d4b196cb0c7b01d743fbc6116a902379c7238",
-    "backing": 10000000,
-    "token_balance": 10000000,
-    "deployer_usdc_units": 10000000,
-    "next_leaf": 1,
-    "pool_root": "0xf9ff7b34d97fc1b6cd2af859962e10ed96521714226648a75df4de6a083b1a28"
-  },
-  "configuration_is_snapshot": true,
-  "recorded_at": 1793084476,
-  "failed_deployment_attempt": {
-    "transaction": "0xaa0565e7d188a3cf018c690a819fadd37356c2f2ba9b4dea08b0249f68ca032e",
-    "reason": "out of gas after local simulation underestimated live creation costs",
-    "contracts_created": false
-  },
+  "ethereum_finality_verified": true,
   "code_hashes": {
-    "registry": "0xeff510900a9cf757b234b7842c52d0d853dcebd9fe9ed5d7c81b63075bb9308d",
-    "pool": "0x7cadb2445ce536cb2a85b0d0a004cb9d2faba35cbbc4988bc8df52200a612706",
+    "registry": "0xf14cd29549e86a4cef538a0338b9e327eea031471c693ec12bc1b60038590bc6",
+    "pool": "0x96b5fe86a0a46fe0b73e20226732892369ae057aa8ddb64247f353d0064039a6",
     "token": "0xcd3f29e2ea9c61dadd48bfeaf8b2884b6de9dfee7bf45329452c4c33d0868ceb",
     "verifier": "0xcb1f7a7a9aef4a0c37d658d1a34f94067dfa1ad84dd944511074de877a40f6e4"
   },
-  "configuration_observed_block": 12003491,
-  "maker_deposit": {
-    "evidence": "maker-deposit.json",
-    "deposited_units": 10000000,
-    "owned_note_decrypted": true,
-    "pool_backing_verified": true,
-    "transaction": "0x39243bb22ca8e1a1df30efa3011741bcc5c74a91520779757b399844c73d3782"
+  "transactions": {
+    "registry": {
+      "hash": "0xf2967e02a569cc0d27f0e721901cd76de33e7be57e3f1a53c826f0c5db7d076b",
+      "block": 12004313,
+      "status": 1,
+      "gas_used": 9150709,
+      "effective_gas_price_wei": 1017
+    },
+    "pool": {
+      "hash": "0xab7f636378afa35370c96dc30a21fbd225b41fe989a6679b7def86fcf0da8445",
+      "block": 12004324,
+      "status": 1,
+      "gas_used": 16803589,
+      "effective_gas_price_wei": 1016
+    },
+    "source-submit": {
+      "hash": "0x2051a9d0b68881ca2a2aecebca62424d02d87c2ab3fecfd093d9051f5d1f6282",
+      "block": 12004373,
+      "status": 1,
+      "gas_used": 1831758
+    },
+    "source-finalize": {
+      "hash": "0xcc53247f9f81088e2b1483fc0e69c7d3f12696a050b6be6ba0fe15dabb996b56",
+      "block": 12004387,
+      "status": 1,
+      "gas_used": 594290
+    }
   },
-  "proving": {
-    "requests": 3,
-    "total_prover_fee_wei": "84999999999999",
-    "total_authorized_maximum_wei": "187500000000000",
-    "automatic_resubmissions": 0
+  "execution_policy": {
+    "window_blocks": 512,
+    "minimum_funding_remaining": 64,
+    "minimum_payment_remaining": 16,
+    "maximum_registry_age": 7200,
+    "native_source_maximum_age": 3600
   },
-  "private_pool_backing_units": 10000000,
-  "backing_verified_at_block": 12003415,
-  "code_hashes_observed_block": 12003292,
   "ethereum_wallet": {
-    "consensus_config": "sepolia-consensus.json",
-    "note_evidence": "maker-note-evidence.json",
-    "evidence_sha256": "a702ff31fa1c76a87e74556d8ac13318a4a25edf903a4f37297e5bdcb7e43b9f",
-    "verified_at": 1793088305,
-    "execution_height": 12003717,
-    "finalized_slot": 11446144,
-    "owned_unspent_usdc_units": 10000000,
-    "reservation_verified": false
-  }
+    "kind": "owned_private_note",
+    "verified_at": 1793098893,
+    "execution_height": 12004592,
+    "ethereum_finality_verified": true,
+    "owned_note_decrypted": true,
+    "note_unspent_verified": true,
+    "amount_units": 1000000
+  },
+  "source_freshness_deadline": 1793100001,
+  "legacy_deployment": "../legacy/20261027-r2/ethereum/sepolia.json"
 }

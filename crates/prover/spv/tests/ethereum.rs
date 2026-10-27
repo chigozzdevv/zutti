@@ -126,10 +126,38 @@ fn genuine_funded_deposit_receipt_binds_the_actual_pool_domain_and_value() {
     verify(&receipt, program, &receipt.journal.bytes).unwrap();
     let claim = SpvPoolClaim::from_bytes(&receipt.journal.bytes).unwrap();
     assert_eq!(claim.pool.kind, OperationKind::Deposit);
-    assert_eq!(claim.pool.value, 10_000_000);
+    assert_eq!(claim.pool.value, 1_000_000);
     assert_eq!(claim.pool.domain.to_string(), deployment["domain"]);
     assert_eq!(claim.pool_program.to_string(), deployment["pool_image"]);
     let mut changed = claim;
     changed.pool.value += 1;
     assert!(verify(&receipt, program, &changed.to_bytes().unwrap()).is_err());
+}
+
+#[test]
+fn genuine_reservation_receipt_preserves_the_bound_payment_and_deployment() {
+    use std::{fs, path::Path};
+    use zutti_protocol::{encoding::Canonical, pool::OperationKind};
+    use zutti_spv_prototype::{image, read_receipt, verify};
+    use zutti_wallet::{binding::PaymentBindingClaim, spv_pool::SpvPoolClaim};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/ethereum");
+    let binding = read_receipt(&root.join("binding-receipt.bin")).unwrap();
+    let binding_image = image(&fs::read(root.join("binding-program.elf")).unwrap()).unwrap();
+    verify(&binding, binding_image, &binding.journal.bytes).unwrap();
+    let binding = PaymentBindingClaim::from_bytes(&binding.journal.bytes).unwrap();
+    let reservation = read_receipt(&root.join("reservation-receipt.bin")).unwrap();
+    let program = image(&fs::read(root.join("pool-program.elf")).unwrap()).unwrap();
+    verify(&reservation, program, &reservation.journal.bytes).unwrap();
+    let claim = SpvPoolClaim::from_bytes(&reservation.journal.bytes).unwrap();
+    assert_eq!(claim.pool.kind, OperationKind::Reserve);
+    assert_eq!(claim.pool.domain, binding.domain());
+    assert_eq!(claim.pool.order, binding.order());
+    assert_eq!(claim.pool.reservation, binding.reservation());
+    assert_eq!(claim.policy, binding.policy());
+    assert_eq!(claim.binding_program, binding_image);
+    assert_eq!(claim.pool_program, program);
+    assert_eq!(claim.expiry, 4_547_479);
+    let mut changed = claim;
+    changed.pool.reservation = Digest([254; 32]);
+    assert!(verify(&reservation, program, &changed.to_bytes().unwrap()).is_err());
 }

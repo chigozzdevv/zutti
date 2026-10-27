@@ -6,7 +6,9 @@ The Testnet demo uses checkpoint-bootstrapped SPV. A release pins one selected T
 
 ## Status
 
-The [Testnet source profile](deploy/source/testnet/profile.json) retains genuine corrected source and admission receipts. Sepolia's deployed registry accepted the proof and finalized the source update through height 4,546,474 with ten additional confirmation headers. The [deployment record](deploy/ethereum/sepolia.json) pins the actual registry, private pool, token, program identities and transactions. A genuine private-pool deposit transferred 10 Testnet USDC into the pool. The native wallet verified ownership and its unspent state against authenticated Ethereum finality. It also decrypted a faucet-funded 1-TAZ Ironwood note in Testnet block 4,546,735 and reconstructed its path to the node's tree root. This is funded wallet integration, not a completed swap. The earlier [checkpoint profile](deploy/source/checkpoint/profile.json) remains retired.
+The [Testnet source profile](deploy/source/testnet/profile.json) retains genuine source and admission receipts through height 4,546,967, with ten confirmation headers. The [deployment record](deploy/ethereum/sepolia.json) pins the Sepolia registry, private pool, token, program identities and transactions. The new pool holds a proved 1-USDC deposit whose ownership and unspent state were verified against Ethereum finality. The previous deployment and its separate 10-USDC deposit remain preserved under [legacy deployment records](deploy/legacy/20261027-r2/ethereum/sepolia.json).
+
+The native wallet scanned an actual faucet-funded 1-TAZ Ironwood note and generated a shielded payment proof. An encrypted RFQ selected 0.01 Testnet ZEC for 1 Sepolia USDC. [Genuine payment-binding and reservation receipts](deploy/ethereum/swap-proof.json) verify under the deployed program identities. The source snapshot aged during setup and proving, so Ethereum preflight refused the reservation before broadcasting it. USDC remains unreserved and ZEC unsigned. A fresh source update is required before continuing; no completed swap is claimed.
 
 The [remaining work](#remaining-work) separates compiled programs, execution checks, genuine proof receipts and live transactions. The [refund security review](zutti.md#94-refund-security-review) concerns future refund support; the checkpoint demo rejects nonpayment settlement rather than treating missing evidence as a refund.
 
@@ -31,10 +33,12 @@ packages/bindings/     native and contract interfaces
 server/src/features/   RFQ relay
 server/src/shared/     HTTP utilities
 scripts/               build, verification and source workers
-deploy/source/         Testnet node configuration
+deploy/source/         checkpoints, headers and source evidence
+deploy/ethereum/       deployed contracts and genuine proof records
+deploy/legacy/         previous deployment and recovery records
 ```
 
-Authenticated offers bind the maker's Zcash and private-USDC receiving descriptors. The native wallet builds the exact unsigned payment and encrypted recovery record from the selected offer and an owned Ironwood note. Native transaction proving stays local. The application client and SDK settlement execution remain unfinished. [zutti.md](zutti.md) specifies the intended product and SDK contract; it does not claim that every proposed method is operational.
+Authenticated offers bind the maker's Zcash and private-USDC receiving descriptors. The native wallet builds the exact unsigned payment and encrypted recovery record from the selected offer and an owned Ironwood note. Native transaction proving stays local. The headless SDK connects `intent().offers()`, `accept({ offer_id, on_status })` and `account().withdraw()` to native execution capabilities. The owner coordinator persists proof requests and transaction nonces, verifies reservation finality before signing ZEC, and authenticates withdrawal transactions and receipts against a finalized Ethereum block. Live settlement and the application client remain unfinished. [zutti.md](zutti.md) separates the proposed broader API from implemented capabilities.
 
 ## Development
 
@@ -65,7 +69,7 @@ Set `ZUTTI_SPV_BINARY` to the built `zutti-spv-prototype` executable to include 
 
 RISC Zero supplies the proof programs; Boundless supplies remote proving compute. Public source history is shared across swaps. Each demo swap additionally needs payment binding, reservation, qualifying payment coverage and terminal payout evidence.
 
-The current Boundless transport publishes program inputs through IPFS. The Testnet demo explicitly permits public swap witnesses. Those witnesses are not confidential from the prover or others who obtain the published inputs. Wallet signing keys remain local. This demo profile does not establish production witness privacy.
+The current Boundless transport publishes program inputs through IPFS. The Testnet demo explicitly permits public swap witnesses, including note openings and test private-USDC nullifier secrets. Wallet signing and viewing keys remain local. This demo profile does not establish production witness privacy.
 
 The adapter exports public SPV jobs, checks their program/input/journal hashes and imports cryptographically verified Groth16 receipts. Recursive jobs use separately built guests that verify predecessor seals inside the zkVM; the pinned [Boundless input format](https://docs.rs/boundless-market/2.0.1/boundless_market/input/struct.GuestEnv.html) cannot carry native host assumptions. Two genuine Boundless source receipts now compose through Testnet block 4, and both pass read-only verification against the deployed Sepolia RISC Zero router. This establishes early header-prefix composition, not current-chain admission or live settlement. The current release separately retains checkpoint-based source/admission receipts and successful Sepolia admission transactions for their recorded prefix. Destination settlement remains on Sepolia regardless of the market used to buy compute.
 
@@ -74,8 +78,8 @@ Paid jobs, rentals and parameter downloads require an explicit budget. Routine s
 ## Remaining work
 
 1. Maintain the source feed using genuine linked extensions and admission updates under the deployed policy. An admitted prefix does not prove later headers or stay fresh indefinitely.
-2. Complete genuine private-pool reservation, payment-binding, qualifying-payment, payout and withdrawal proofs under the deployed identities. The first 10-USDC deposit is already proved and executed; the retained receipt and on-chain checks are in `deploy/ethereum/maker-deposit.json`.
-3. Connect the implemented source scanning, note selection and native payment builder to live reservation, proving/signing/broadcast and SDK `intent.accept()` fulfillment. Verify the actual finalized reservation before signing a Zcash payment.
+2. Execute the already-proved reservation after source freshness is restored. Payment binding and reservation proofs are retained; qualifying-payment, payout and withdrawal proofs still require the actual subsequent chain events. The new 1-USDC deposit is proved and executed in `deploy/ethereum/maker-deposit.json`.
+3. Run the connected wallet/SDK path through finalized reservation verification, native Zcash signing and broadcast, payment confirmation, private payout and verified withdrawal. The existing source-halt, remaining-window and finality checks remain mandatory.
 4. Keep reverse swaps and nonpayment refunds disabled. Unavailable or unproved payment evidence leaves a reservation pending; future refund support needs the separate [lower-bound review](zutti.md#94-refund-security-review).
 5. Demonstrate a real ZEC → USDC payout, private balance and withdrawal, rejection of wrong evidence, pending behavior and recovery. Then deliver the application flow and submission materials.
 

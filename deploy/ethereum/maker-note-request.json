@@ -1,7 +1,1 @@
-{
-  "chain_id": 11155111,
-  "nullifier": "0x8d1fe3de5657b6a3922b5aa3a0681b165f3d8d651e937c4cee83f7ee4060f91f",
-  "pool": "0x9a643ba41c15f67dfcf9b6ee16d8372e7af5e8cb",
-  "pool_code_hash": "0x7cadb2445ce536cb2a85b0d0a004cb9d2faba35cbbc4988bc8df52200a612706",
-  "root": "0xf9ff7b34d97fc1b6cd2af859962e10ed96521714226648a75df4de6a083b1a28"
-}
+{"chain_id": 11155111, "nullifier": "0x86d56fcfb0d6e6988d2ab2a51ab7c22d98b98f524063fcb96a9c316fdd75dc0d", "pool": "0x25b324a015164b76f4481bac8c70bab40bb68cf6", "pool_code_hash": "0x96b5fe86a0a46fe0b73e20226732892369ae057aa8ddb64247f353d0064039a6", "root": "0xf15d19dfe47b6c3188ad8d4b487c895decf6eae96a922d704e819a77992c5dad"}

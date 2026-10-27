@@ -1,5 +1,7 @@
 {
-  "schema": 1,
+  "amount_units": 1000000,
+  "journal": "5a5554544953504302006dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bcf0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89000000005a55545449504f4c010001ea13c69e75035e6175559dc35482344538e84a1f0a9f1d109d40a6313651fa850000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040420f0000000000489649cda4599ccfd4eb3d4e8c9ef0e9000d9c2ae3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85553b56bee35f704f13b926454b6bfd445d7eb491e8598e26e40683f0a8cd3a444",
+  "network": "testnet",
   "operation": {
     "checkpoint": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "expiry": 0,
@@ -9,93 +11,88 @@
     "orderTag": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "outputs": [
       {
-        "ciphertext": "0x5a55545449454e4301005a3bc6e9238e5a13b12bee70774b26fc26527eed735dda6586639f989341f2a9f47b5514e26d28f19eccf2a5134fd5b2f57c4110aa9ad848bfedc5cc46bd6814aac7182769f6f6cff6fe3b9ce44b12f3acf705bf473c9312245526638b46006149858344675e0dfc9b840b56f31554abbe5138495da9172fec000000e8c3f2a034ca4b51d0913646d835132ed649bd81f8c5d8e254e9d9bd3655ff8c3514b170657e553b618b6ed604286d84e7f64c99f93c75d1931039cf72f407ad6857323b55da69e20f26abc7bc8f6b6f2e3c45f7e6f697c8ad92debba959798dc4878f5a14c4cc4ec05b9de9d0771fac7f864385026d20b8ebdfdb6ab5a72dbac7613868eef9bd5f5aaecf17a3c6607141a4012c5a791546c5cf0953dc160cd5387841b3bb09952a5c5de4f7cc2cc11d42e78112a01d0c8dc2ddee08b34aac95b18de1cbb1d7bd453aa3a567b212ac1d55f6ce5daf726eca062da2e3d152103b0096f45c41d4431612e1891f",
-        "commitment": "0xf47b5514e26d28f19eccf2a5134fd5b2f57c4110aa9ad848bfedc5cc46bd6814"
+        "ciphertext": "0x5a55545449454e430100ea13c69e75035e6175559dc35482344538e84a1f0a9f1d109d40a6313651fa850367242a2790e043174eafa4a84540c09843a5e7300567053d62fd27477ec58a912716e008345229ca34696e21ba20ffcf8cccf3e1ca8a7073bb2527411546388fffd990171af6710aab6ee75485f17f3dbad22d88e2bb95ec0000006b59bddc661ed0fd536aa6520f91eebfd74e9fe5e2feea44966bf4404ad8ad872b2437be6367f122d897b25d123f69e093e89cfd185356c11801443e42b53ebb553c5fc4708e60feb46281f9cbec71699bc03e284852ab5b4420acfafef4cbdc338ba293ab517dbbf66d3fa7babb94a08c6a595b0d07c7660723de10d71c19442400b140f7acd5ce07d88317b991fc33d282defdb631c6ec42579e99e55ca04560529b8d843a54136d5e7cc3286fa50a6a8351daa5c7559ad0f274ffcc573aaa11ad9662e5689d0de8f8ee2ed810b58746d8c67e6769547749a4281d737be9174e7389eb46f7b71521682cb9",
+        "commitment": "0x0367242a2790e043174eafa4a84540c09843a5e7300567053d62fd27477ec58a"
       }
     ],
     "owner": "0x489649cda4599ccfd4eb3d4e8c9ef0e9000d9c2a",
     "reservation": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "root": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "value": 10000000
+    "value": 1000000
   },
+  "pool": "0x25b324a015164b76f4481bac8c70bab40bb68cf6",
+  "proof_generated": true,
+  "schema": 1,
+  "tokens_deposited": true,
   "verification": {
     "canonicality_admitted": false,
     "chain_id": 8453,
-    "collection_seconds": 1.371468667,
-    "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
-    "journal_sha256": "a7b216b5f27a44d4881b94ab53c51f0bfafab767f866f97ec808025b5ba6794a",
+    "collection_seconds": 321.330222875,
+    "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+    "journal_sha256": "33b0d9d1fb71ce283c1e4157b63d10ab0da0b8288ea192325f77c121f2596974",
     "proof_verified": true,
-    "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74837773c93c",
-    "request_to_receipt_seconds": 61,
+    "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483624c9c43",
+    "request_to_receipt_seconds": 474,
     "swap_executed": false
   },
-  "tamper_checks": {
-    "changed_proof_rejected": true,
-    "changed_receipt_journal_rejected": true,
-    "development_mode": false,
-    "settlement_authority": false,
-    "valid_receipt_verified": true,
-    "wrong_expected_journal_rejected": true,
-    "wrong_image_rejected": true
-  },
   "execution": {
-    "cycles": 4710408,
+    "cycles": 4710518,
     "host_assumptions": 0,
-    "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+    "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
     "journal_matches": true,
     "paid_jobs": 0,
     "proof_generated": false,
-    "seconds": 0.523609334
+    "seconds": 0.818324833
   },
   "market": {
     "chain_id": 8453,
-    "fulfilled_at": 1793081957,
-    "fulfillment_block": 53146305,
-    "fulfillment_transaction": "0xec6499c740ad1ca1950a658361296c8a2b366727a95fe8ed6b4ffbfad1b80306",
-    "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+    "fulfilled_at": 1793095193,
+    "fulfillment_block": 53152923,
+    "fulfillment_transaction": "0x5987ab40ded52595c56147b15650d6c4782ee4f4b653f4d4206c1137d8651b2d",
+    "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
     "input_visibility": "public",
-    "lock_to_fulfillment_seconds": 34,
-    "locked_at": 1793081923,
-    "price_wei": "28333333333333",
-    "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74837773c93c",
-    "submission_to_fulfillment_seconds": 53,
-    "submitted_at": 1793081904,
+    "lock_to_fulfillment_seconds": 446,
+    "locked_at": 1793094747,
+    "price_wei": "29166666666666",
+    "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483624c9c43",
+    "submission_to_fulfillment_seconds": 466,
+    "submitted_at": 1793094727,
     "version": 1
   },
+  "input_visibility": "public",
+  "wallet_signing_and_viewing_keys_published": false,
+  "testnet_nullifier_secret_published": true,
   "onchain": {
-    "pool": "0x9a643ba41c15f67dfcf9b6ee16d8372e7af5e8cb",
-    "transaction": "0x39243bb22ca8e1a1df30efa3011741bcc5c74a91520779757b399844c73d3782",
-    "block": 12003415,
+    "pool": "0x25b324a015164b76f4481bac8c70bab40bb68cf6",
+    "transaction": "0xb33e3a8be651b33dac54c265a1ef4f3be9e7dc63283aa4f25872389b508549af",
+    "block": 12004398,
     "status": 1,
-    "deposited_units": 10000000,
-    "pool_token_balance_units": 10000000,
-    "pool_backing_units": 10000000,
-    "note_commitment": "f47b5514e26d28f19eccf2a5134fd5b2f57c4110aa9ad848bfedc5cc46bd6814",
+    "deposited_units": 1000000,
+    "pool_backing_units": 1000000,
+    "pool_token_balance_units": 1000000,
+    "note_commitment": "0367242a2790e043174eafa4a84540c09843a5e7300567053d62fd27477ec58a",
     "leaf_position": 0,
-    "pool_root": "0xf9ff7b34d97fc1b6cd2af859962e10ed96521714226648a75df4de6a083b1a28",
+    "pool_root": "f15d19dfe47b6c3188ad8d4b487c895decf6eae96a922d704e819a77992c5dad",
     "owned_note_decrypted": true,
-    "ethereum_finality_verified": false,
+    "ethereum_finality_verified": true,
     "swap_executed": false
   },
-  "input_visibility": "public",
-  "public_witness_explicitly_approved": true,
-  "wallet_secret_keys_published": false,
   "files": {
     "pool-program.elf": {
-      "bytes": 1403176,
-      "sha256": "043f8a67e060f3c1c2cef6d0492f2128c77e22bf12bdb44d5bfa2583e33d8005"
+      "bytes": 1402716,
+      "sha256": "d102b860a92f303fddf3a3383a6b5957847708cefbca0aa9252e40e94f0cf0c8"
     },
     "maker-deposit-receipt.bin": {
       "bytes": 1296,
-      "sha256": "ec595292a3b349b3ce0510adf239725bba70d91b0cb5b28f961d91636c7c712a"
-    },
-    "maker-deposit-journal.bin": {
-      "bytes": 405,
-      "sha256": "a7b216b5f27a44d4881b94ab53c51f0bfafab767f866f97ec808025b5ba6794a"
+      "sha256": "1428e09056db60c338803dd919a12547f264a4dbfaf6536baf0e87d5ccd59c9f"
     },
     "maker-deposit-seal.bin": {
       "bytes": 260,
-      "sha256": "8f35fd8c34fe6442c86b51d25e202cd939478ef7ada4d4097e37ab2fe4025b33"
+      "sha256": "227795a4150d7c7afb5ed24423fa92da23cee837b69b1714b21ff0df4b4cc9f8"
+    },
+    "maker-deposit-journal.bin": {
+      "bytes": 405,
+      "sha256": "33b0d9d1fb71ce283c1e4157b63d10ab0da0b8288ea192325f77c121f2596974"
     }
   }
 }
