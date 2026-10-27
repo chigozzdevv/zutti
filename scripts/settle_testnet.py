@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 import fcntl
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -24,6 +25,11 @@ class Settlement:
         if self.operation.parent != self.root:
             raise ValueError('Operation must belong to this wallet runtime')
         self.deployment = json.loads(Path(self.config['deployment']).read_text())
+        self.anchor_height = self.config.get('source_height', self.deployment['source_height'])
+        self.source_receipt = Path(self.config.get('source_receipt', str(self.root / 'source-verified/receipt.bin')))
+        self.prefix = self.config.get('operation_prefix', '')
+        if self.prefix and not re.fullmatch(r'[a-z][a-z0-9-]{0,23}', self.prefix):
+            raise ValueError('Invalid operation prefix')
         self.source = RemoteSource(self.config['source'])
         self.rpc = Rpc('https://ethereum-sepolia-rpc.publicnode.com')
         self.sequence = max((int(path.stem.split('-')[1]) for path in self.operation.glob('status-*.json')), default=0)
@@ -53,21 +59,79 @@ class Settlement:
     def native(self, name, role, command, *args):
         return self.run(name, [self.config['ethereum'], 'swap', '--deployment', self.config['deployment'], '--config', self.config['consensus'], '--directory', self.config[role], command, *args])
 
+    def proof_name(self, name):
+        return self.prefix + '-' + name.removeprefix('demo-') if self.prefix else name
+
+    def transaction_name(self, name):
+        return self.prefix + '-' + name if self.prefix else name
+
+    def await_reservation_authorization(self):
+        required = self.config.get('required_requests', 0)
+        deadline = time.monotonic() + 7200
+        announced = False
+        while True:
+            ledger = json.loads(Path(self.config['ledger']).read_text())
+            maximum = ledger['maximum_requests']
+            scoped = maximum is None and ledger.get('scope', {}).get('kind') == 'single_testnet_swap' and ledger['scope'].get('completed') is False
+            if (scoped or (isinstance(maximum, int) and maximum >= required)) and self.source_receipt.exists():
+                return
+            if not announced:
+                self.emit('awaiting_authorization', 'Waiting for verified source evidence and operator authorization')
+                announced = True
+            self.refresh_inventory_capture()
+            if time.monotonic() > deadline:
+                raise RuntimeError('Source evidence or operator authorization remains pending')
+            time.sleep(30)
+
+    def refresh_inventory_capture(self):
+        capture = self.operation / 'maker-inventory-capture.json'
+        if capture.exists():
+            value = json.loads(capture.read_text())
+            if time.time() - int(value['execution']['timestamp'], 16) < 1200:
+                return
+            capture.rename(self.operation / f"maker-inventory-capture-{int(value['execution']['number'], 16)}.json")
+        self.run('maker-inventory-refresh', ['python3', REPOSITORY / 'scripts/ethereum_evidence.py', '--kind', 'note',
+            '--config', self.config['consensus'], '--request', self.root / 'maker-note-request.json',
+            '--native', self.config['ethereum'], '--beacon', 'http://unstable.sepolia.beacon-api.nimbus.team',
+            '--allow-http-beacon', '--capture-only', '--out', capture])
+
+    def await_source_admission(self):
+        record = self.config.get('source_admission_record')
+        if not record:
+            return
+        deadline = time.monotonic() + 7200
+        while True:
+            path = Path(record)
+            if path.exists():
+                value = json.loads(path.read_text())
+                if value.get('state') == 'confirmed' and int(value.get('receipt', {}).get('status', '0x0'), 16) == 1:
+                    return
+            if time.monotonic() > deadline:
+                raise RuntimeError('Source admission remains pending')
+            time.sleep(30)
+
     def proof_start(self, name, kind, witness, dependencies, cycles):
+        name = self.proof_name(name)
         job = self.operation / f'{name}-job'
+        request = Path(self.config['ledger']).parent / f'{name}-request.json'
+        if request.exists():
+            return (job, request)
         binary = self.config['spv']
         if not job.exists():
             arguments = [binary, 'boundless', 'export', '--kind', kind, '--public', '--program', self.root / f"programs/{('source' if kind == 'source' else kind)}/program.elf", '--witness', witness, '--cycles', cycles, '--out', job]
             for dependency in dependencies:
                 arguments += ['--dependency', dependency]
             self.run(name + '-export', arguments)
-        self.run(name + '-execution', ['python3', REPOSITORY / 'crates/prover/spv/run.py', '--seconds', 900, '--rss-mib', 4096, '--log', self.operation / f'{name}-execution.log', '--', binary, 'boundless', 'execute', '--job', job / 'job.json'])
-        request = Path(self.config['ledger']).parent / f'{name}-request.json'
+        execution = self.operation / f'{name}-execution.log'
+        if execution.exists():
+            execution = self.operation / f'{name}-execution-{time.time_ns()}.log'
+        self.run(name + '-execution', ['python3', REPOSITORY / 'crates/prover/spv/run.py', '--seconds', 900, '--rss-mib', 4096, '--log', execution, '--', binary, 'boundless', 'execute', '--job', job / 'job.json'])
         if not request.exists():
             self.run(name + '-submit', ['python3', REPOSITORY / 'scripts/prove_testnet.py', '--ledger', self.config['ledger'], '--config', self.config['prover_config'], '--binary', self.config['boundless'], '--job', job / 'job.json', '--name', name])
         return (job, request)
 
     def proof_finish(self, name, prepared):
+        name = self.proof_name(name)
         job, request = prepared
         fulfillment = self.operation / f'{name}-fulfillment.json'
         if not fulfillment.exists():
@@ -76,12 +140,15 @@ class Settlement:
         if not verified.exists():
             self.run(name + '-import', [self.config['spv'], 'boundless', 'import', '--job', job / 'job.json', '--proof', fulfillment, '--out', verified])
         self.run(name + '-verify', [self.config['spv'], 'verify', '--program', job / 'program.elf', '--receipt', verified / 'receipt.bin', '--journal', job / 'journal.bin'])
+        self.run(name + '-fees', ['python3', REPOSITORY / 'scripts/prove_testnet.py', '--ledger', self.config['ledger'],
+            '--config', self.config['prover_config'], '--binary', self.config['boundless'], '--settle', name])
         return verified / 'receipt.bin'
 
     def proof(self, name, kind, witness, dependencies, cycles):
         return self.proof_finish(name, self.proof_start(name, kind, witness, dependencies, cycles))
 
     def send(self, name, transaction):
+        name = self.transaction_name(name)
         self.run(name, ['python3', REPOSITORY / 'scripts/submit_testnet.py', '--transaction', transaction, '--name', name, '--keystore', self.config['keystore'], '--password-file', self.config['password_file'], '--out', self.root / 'transactions'])
         return json.loads((self.root / f'transactions/{name}.json').read_text())
 
@@ -107,8 +174,20 @@ class Settlement:
             finality = transport.rest('/eth/v1/beacon/light_client/finality_update')['finalized_header']
             block_hash = finality.get('execution_block_hash') or finality['execution']['block_hash']
             finalized = int(self.rpc.call('eth_getBlockByHash', [block_hash, False])['number'], 16)
+            selected = captured
+            if name == 'maker-inventory':
+                candidates = [captured, *self.operation.glob('maker-inventory-capture-*.json')]
+                eligible = []
+                for candidate in candidates:
+                    value = json.loads(candidate.read_text())
+                    number = int(value['execution']['number'], 16)
+                    age = time.time() - int(value['execution']['timestamp'], 16)
+                    if number <= finalized and 0 <= age <= 1500:
+                        eligible.append((number, candidate))
+                if eligible:
+                    height, selected = max(eligible)
             if finalized >= height:
-                self.run(name + '-finality', [*arguments, '--capture', captured, '--out', evidence])
+                self.run(name + '-finality', [*arguments, '--capture', selected, '--out', evidence])
                 break
             if time.monotonic() > deadline:
                 raise RuntimeError('Ethereum finality is still pending')
@@ -129,7 +208,7 @@ class Settlement:
         info = self.source.call('getblockchaininfo', [])
         if info['chain'] != 'test':
             raise ValueError('Testnet source required')
-        first = self.deployment['source_height'] + 1
+        first = self.anchor_height + 1
         data = b'' if first > info['blocks'] else self.source.headers(first, info['blocks'])
         path = self.operation / f'{name}-headers.bin'
         if path.exists():
@@ -142,7 +221,7 @@ class Settlement:
     def execute(self):
         self.offer = json.loads((self.operation / 'selected-offer.json').read_text())
         order = self.operation / 'order'
-        source_receipt = self.root / 'source-verified/receipt.bin'
+        source_receipt = self.source_receipt
         terms = json.loads((order / 'order.json').read_text())
         if terms['offer'] != self.offer['id'] or terms['usdc'] != self.offer['output']['amount'] or terms['zec'] != self.offer['input']['amount']:
             raise ValueError('Prepared payment does not match the selected offer')
@@ -163,10 +242,12 @@ class Settlement:
         self.emit('awaiting_reservation', 'Checking finalized maker inventory')
         funding = self.operation / 'funding'
         if not funding.exists():
+            self.await_reservation_authorization()
             note_evidence = self.evidence('maker-inventory', 'note', plan / 'note-request.json')
             self.native('authorize-funding', 'maker', 'funding-authorize-note', '--plan', plan / 'plan.backup', '--binding', binding, '--anchor', source_receipt, '--evidence', note_evidence, '--headers', self.current_headers('funding'), '--out', funding)
         funding_proof = self.proof('demo-reservation-1', 'pool', funding / 'witness.bin', [binding, source_receipt], 1500000000)
-        if not (self.root / 'transactions/maker-reservation.json').exists():
+        self.await_source_admission()
+        if not (self.root / f'transactions/{self.transaction_name("maker-reservation")}.json').exists():
             self.native('check-funding-window', 'maker', 'funding-check', '--witness', funding / 'witness.bin',
                 '--funding', funding_proof, '--source', source_receipt, '--headers', self.current_headers('reservation'))
         reservation_tx = self.pool_send('maker-reservation', funding / 'witness.bin', funding_proof, 'maker')
@@ -197,7 +278,7 @@ class Settlement:
             if time.monotonic() > deadline:
                 raise RuntimeError('Zcash confirmations remain pending')
             time.sleep(30)
-        all_headers = self.source.headers(self.deployment['source_height'] + 1, height + 20)
+        all_headers = self.source.headers(self.anchor_height + 1, height + 20)
         headers = self.operation / 'payment-window-headers.bin'
         confirmations = self.operation / 'payment-window-confirmations.bin'
         block = self.operation / 'payment-block.bin'
@@ -208,9 +289,9 @@ class Settlement:
                     output.write(data)
         window = self.operation / 'window'
         admission = self.operation / 'admission'
-        previous = self.config.get('admission_previous', {'receipt': str(source_receipt), 'height': self.deployment['source_height']})
+        previous = self.config.get('admission_previous', {'receipt': str(source_receipt), 'height': self.anchor_height})
         predecessor = Path(previous['receipt'])
-        offset = previous['height'] - self.deployment['source_height']
+        offset = previous['height'] - self.anchor_height
         if offset < 0 or previous['height'] >= height + 10:
             raise ValueError('Invalid admitted source predecessor')
         admission_headers = self.operation / 'admission-headers.bin'
