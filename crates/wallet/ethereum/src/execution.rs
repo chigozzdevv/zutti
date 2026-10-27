@@ -50,6 +50,16 @@ pub struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    FundingCheck {
+        #[arg(long)]
+        witness: PathBuf,
+        #[arg(long)]
+        funding: PathBuf,
+        #[arg(long)]
+        source: PathBuf,
+        #[arg(long)]
+        headers: PathBuf,
+    },
     FundingAuthorizeNote {
         #[arg(long)]
         plan: PathBuf,
@@ -83,8 +93,10 @@ enum Command {
         out: PathBuf,
     },
     SettlementPrepare {
-        #[arg(long)]
-        funding: PathBuf,
+        #[arg(long, required_unless_present = "record", conflicts_with = "record")]
+        funding: Option<PathBuf>,
+        #[arg(long, required_unless_present = "funding", conflicts_with = "funding")]
+        record: Option<PathBuf>,
         #[arg(long)]
         window: PathBuf,
         #[arg(long)]
@@ -320,6 +332,55 @@ fn stage(out: &Path, files: &[(&str, Vec<u8>)]) -> Result<()> {
 pub fn run(args: Args, now: u64) -> Result<()> {
     let context = Context::open(&args)?;
     match args.command {
+        Command::FundingCheck {
+            witness,
+            funding,
+            source,
+            headers,
+        } => {
+            let witness = SpvPoolWitness::from_bytes(&backup::read_private(&witness, 262_144)?)?;
+            let record = SpvSwapRecord::from_reservation(&witness)?;
+            context.profile.reservation_request(&record)?;
+            context.consent(record.terms())?;
+            verify(
+                &receipt(&funding)?,
+                context.profile.pool_program,
+                &witness.evaluate()?.to_bytes()?,
+            )?;
+            let source = receipt(&source)?;
+            let anchor = &record.reservation().anchor;
+            verify(
+                &source,
+                context.profile.policy.program(),
+                &anchor.to_bytes()?,
+            )?;
+            let bytes = bounded(&headers, 512 * HEADER_BYTES)?;
+            if bytes.len() % HEADER_BYTES != 0 {
+                return Err("invalid current funding headers".into());
+            }
+            let headers = bytes
+                .chunks_exact(HEADER_BYTES)
+                .map(<[u8]>::to_vec)
+                .collect::<Vec<_>>();
+            let current = anchor.advance(&headers)?;
+            let height = current.height()?;
+            record
+                .terms()
+                .window()
+                .require_remaining(height, context.profile.minimum_blocks)?;
+            let timestamp = u64::from(current.timestamp()?);
+            if timestamp > now.saturating_add(context.profile.future_drift)
+                || u64::from(current.maximum_time())
+                    > now.saturating_add(context.profile.future_drift)
+                || now > timestamp.saturating_add(context.profile.maximum_source_age)
+            {
+                return Err("stale current funding headers".into());
+            }
+            println!(
+                "{}",
+                serde_json::json!({"funding_proof_verified":true,"current_headers_verified":true,"height":height,"remaining_blocks":record.terms().window().expiry()-height,"funded":false})
+            );
+        }
         Command::FundingAuthorizeNote {
             plan,
             binding,
@@ -472,12 +533,22 @@ pub fn run(args: Args, now: u64) -> Result<()> {
         }
         Command::SettlementPrepare {
             funding,
+            record,
             window,
             events,
             out,
         } => {
-            let funding = SpvPoolWitness::from_bytes(&backup::read_private(&funding, 262_144)?)?;
-            let record = SpvSwapRecord::from_reservation(&funding)?;
+            let record = match (funding, record) {
+                (Some(funding), None) => SpvSwapRecord::from_reservation(
+                    &SpvPoolWitness::from_bytes(&backup::read_private(&funding, 262_144)?)?,
+                )?,
+                (None, Some(record)) => SpvSwapRecord::from_bytes(&backup::open(
+                    context.profile.domain.id()?,
+                    &backup::read_private(&record, 263_168)?,
+                    &context.key,
+                )?)?,
+                _ => return Err("exactly one settlement recovery source required".into()),
+            };
             context.profile.reservation_request(&record)?;
             let window = zutti_source::spv::WindowClaim::from_bytes(&bounded(&window, 4096)?)?;
             let events: serde_json::Value = read(&events, 16_777_216)?;
@@ -667,6 +738,9 @@ pub fn run(args: Args, now: u64) -> Result<()> {
                 record,
                 backup::read_private(&pczt, zutti_wallet::prepare::MAX_PCZT)?.to_vec(),
             )?;
+            journal
+                .record()
+                .save_new(&out.join("swap.backup"), &context.key)?;
             backup::persist_new(
                 &out.join("request.json"),
                 &serde_json::to_vec_pretty(&request)?,
