@@ -8,6 +8,8 @@ pub mod backup;
 #[cfg(feature = "spv")]
 pub mod binding;
 #[cfg(all(feature = "native", feature = "spv-pool"))]
+pub mod deposit;
+#[cfg(all(feature = "native", feature = "spv-pool"))]
 pub mod funding;
 #[cfg(feature = "native")]
 pub mod payment;

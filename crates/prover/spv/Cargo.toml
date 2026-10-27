@@ -57,6 +57,11 @@ path = "../../wallet/tests/account.rs"
 required-features = ["native"]
 
 [[test]]
+name = "wallet-deposit"
+path = "../../wallet/tests/deposit.rs"
+required-features = ["native", "spv-pool"]
+
+[[test]]
 name = "spv"
 path = "../../source/tests/spv.rs"
 
