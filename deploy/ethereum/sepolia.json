@@ -111,5 +111,15 @@
   },
   "private_pool_backing_units": 10000000,
   "backing_verified_at_block": 12003415,
-  "code_hashes_observed_block": 12003292
+  "code_hashes_observed_block": 12003292,
+  "ethereum_wallet": {
+    "consensus_config": "sepolia-consensus.json",
+    "note_evidence": "maker-note-evidence.json",
+    "evidence_sha256": "a702ff31fa1c76a87e74556d8ac13318a4a25edf903a4f37297e5bdcb7e43b9f",
+    "verified_at": 1793088305,
+    "execution_height": 12003717,
+    "finalized_slot": 11446144,
+    "owned_unspent_usdc_units": 10000000,
+    "reservation_verified": false
+  }
 }

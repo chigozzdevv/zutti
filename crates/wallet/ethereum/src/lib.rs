@@ -1,6 +1,7 @@
 #[cfg(feature = "fulfillment")]
 pub mod authorization;
 pub mod inventory;
+pub mod notes;
 #[cfg(feature = "spv-fulfillment")]
 pub mod spv_authorization;
 #[cfg(feature = "spv-fulfillment")]
@@ -51,6 +52,58 @@ pub struct ConsensusConfig {
     pub max_checkpoint_age: u64,
     pub max_finalized_age: u64,
 }
+impl ConsensusConfig {
+    pub fn sepolia(checkpoint: B256) -> Result<Self> {
+        use alloy::primitives::{b256, fixed_bytes};
+        use helios_consensus_core::types::Fork;
+        if checkpoint.is_zero() {
+            return Err(Error::Configuration);
+        }
+        Ok(Self {
+            chain_id: 11155111,
+            genesis_time: 1655733600,
+            genesis_root: b256!("d8ea171f3c94aea21ebc42a1ed61052acf3f9209c00e4efbaaddac09ed9b8078"),
+            checkpoint,
+            seconds_per_slot: 12,
+            max_checkpoint_age: 1_209_600,
+            max_finalized_age: 1800,
+            forks: Forks {
+                genesis: Fork {
+                    epoch: 0,
+                    fork_version: fixed_bytes!("90000069"),
+                },
+                altair: Fork {
+                    epoch: 50,
+                    fork_version: fixed_bytes!("90000070"),
+                },
+                bellatrix: Fork {
+                    epoch: 100,
+                    fork_version: fixed_bytes!("90000071"),
+                },
+                capella: Fork {
+                    epoch: 56832,
+                    fork_version: fixed_bytes!("90000072"),
+                },
+                deneb: Fork {
+                    epoch: 132608,
+                    fork_version: fixed_bytes!("90000073"),
+                },
+                electra: Fork {
+                    epoch: 222464,
+                    fork_version: fixed_bytes!("90000074"),
+                },
+                fulu: Fork {
+                    epoch: 272640,
+                    fork_version: fixed_bytes!("90000075"),
+                },
+                gloas: Fork {
+                    epoch: 353024,
+                    fork_version: fixed_bytes!("90000076"),
+                },
+            },
+        })
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ReservationRequest {
@@ -68,6 +121,8 @@ pub struct FinalityEvidence {
     pub updates: Vec<Update<MainnetConsensusSpec>>,
     pub finality: FinalityUpdate<MainnetConsensusSpec>,
     pub execution: Header,
+    #[serde(default)]
+    pub ancestry: Vec<Header>,
 }
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -145,9 +200,10 @@ pub fn verify_finalized(
         &evidence.finality,
         now,
     )?;
-    check_execution(
+    check_execution_path(
         &finalized,
         &evidence.execution,
+        &evidence.ancestry,
         config.max_finalized_age,
         now,
     )?;
@@ -156,6 +212,32 @@ pub fn verify_finalized(
         header: evidence.execution.clone(),
         finalized_slot: finalized.beacon().slot,
     })
+}
+
+fn check_execution_path(
+    finalized: &LightClientHeader,
+    execution: &Header,
+    ancestry: &[Header],
+    max_age: u64,
+    now: u64,
+) -> Result<()> {
+    if ancestry.len() > 128 {
+        return Err(Error::Bounds);
+    }
+    if execution.timestamp > now || now - execution.timestamp > max_age {
+        return Err(Error::Execution);
+    }
+    let mut parent = execution;
+    for child in ancestry {
+        if child.parent_hash != parent.hash_slow()
+            || parent.number.checked_add(1) != Some(child.number)
+            || child.timestamp <= parent.timestamp
+        {
+            return Err(Error::Execution);
+        }
+        parent = child;
+    }
+    check_execution(finalized, parent, max_age, now)
 }
 
 fn check_execution(

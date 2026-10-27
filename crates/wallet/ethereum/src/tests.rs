@@ -275,3 +275,178 @@ fn finalized_execution_hash_binds_the_complete_header_and_timestamp() {
     assert!(check_execution(&finalized, &execution, 600, 1_140).is_err());
     assert!(check_execution(&finalized, &execution, 90, 1_246).is_err());
 }
+
+#[test]
+fn finalized_descendants_authenticate_captured_state_without_archive_rpc_trust() {
+    let (config, bootstrap, finality) = fixture("gloas");
+    let mut finalized = verify_consensus(&config, &bootstrap, &[], &finality, 1_246).unwrap();
+    let captured = Header {
+        number: 42,
+        timestamp: 1_120,
+        state_root: B256::repeat_byte(8),
+        ..Default::default()
+    };
+    let child = Header {
+        number: 43,
+        timestamp: 1_132,
+        parent_hash: captured.hash_slow(),
+        ..Default::default()
+    };
+    let tip = Header {
+        number: 44,
+        timestamp: 1_144,
+        parent_hash: child.hash_slow(),
+        ..Default::default()
+    };
+    let LightClientHeader::Gloas(header) = &mut finalized else {
+        panic!("wrong fork")
+    };
+    header.execution_block_hash = tip.hash_slow();
+    let chain = vec![child, tip];
+    check_execution_path(&finalized, &captured, &chain, 600, 1_246).unwrap();
+    for index in 0..chain.len() {
+        for field in ["parent", "number", "timestamp", "state"] {
+            let mut altered = chain.clone();
+            match field {
+                "parent" => altered[index].parent_hash[0] ^= 1,
+                "number" => altered[index].number += 1,
+                "timestamp" => altered[index].timestamp = captured.timestamp,
+                _ => altered[index].state_root[0] ^= 1,
+            }
+            assert!(check_execution_path(&finalized, &captured, &altered, 600, 1_246).is_err());
+        }
+    }
+    assert!(check_execution_path(&finalized, &captured, &chain[1..], 600, 1_246).is_err());
+    assert!(check_execution_path(&finalized, &captured, &chain, 100, 1_246).is_err());
+    let mut wrong = captured;
+    wrong.state_root[0] ^= 1;
+    assert!(check_execution_path(&finalized, &wrong, &chain, 600, 1_246).is_err());
+}
+
+#[test]
+fn note_state_requires_a_known_root_and_a_genuinely_unspent_nullifier() {
+    use crate::notes::{NoteRequest, verify_note_storage};
+    let request = NoteRequest {
+        chain_id: 11155111,
+        pool: Address::repeat_byte(1),
+        pool_code_hash: B256::repeat_byte(2),
+        root: B256::repeat_byte(3),
+        nullifier: B256::repeat_byte(4),
+    };
+    let keys = request.storage_keys().unwrap();
+    for spent in [false, true] {
+        let mut leaves = vec![(keys[0], rlp::encode(U256::from(1)))];
+        if spent {
+            leaves.push((keys[1], rlp::encode(U256::from(1))));
+        }
+        let (storage_root, proofs) = trie(leaves, &keys);
+        let account = TrieAccount {
+            nonce: 1,
+            balance: U256::ZERO,
+            storage_root,
+            code_hash: request.pool_code_hash,
+        };
+        let account_key = Nibbles::unpack(keccak256(request.pool));
+        let mut builder =
+            HashBuilder::default().with_proof_retainer(ProofRetainer::new(vec![account_key]));
+        builder.add_leaf(account_key, &rlp::encode(account));
+        let root = builder.root();
+        let proof = EIP1186AccountProofResponse {
+            address: request.pool,
+            nonce: 1,
+            balance: U256::ZERO,
+            storage_hash: storage_root,
+            code_hash: request.pool_code_hash,
+            account_proof: builder
+                .take_proof_nodes()
+                .matching_nodes_sorted(&account_key)
+                .into_iter()
+                .map(|(_, value)| value)
+                .collect(),
+            storage_proof: keys
+                .into_iter()
+                .zip(proofs)
+                .enumerate()
+                .map(|(i, (key, proof))| EIP1186StorageProof {
+                    key: key.into(),
+                    value: U256::from(u64::from(i == 0 || spent)),
+                    proof,
+                })
+                .collect(),
+        };
+        assert_eq!(verify_note_storage(&request, &proof, root).is_ok(), !spent);
+        if !spent {
+            for change in [
+                "root",
+                "nullifier",
+                "code",
+                "pool",
+                "missing",
+                "duplicate",
+                "value",
+            ] {
+                let mut request = request.clone();
+                let mut proof = proof.clone();
+                match change {
+                    "root" => request.root[0] ^= 1,
+                    "nullifier" => request.nullifier[0] ^= 1,
+                    "code" => request.pool_code_hash[0] ^= 1,
+                    "pool" => request.pool[0] ^= 1,
+                    "missing" => {
+                        proof.storage_proof.pop();
+                    }
+                    "duplicate" => proof.storage_proof[1] = proof.storage_proof[0].clone(),
+                    _ => proof.storage_proof[1].value = U256::from(1),
+                }
+                assert!(
+                    verify_note_storage(&request, &proof, root).is_err(),
+                    "accepted {change}"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn retained_live_sepolia_note_evidence_authenticates_the_actual_deployed_pool() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/ethereum");
+    let config: ConsensusConfig =
+        serde_json::from_slice(&std::fs::read(path.join("sepolia-consensus.json")).unwrap())
+            .unwrap();
+    let request: crate::notes::NoteRequest =
+        serde_json::from_slice(&std::fs::read(path.join("maker-note-request.json")).unwrap())
+            .unwrap();
+    let raw = std::fs::read(path.join("maker-note-evidence.json")).unwrap();
+    let evidence: crate::notes::NoteEvidence = serde_json::from_slice(&raw).unwrap();
+    let deployment: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(path.join("sepolia.json")).unwrap()).unwrap();
+    let now = deployment["ethereum_wallet"]["verified_at"]
+        .as_u64()
+        .unwrap();
+    let verified = crate::notes::verify(&config, &request, &evidence, now).unwrap();
+    assert_eq!(verified.execution_height, 12003717);
+    assert_eq!(verified.pool.to_string().to_lowercase(), deployment["pool"]);
+    for change in ["ancestry", "proof", "root", "signature"] {
+        let mut changed: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        match change {
+            "ancestry" => {
+                changed["consensus"]["ancestry"][0]["stateRoot"] =
+                    format!("0x{}", "01".repeat(32)).into()
+            }
+            "proof" => changed["pool"]["storageProof"][0]["value"] = "0x0".into(),
+            "root" => {
+                changed["consensus"]["execution"]["stateRoot"] =
+                    format!("0x{}", "01".repeat(32)).into()
+            }
+            _ => {
+                changed["consensus"]["finality"]["sync_aggregate"]["sync_committee_signature"] =
+                    format!("0x{}", "00".repeat(96)).into()
+            }
+        }
+        let changed = serde_json::from_value(changed).unwrap();
+        assert!(
+            crate::notes::verify(&config, &request, &changed, now).is_err(),
+            "accepted {change}"
+        );
+    }
+}

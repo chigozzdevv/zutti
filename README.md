@@ -6,7 +6,7 @@ The Testnet demo uses checkpoint-bootstrapped SPV. A release pins one selected T
 
 ## Status
 
-The [Testnet source profile](deploy/source/testnet/profile.json) retains genuine corrected source and admission receipts. Sepolia's deployed registry accepted the proof and finalized the source update through height 4,546,474 with ten additional confirmation headers. The [deployment record](deploy/ethereum/sepolia.json) pins the actual registry, private pool, token, program identities and transactions. A genuine private-pool deposit transferred 10 Testnet USDC into the pool; actual backing and local ownership of the emitted note were checked. This is source admission and funded private inventory, not a completed swap. The earlier [checkpoint profile](deploy/source/checkpoint/profile.json) remains retired.
+The [Testnet source profile](deploy/source/testnet/profile.json) retains genuine corrected source and admission receipts. Sepolia's deployed registry accepted the proof and finalized the source update through height 4,546,474 with ten additional confirmation headers. The [deployment record](deploy/ethereum/sepolia.json) pins the actual registry, private pool, token, program identities and transactions. A genuine private-pool deposit transferred 10 Testnet USDC into the pool. The native wallet verified ownership and its unspent state against authenticated Ethereum finality. It also decrypted a faucet-funded 1-TAZ Ironwood note in Testnet block 4,546,735 and reconstructed its path to the node's tree root. This is funded wallet integration, not a completed swap. The earlier [checkpoint profile](deploy/source/checkpoint/profile.json) remains retired.
 
 The [remaining work](#remaining-work) separates compiled programs, execution checks, genuine proof receipts and live transactions. The [refund security review](zutti.md#94-refund-security-review) concerns future refund support; the checkpoint demo rejects nonpayment settlement rather than treating missing evidence as a refund.
 
@@ -75,7 +75,7 @@ Paid jobs, rentals and parameter downloads require an explicit budget. Routine s
 
 1. Maintain the source feed using genuine linked extensions and admission updates under the deployed policy. An admitted prefix does not prove later headers or stay fresh indefinitely.
 2. Complete genuine private-pool reservation, payment-binding, qualifying-payment, payout and withdrawal proofs under the deployed identities. The first 10-USDC deposit is already proved and executed; the retained receipt and on-chain checks are in `deploy/ethereum/maker-deposit.json`.
-3. Connect source scanning, spendable-note selection, native Ironwood proving/signing/broadcast and operational SDK `intent.accept()` fulfillment. Verify finalized reservation evidence before signing a Zcash payment.
+3. Connect the implemented source scanning, note selection and native payment builder to live reservation, proving/signing/broadcast and SDK `intent.accept()` fulfillment. Verify the actual finalized reservation before signing a Zcash payment.
 4. Keep reverse swaps and nonpayment refunds disabled. Unavailable or unproved payment evidence leaves a reservation pending; future refund support needs the separate [lower-bound review](zutti.md#94-refund-security-review).
 5. Demonstrate a real ZEC → USDC payout, private balance and withdrawal, rejection of wrong evidence, pending behavior and recovery. Then deliver the application flow and submission materials.
 
@@ -92,7 +92,9 @@ CARGO_TARGET_DIR="$TARGET" cargo build --offline --locked \
 "$TARGET/debug/zutti-wallet" address --directory "$ACCOUNT"
 ```
 
-`init` refuses an existing directory. The account contains independently generated Zcash and private-USDC keys. Its public output includes a Testnet unified address and a private-pool receiving descriptor, not an ERC-20 address. `account.backup` is authenticated encryption; the owner-only `account.key` unlocks it. Preserve both files for restoration. This account command does not scan balances or authorize a swap. `deposit --directory "$MAKER_ACCOUNT" --deployment deploy/ethereum/sepolia.json --amount 10 --out "$DEPOSIT"` prepares an owned private note, encrypted recovery material and a local proving witness. It does not generate a proof or move USDC.
+`init` refuses an existing directory. The account contains independently generated Zcash and private-USDC keys. Its public output includes a Testnet unified address and a private-pool receiving descriptor, not an ERC-20 address. `account.backup` is authenticated encryption; the owner-only `account.key` unlocks it. Preserve both files for restoration. `deposit --directory "$MAKER_ACCOUNT" --deployment deploy/ethereum/sepolia.json --amount 10 --out "$DEPOSIT"` prepares an owned private note, encrypted recovery material and a local proving witness. It does not generate a proof or move USDC.
+
+`inventory` reconstructs the complete pool output tree, checks its root and retains encrypted owned-note paths. `scan` trial-decrypts Ironwood outputs locally, processes revealed nullifiers and checks the resulting commitment tree. `prepare-payment` builds an unsigned, fully shielded payment with the exact accepted terms and change, then exports the redacted binding witness. The optional `wallet-proving` feature adds `prove-payment` for native Halo2 proving. These commands cannot bypass finalized reservation verification or broadcast an unsigned payment.
 
 ## Checkpoint workflow
 
@@ -209,6 +211,10 @@ The prepared continuation for heights 5–4,100 passed execution at 23,931,789,1
 The retained execution measurements show about 48% fewer pool-operation cycles after removing duplicate validation. Separately, the receipt-verification probe consumed 183,494,181 cycles for one genuine historical Groth16 receipt, with zero host assumptions. Each inline dependency adds verification work; these figures are not complete proof-time or market-price estimates. `build --kind receipt-check` builds that regression probe, not a settlement program. No new SPV composed proof was generated by these execution checks.
 
 ## Ethereum evidence
+
+`scripts/ethereum_evidence.py` collects public beacon updates and EIP-1186 proofs, then invokes the native verifier before publishing accepted evidence. Use `--capture-only` to retain a recent storage proof when the RPC's proof window is shorter than finality, followed by `--capture FILE` after finalization. The verifier authenticates the captured execution header through at most 128 hash-linked descendants to the signed finalized header. A pending capture is not verified evidence.
+
+`deploy/ethereum/sepolia-consensus.json` pins the selected Ethereum bootstrap root and Sepolia fork schedule. The retained `maker-note-evidence.json` and `maker-note-request.json` reproduce genuine finalized membership and unspent-state verification. They contain public Testnet evidence. The owning keys and decrypted recovery records remain local. `owned-note`, built with `--features spv-fulfillment`, additionally checks the account's note ownership and pool membership path before returning its amount.
 
 ```sh
 cargo run --locked --manifest-path crates/wallet/ethereum/Cargo.toml -- \
