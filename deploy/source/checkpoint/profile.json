@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "prepared",
+  "status": "source_receipt_verified",
   "network": "testnet",
   "settlement_chain_id": "11155111",
   "pairs": [
@@ -74,6 +74,26 @@
     "following-headers.bin": {
       "bytes": 29740,
       "sha256": "26b771a9b6879d0f3fe0b97e61f3c8368cad05efc66e46476d462eddf1d8ad29"
+    },
+    "source-program.elf": {
+      "bytes": 1547400,
+      "sha256": "cd2bfac5c43e4c05dfb54d933f5c7b8c3261b84c54e771aa885e2b5bd80092b3"
+    },
+    "source-receipt.bin": {
+      "bytes": 10700,
+      "sha256": "6bb454b62401344fb0cacae19ca6fe1a5550149094221daaeefcbfb92eeefbdf"
+    },
+    "source-journal.bin": {
+      "bytes": 5107,
+      "sha256": "3fde0f3f589867c4635d143e05a64091e12d1a8687949415ab5107c34af08d00"
+    },
+    "source-seal.bin": {
+      "bytes": 260,
+      "sha256": "6d927d89d09f271479a5d674731b03d0a7b156d9e053f7ac89b44c09ec015f56"
+    },
+    "proof.json": {
+      "bytes": 2286,
+      "sha256": "337c446041b6042019a7e0f575de4063a82d65bf772f197efd76ab95d9dec704"
     }
   },
   "source_execution": {
@@ -99,5 +119,13 @@
     "Accepted source history remains subject to mining, observation, reorganization and availability assumptions.",
     "Public Testnet proving inputs do not provide witness confidentiality."
   ],
-  "code_revision": "ec2776f101460d71b066b25699843354b8d7ffb2"
+  "code_revision": "ec2776f101460d71b066b25699843354b8d7ffb2",
+  "source_proof": {
+    "artifact": "proof.json",
+    "proof_generated": true,
+    "proof_verified": true,
+    "verified_height": 4545439,
+    "source_admitted": false,
+    "swap_executed": false
+  }
 }

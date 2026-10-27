@@ -71,6 +71,64 @@ fn checkpoint_bootstrap_survives_restart_and_never_invents_a_receipt() {
 }
 
 #[test]
+fn genuine_checkpoint_receipt_advances_only_the_exact_pinned_context() {
+    let directory =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../deploy/source/checkpoint");
+    let profile: serde_json::Value =
+        serde_json::from_slice(&fs::read(directory.join("profile.json")).unwrap()).unwrap();
+    let program = fs::read(directory.join("source-program.elf")).unwrap();
+    let image = image(&program).unwrap();
+    assert_eq!(image.to_string(), profile["programs"]["source"]["image_id"]);
+    let checkpoint =
+        HeaderClaim::from_bytes(&fs::read(directory.join("checkpoint.bin")).unwrap()).unwrap();
+    let policy = Policy::from_checkpoint(
+        image,
+        10,
+        128,
+        5_000_000,
+        checkpoint.checkpoint_id().unwrap(),
+    )
+    .unwrap();
+    assert_eq!(policy.id().unwrap().to_string(), profile["policy"]["id"]);
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("checkpoint-state");
+    let state = Bootstrap::init_checkpoint(&root, &program, &checkpoint, policy).unwrap();
+    let batch = state
+        .prepare(headers(&directory.join("following-headers.bin")).unwrap())
+        .unwrap();
+    let journal = fs::read(directory.join("source-journal.bin")).unwrap();
+    assert_eq!(fs::read(batch.join("journal.bin")).unwrap(), journal);
+    assert!(
+        state
+            .accept(
+                0,
+                &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                    .join("fixtures/boundless-source/receipt-0.bin"),
+            )
+            .is_err()
+    );
+    assert_eq!(state.status().unwrap().verified_batches, 0);
+    let receipt_path = directory.join("source-receipt.bin");
+    let receipt = zutti_spv_prototype::read_receipt(&receipt_path).unwrap();
+    assert!(matches!(receipt.inner, InnerReceipt::Groth16(_)));
+    let audit = zutti_spv_prototype::audit(&program, &receipt).unwrap();
+    assert_eq!(audit["changed_proof_rejected"], true);
+    assert_eq!(audit["wrong_image_rejected"], true);
+    assert_eq!(audit["wrong_expected_journal_rejected"], true);
+    let status = state.accept(0, &receipt_path).unwrap();
+    assert_eq!(status.checkpoint_height, Some(4_545_419));
+    assert_eq!(status.verified_height, Some(4_545_439));
+    assert_eq!(status.verified_batches, 1);
+    assert_eq!(status.pending_batch, None);
+    assert!(!status.canonicality_admitted);
+    assert!(!status.settlement_authority);
+    drop(state);
+    let state = Bootstrap::open(&root).unwrap();
+    assert_eq!(state.status().unwrap().verified_height, Some(4_545_439));
+    assert_eq!(state.accept(0, &receipt_path).unwrap().verified_batches, 1);
+}
+
+#[test]
 fn genuine_receipt_advances_once_and_restart_preserves_its_exact_predecessor() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().join("state");
