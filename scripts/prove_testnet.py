@@ -100,14 +100,55 @@ def submit(args):
             raise RuntimeError("Inspect the retained private log and request; automatic resubmission is disabled")
 
 
+def reconcile(args):
+    with args.ledger.with_suffix(".lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        ledger = private_json(args.ledger)
+        records = [record for record in ledger["requests"] if record["name"] == args.settle]
+        if len(records) != 1:
+            raise ValueError("One existing proof request is required")
+        record = records[0]
+        if record.get("state") == "fulfilled":
+            return
+        if record.get("state") != "submitted" or not record.get("request_id"):
+            raise ValueError("Unknown submission outcomes must remain reserved")
+        evidence = args.ledger.parent / f"{record['name']}-market-evidence.json"
+        if not evidence.exists():
+            subprocess.run([str(args.binary), "--network", "base", "--config", str(args.config),
+                "evidence", "--request", record["request"], "--out", str(evidence)],
+                check=True, timeout=240, capture_output=True)
+        value = private_json(evidence)
+        ceiling = int(record["reserved_wei"])
+        price = int(value["price_wei"])
+        issued = private_json(Path(record["request"]))
+        if (value["chain_id"] != 8453 or value["request_id"] != record["request_id"]
+                or value["image_id"] != issued["image_id"] or not value.get("fulfillment_transaction")
+                or not value.get("fulfillment_block") or not 0 <= price <= ceiling):
+            raise ValueError("Fulfillment fee evidence does not match the reserved request")
+        record.update({"state":"fulfilled", "ceiling_wei":str(ceiling), "spent_wei":str(price),
+            "reserved_wei":str(price), "fee_evidence":str(evidence), "reconciled_at":int(time.time())})
+        save(args.ledger, ledger)
+        print(json.dumps({"name":record["name"], "spent_wei":str(price),
+            "released_wei":str(ceiling-price), "requests_attempted":len(ledger["requests"])}))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--ledger", type=Path, required=True)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--binary", type=Path, required=True)
-    parser.add_argument("--job", type=Path, required=True)
-    parser.add_argument("--name", required=True)
-    submit(parser.parse_args())
+    parser.add_argument("--job", type=Path)
+    parser.add_argument("--name")
+    parser.add_argument("--settle")
+    args = parser.parse_args()
+    if args.settle:
+        if args.job or args.name:
+            parser.error("Fee reconciliation cannot submit another proof")
+        reconcile(args)
+    else:
+        if not args.job or not args.name:
+            parser.error("Submission requires --job and --name")
+        submit(args)
 
 
 if __name__ == "__main__":

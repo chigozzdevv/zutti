@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from prove_testnet import save, submit
+from prove_testnet import save, submit, reconcile
 
 
 class BudgetTests(unittest.TestCase):
@@ -60,6 +60,27 @@ class BudgetTests(unittest.TestCase):
                 job=json.loads(self.args.job.read_text());job["visibility"]="private";save(self.args.job,job)
             with self.assertRaises(ValueError):submit(self.args)
         self.assertEqual(json.loads(self.args.ledger.read_text())["requests"],[])
+
+    def test_only_fulfilled_matching_requests_release_unused_ceiling_without_resetting_count(self):
+        submit(self.args)
+        request=self.args.ledger.parent/"source-1-request.json"
+        issued=json.loads(request.read_text());issued["image_id"]="11"*32;save(request,issued)
+        self.args.settle="source-1"
+        evidence=self.args.ledger.parent/"source-1-market-evidence.json"
+        value={"chain_id":8453,"request_id":"0x1234","image_id":"11"*32,"price_wei":"20",
+            "fulfillment_transaction":"0x"+"44"*32,"fulfillment_block":100}
+        for field,replacement in [("request_id","0x9999"),("image_id","22"*32),("price_wei","61"),("fulfillment_block",None)]:
+            invalid={**value,field:replacement};save(evidence,invalid)
+            with self.assertRaises(ValueError):reconcile(self.args)
+            self.assertEqual(json.loads(self.args.ledger.read_text())["requests"][0]["reserved_wei"],"60")
+        save(evidence,value);reconcile(self.args)
+        ledger=json.loads(self.args.ledger.read_text())
+        self.assertEqual(len(ledger["requests"]),1)
+        self.assertEqual(ledger["requests"][0]["reserved_wei"],"20")
+        self.assertEqual(ledger["requests"][0]["state"],"fulfilled")
+        reconcile(self.args)
+        self.args.name="renamed"
+        with self.assertRaises(ValueError):submit(self.args)
 
 
 if __name__=="__main__":unittest.main()
