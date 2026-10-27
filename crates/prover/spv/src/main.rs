@@ -27,6 +27,18 @@ struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    ExportAdmission {
+        #[arg(long)]
+        program: PathBuf,
+        #[arg(long)]
+        receipt: PathBuf,
+        #[arg(long)]
+        policy: String,
+        #[arg(long)]
+        registry: String,
+        #[arg(long)]
+        out: PathBuf,
+    },
     Checkpoint {
         #[arg(long)]
         headers: PathBuf,
@@ -795,6 +807,28 @@ fn main() -> Result<()> {
                     public_header_receipt,
                 },
             )?;
+            Ok(())
+        }
+        Command::ExportAdmission {
+            program,
+            receipt,
+            policy,
+            registry,
+            out,
+        } => {
+            let program = bounded(&program, 32 * 1024 * 1024)?;
+            let receipt = read_receipt(&receipt)?;
+            let registry: [u8; 20] = hex::decode(registry.strip_prefix("0x").unwrap_or(&registry))?
+                .try_into()
+                .map_err(|_| "registry must be a 20-byte address")?;
+            let call = zutti_spv_prototype::ethereum::admission_call(
+                &receipt,
+                image(&program)?,
+                Digest::from_hex(&policy)?,
+                registry,
+            )?;
+            write_new(&out, &serde_json::to_vec_pretty(&call)?)?;
+            println!("{call}");
             Ok(())
         }
         Command::Binding {

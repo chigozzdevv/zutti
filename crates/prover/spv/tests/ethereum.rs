@@ -3,7 +3,7 @@ use risc0_zkvm::{
     ReceiptClaim, sha::Digestible,
 };
 use zutti_protocol::Digest;
-use zutti_spv_prototype::ethereum::{seal, wrap};
+use zutti_spv_prototype::ethereum::{admission_call, seal, wrap};
 
 fn genuine() -> (Digest, Vec<u8>, Receipt, Vec<u8>) {
     let fixture: serde_json::Value = serde_json::from_str(include_str!(
@@ -71,4 +71,11 @@ fn unwrapped_or_fabricated_evidence_cannot_be_exported_to_ethereum() {
         )
         .is_err()
     );
+}
+
+#[test]
+fn a_genuine_unrelated_receipt_cannot_become_source_admission() {
+    let (image, _, receipt, _) = genuine();
+    assert!(admission_call(&receipt, image, Digest([1; 32]), [2; 20]).is_err());
+    assert!(admission_call(&receipt, image, Digest([1; 32]), [0; 20]).is_err());
 }
