@@ -7968,6 +7968,7 @@ dependencies = [
  "chacha20poly1305 0.10.1",
  "getrandom 0.3.4",
  "hkdf",
+ "incrementalmerkletree",
  "k256",
  "libc",
  "orchard",

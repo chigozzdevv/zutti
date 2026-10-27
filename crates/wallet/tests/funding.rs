@@ -146,3 +146,52 @@ fn altered_membership_and_value_cannot_obtain_funding_authorization() {
         assert!(plan(original).authorize(&consent, &owner).is_err());
     }
 }
+
+#[test]
+fn scanned_inventory_prepares_recoverable_funding_without_signing() {
+    use zutti_protocol::encoding::Canonical;
+    use zutti_wallet::{inventory::PoolInventory, private_note::EncryptedNote};
+    let original = funding();
+    let maker = fixture::keys(20);
+    let encrypted = EncryptedNote::encrypt(&original.inputs[0].note).unwrap();
+    let inventory = PoolInventory::scan(
+        original.claim.pool.domain,
+        &maker,
+        &[(0, encrypted)],
+        original.claim.pool.root,
+        1,
+    )
+    .unwrap();
+    let inventory = PoolInventory::from_bytes(&inventory.to_bytes().unwrap()).unwrap();
+    let SpvAction::Reserve(reservation) = original.action else {
+        unreachable!()
+    };
+    let terms = reservation.terms.clone();
+    let plan = SpvFundingPlan::from_inventory(
+        original.policy,
+        original.claim.binding_program,
+        original.claim.pool_program,
+        &inventory,
+        &maker,
+        reservation,
+    )
+    .unwrap();
+    let bytes = plan.to_bytes().unwrap();
+    let restored = SpvFundingPlan::from_bytes(&bytes).unwrap();
+    let consent = FundingConsent {
+        terms: &terms,
+        refund: maker.recipient().unwrap(),
+        policy: original.policy,
+        binding_program: original.claim.binding_program,
+        pool_program: original.claim.pool_program,
+    };
+    restored.check(&consent, &maker).unwrap();
+    let claim = restored.claim().clone();
+    let signed = restored.authorize(&consent, &maker).unwrap();
+    assert_eq!(signed.evaluate().unwrap(), claim);
+    assert_eq!(signed.outputs[0].note.amount().units(), 101_000_000);
+    assert!(SpvFundingPlan::from_bytes(&bytes[..bytes.len() - 1]).is_err());
+    let mut trailing = bytes;
+    trailing.push(0);
+    assert!(SpvFundingPlan::from_bytes(&trailing).is_err());
+}

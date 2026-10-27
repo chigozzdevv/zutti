@@ -115,3 +115,82 @@ fn wrong_encrypted_memo_and_modified_terms_are_rejected() {
     assert!(inspect_ironwood(&bytes, &changed, &fixture.randomness).is_err());
     assert!(inspect_ironwood(b"not a PCZT", &fixture.terms, &fixture.randomness).is_err());
 }
+
+#[cfg(feature = "native")]
+#[test]
+fn source_note_archive_builds_a_bound_payment_and_rejects_wrong_ownership_or_anchor() {
+    use incrementalmerkletree::{Hashable, Level};
+    use orchard::{
+        Note,
+        keys::FullViewingKey,
+        note::{ExtractedNoteCommitment, NoteVersion, RandomSeed, Rho},
+        tree::{MerkleHashOrchard, MerklePath},
+        value::NoteValue,
+    };
+    use zutti_protocol::encoding::Canonical;
+    use zutti_wallet::source_notes::{SourceNote, SourceScan};
+    let fixture = fixture(false);
+    let viewing = FullViewingKey::from(&fixture.key);
+    let rho = Rho::from_bytes(&[1; 32]).into_option().unwrap();
+    let seed = (0..=255_u8)
+        .find_map(|n| RandomSeed::from_bytes([n; 32], &rho).into_option())
+        .unwrap();
+    let note = Note::from_parts(
+        viewing.address_at(0_u32, orchard::keys::Scope::External),
+        NoteValue::from_raw(500_010_000),
+        rho,
+        seed,
+        NoteVersion::V3,
+    )
+    .into_option()
+    .unwrap();
+    let path = MerklePath::from_parts(
+        0,
+        std::array::from_fn(|i| MerkleHashOrchard::empty_root(Level::from(i as u8))),
+    );
+    let anchor = path
+        .root(ExtractedNoteCommitment::from(note.commitment()))
+        .to_bytes();
+    let scan = SourceScan {
+        height: fixture.terms.window().anchor_height(),
+        block: fixture.terms.window().anchor_hash(),
+        anchor,
+        notes: vec![SourceNote {
+            note,
+            path,
+            txid: support::digest(101),
+            action: 0,
+            received_height: 4_460_000,
+        }],
+    };
+    let restored = SourceScan::from_bytes(&scan.to_bytes().unwrap()).unwrap();
+    let pczt = restored
+        .prepare_payment(&viewing, &fixture.terms, &fixture.randomness)
+        .unwrap();
+    inspect_ironwood(&pczt, &fixture.terms, &fixture.randomness).unwrap();
+    let other = orchard::keys::SpendingKey::from_bytes([99; 32]).unwrap();
+    assert!(
+        restored
+            .prepare_payment(
+                &FullViewingKey::from(&other),
+                &fixture.terms,
+                &fixture.randomness
+            )
+            .is_err()
+    );
+    let mut wrong = scan;
+    wrong.anchor[0] ^= 1;
+    assert!(SourceScan::from_bytes(&wrong.to_bytes().unwrap()).is_err());
+    assert!(
+        wrong
+            .prepare_payment(&viewing, &fixture.terms, &fixture.randomness)
+            .is_err()
+    );
+    wrong.anchor[0] ^= 1;
+    wrong.block.0[0] ^= 1;
+    assert!(
+        wrong
+            .prepare_payment(&viewing, &fixture.terms, &fixture.randomness)
+            .is_err()
+    );
+}

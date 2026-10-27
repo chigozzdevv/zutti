@@ -5,6 +5,7 @@ use crate::{
 };
 use zutti_protocol::{
     Digest, Error, Result,
+    encoding::{Canonical, Reader, Writer},
     order::OrderTerms,
     pool::{OperationKind, PoolPath, nullifier_digest, output_digest},
     private_note::{NoteRecipient, PrivateNote},
@@ -14,6 +15,58 @@ use zutti_source::spv::Policy;
 pub struct FundingInput {
     pub note: PrivateNote,
     pub path: PoolPath,
+}
+
+impl Canonical for SpvFundingPlan {
+    fn encode(&self, writer: &mut Writer) -> Result<()> {
+        writer.fixed(b"ZUTTIFPL");
+        writer.u16(1);
+        self.policy.encode(writer)?;
+        self.claim.encode(writer)?;
+        writer.u8(u8::try_from(self.inputs.len()).map_err(|_| Error::Length)?);
+        for input in &self.inputs {
+            input.note.encode(writer)?;
+            input.path.encode(writer)?;
+        }
+        writer.u8(u8::try_from(self.change.len()).map_err(|_| Error::Length)?);
+        for output in &self.change {
+            output.encode(writer)?;
+        }
+        self.reservation.encode(writer)
+    }
+    fn decode(reader: &mut Reader<'_>) -> Result<Self> {
+        if reader.fixed::<8>()? != *b"ZUTTIFPL" || reader.u16()? != 1 {
+            return Err(Error::Version);
+        }
+        let policy = Policy::decode(reader)?;
+        let claim = SpvPoolClaim::decode(reader)?;
+        let count = reader.u8()?;
+        if count == 0 || count > 8 {
+            return Err(Error::Length);
+        }
+        let mut inputs = Vec::new();
+        for _ in 0..count {
+            inputs.push(FundingInput {
+                note: PrivateNote::decode(reader)?,
+                path: PoolPath::decode(reader)?,
+            });
+        }
+        let count = reader.u8()?;
+        if count > 7 {
+            return Err(Error::Length);
+        }
+        let mut change = Vec::new();
+        for _ in 0..count {
+            change.push(NoteOutput::decode(reader)?);
+        }
+        Self::new(
+            policy,
+            claim,
+            inputs,
+            change,
+            Box::new(SpvReservation::decode(reader)?),
+        )
+    }
 }
 
 pub struct FundingConsent<'a> {
@@ -51,6 +104,97 @@ impl core::fmt::Debug for SpvFundingPlan {
 }
 
 impl SpvFundingPlan {
+    pub fn from_inventory(
+        policy: Policy,
+        binding_program: Digest,
+        pool_program: Digest,
+        inventory: &crate::inventory::PoolInventory,
+        keys: &NoteKeys,
+        reservation: Box<SpvReservation>,
+    ) -> Result<Self> {
+        use crate::private_note::NoteEncryption;
+        use zutti_protocol::{
+            Secret32,
+            amount::{Amount, Asset},
+            pool::PoolClaim,
+        };
+        let domain = reservation.terms.domain().id()?;
+        reservation.validate(policy, domain)?;
+        let owner = keys.recipient()?;
+        let value = reservation.terms.usdc().units();
+        let coin = inventory
+            .notes()
+            .iter()
+            .find(|owned| {
+                owned.note.recipient() == owner
+                    && owned.note.domain() == domain
+                    && owned.note.amount().units() >= value
+            })
+            .ok_or(Error::Invalid("insufficient maker inventory"))?;
+        let mut change = Vec::new();
+        let remaining = coin
+            .note
+            .amount()
+            .units()
+            .checked_sub(value)
+            .ok_or(Error::Overflow)?;
+        if remaining > 0 {
+            change.push(NoteOutput {
+                note: PrivateNote::new(
+                    domain,
+                    owner,
+                    Amount::from_units(Asset::Usdc, remaining)?,
+                    Secret32::random()?,
+                    Secret32::random()?,
+                )?,
+                encryption: NoteEncryption::random()?,
+            });
+        }
+        let mut outputs = vec![reservation.binding()?];
+        for output in &change {
+            outputs.push(output.binding()?);
+        }
+        let claim = SpvPoolClaim {
+            policy: policy.id()?,
+            binding_program,
+            pool_program,
+            expiry: reservation.terms.window().expiry(),
+            pool: PoolClaim {
+                kind: OperationKind::Reserve,
+                domain,
+                root: inventory.root(),
+                checkpoint: reservation.anchor.id()?,
+                order_tag: reservation.terms.use_tag()?,
+                order: reservation.binding.order(),
+                reservation: reservation.binding.reservation(),
+                value: 0,
+                owner: [0; 20],
+                nullifiers: nullifier_digest(&[keys.nullifier(&coin.note)?])?,
+                outputs: output_digest(&outputs)?,
+            },
+        };
+        let plan = Self::new(
+            policy,
+            claim,
+            vec![FundingInput {
+                note: PrivateNote::from_bytes(&coin.note.to_bytes()?)?,
+                path: coin.path.clone(),
+            }],
+            change,
+            reservation,
+        )?;
+        plan.check(
+            &FundingConsent {
+                terms: &plan.reservation.terms,
+                refund: owner,
+                policy,
+                binding_program,
+                pool_program,
+            },
+            keys,
+        )?;
+        Ok(plan)
+    }
     pub fn new(
         policy: Policy,
         claim: SpvPoolClaim,

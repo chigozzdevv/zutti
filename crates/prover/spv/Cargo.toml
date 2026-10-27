@@ -13,6 +13,7 @@ spv = ["zutti-wallet/spv"]
 spv-pool = ["spv", "zutti-wallet/spv-pool"]
 native = ["zutti-wallet/native"]
 wallet = ["native"]
+wallet-proving = ["wallet", "zutti-wallet/proving"]
 recovery = ["native", "spv-pool"]
 
 [dependencies]

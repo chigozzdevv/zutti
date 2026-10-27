@@ -11,6 +11,8 @@ pub mod binding;
 pub mod deposit;
 #[cfg(all(feature = "native", feature = "spv-pool"))]
 pub mod funding;
+#[cfg(all(feature = "native", feature = "spv-pool"))]
+pub mod inventory;
 #[cfg(feature = "native")]
 pub mod payment;
 #[cfg(feature = "pool")]
@@ -21,6 +23,8 @@ pub mod prepare;
 pub mod private_note;
 #[cfg(feature = "spv-pool")]
 pub mod spv_pool;
+#[cfg(all(feature = "native", feature = "spv-pool"))]
+pub mod source_notes;
 #[cfg(feature = "native")]
 pub mod swap;
 
@@ -42,6 +46,8 @@ pub enum Error {
     Transaction,
     #[error("broadcast response does not match the saved transaction")]
     Broadcast,
+    #[error("invalid source wallet state: {0}")]
+    SourceState(&'static str),
     #[error("invalid recovery archive or authentication failure")]
     Archive,
     #[error("recovery file permissions or type are unsafe")]
