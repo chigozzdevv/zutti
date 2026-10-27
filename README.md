@@ -6,7 +6,7 @@ The Testnet demo uses checkpoint-bootstrapped SPV. A release pins one selected T
 
 ## Status
 
-Protocol rules, wallet authorization gates, SPV programs, private-pool contracts, recovery tooling and RFQ packages are implemented. Checkpoint policy encoding, context import, durable bootstrap and payment-only guards have native test coverage. The [checkpoint profile](deploy/source/checkpoint/profile.json) retains a genuine Groth16 source receipt through Testnet height 4,545,439 from the pinned checkpoint at 4,545,419. Local verification, tamper checks and read-only verification against Sepolia's deployed RISC Zero router passed. The admission, binding and pool guests are built but still need the complete genuine proof chain, a live deployment and an operational SDK `accept()` flow.
+Protocol rules, wallet authorization gates, SPV programs, private-pool contracts, recovery tooling and RFQ packages are implemented. The [prepared Testnet profile](deploy/source/testnet/profile.json) pins the corrected source, admission, binding and pool programs. Its checkpoint plus 20 descendants passed execution at 117,906,393 guest cycles; no receipt has been generated for this corrected source identity. The earlier [checkpoint receipt](deploy/source/checkpoint/profile.json) is retained as historical evidence and its profile is retired. Genuine proof composition, deployed source admission and operational SDK `accept()` fulfillment remain unfinished.
 
 The [remaining work](#remaining-work) separates compiled programs, execution checks, genuine proof receipts and live transactions. The [refund security review](zutti.md#94-refund-security-review) concerns future refund support; the checkpoint demo rejects nonpayment settlement rather than treating missing evidence as a refund.
 
@@ -73,19 +73,34 @@ Paid jobs, rentals and parameter downloads require an explicit budget. Routine s
 
 ## Remaining work
 
-1. Generate the source-admission proof using the genuine checkpoint receipt and its confirmation headers. The source receipt covers 20 real descendants at 117,906,565 guest cycles; its measured prover fee was 0.000029166666666666 ETH and submission-to-fulfillment time was 238 seconds. These are one job's results, not a complete swap cost or latency estimate.
+1. Generate and verify the corrected source receipt, then its source-admission proof. Confirm that admission is fresh enough for the deployed registry. The retired source job cost 0.000029166666666666 ETH and took 238 seconds from submission to fulfillment; that historical result is not a quote for the corrected proof chain or complete swap.
 2. Generate genuine binding, pool deposit/reservation, qualifying payment, payout and withdrawal proofs under exact release identities, with Ethereum-compatible wrapping where required.
 3. Maintain source admission from the pinned checkpoint through the payment and required confirmations; do not submit the deferred full-history bootstrap.
 4. Keep reverse swaps and nonpayment refunds disabled in the checkpoint profile. Unavailable or unproved payment evidence leaves a reservation pending. Refund support needs the separate [lower-bound review](zutti.md#94-refund-security-review).
 5. Deploy the actual Sepolia verifier/registry/pool profile and verify finalized reservation evidence before signing Zcash payments.
-6. Connect scanning, spendable-note selection, native Ironwood proving/signing/broadcast, USDC balances and operational SDK `intent.accept()` fulfillment. Generate dedicated Testnet wallets and provide their public funding addresses at this stage.
+6. Connect scanning, spendable-note selection, native Ironwood proving/signing/broadcast, USDC balances and operational SDK `intent.accept()` fulfillment. Encrypted native accounts and a dedicated Sepolia deployer are available; chain scanning and funded execution still need connecting.
 7. Demonstrate a real ZEC → USDC payout, private balance and withdrawal, plus rejection of wrong evidence and pending behavior when evidence is unavailable. Then deliver the application flow and submission materials.
 
 Completion needs genuine proof receipts, real chain transactions, actual token backing and usable recovery. A proof submission, synchronized node or successful component test is insufficient. Permanent source-halt recovery remains unresolved; conditional funds can remain locked when accepted source evidence becomes unavailable or invalidated. No administrator or timer may turn that failure into a refund for an already-paid trade.
 
+## Native Testnet accounts
+
+Build the account CLI without downloading proving parameters:
+
+```sh
+CARGO_TARGET_DIR="$TARGET" cargo build --offline --locked \
+  --manifest-path crates/prover/spv/Cargo.toml --features wallet --bin zutti-wallet
+"$TARGET/debug/zutti-wallet" init --directory "$ACCOUNT"
+"$TARGET/debug/zutti-wallet" address --directory "$ACCOUNT"
+```
+
+`init` refuses an existing directory. The account contains independently generated Zcash and private-USDC keys. Its public output includes a Testnet unified address and a private-pool receiving descriptor, not an ERC-20 address. `account.backup` is authenticated encryption; the owner-only `account.key` unlocks it. Preserve both files for restoration. This account command does not scan balances or authorize a swap.
+
 ## Checkpoint workflow
 
-Recheck the retained genuine source receipt without submitting or purchasing another proof:
+The active prepared profile is `deploy/source/testnet/profile.json`. It uses the post-NU7 Testnet minimum-difficulty threshold of 450 seconds. A real header at height 4,546,261 exposed an incorrect 150-second threshold in the earlier program; real-header and Zebra-parameter regressions cover the correction. The retired program cannot authorize a new deployment.
+
+Recheck the historical genuine source receipt without submitting or purchasing another proof:
 
 ```sh
 "$SPV" verify --program deploy/source/checkpoint/source-program.elf \
@@ -146,7 +161,9 @@ Import an externally generated genuine header receipt with its exact pending bat
 "$SPV" bootstrap accept --state "$STATE" --batch "$BATCH" --receipt "$RECEIPT"
 ```
 
-An empty registry initializes from a genuinely proved stable prefix plus the required confirmations. For the demo, that proof begins at the checkpoint committed by the deployment policy; runtime servers cannot replace it. Admission preparation and execution are separate from proof generation and Ethereum wrapping:
+The Sepolia deployment script is `contracts/script/DeployTestnet.s.sol`. It reads `ZUTTI_PROFILE`, rejects undeployable profiles and other chains, and pins Circle Testnet USDC and the RISC Zero router. A prepared profile remains undeployable until its proof and release checks are complete.
+
+An empty registry initializes from a genuinely proved stable prefix plus the required confirmations. For the demo, that proof begins at the checkpoint committed by the deployment policy; runtime servers cannot replace it. Admission preparation and execution are separate from proof generation and Ethereum wrapping: After genuine admission fulfillment, `export-admission` verifies the receipt and its exact policy before emitting Sepolia `SpvRegistry.submit` calldata; it does not broadcast or finalize admission.
 
 ```sh
 "$SPV" prepare-admission --header-program "$SOURCE_PROGRAM_DIR/program.elf" \

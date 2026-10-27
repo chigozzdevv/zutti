@@ -790,12 +790,21 @@
   "checkpoint_profile": {
     "recorded_at": "2026-10-27",
     "artifacts": "../../../deploy/source/checkpoint/profile.json",
-    "scope": "Active Testnet payment-only checkpoint candidate; older evidence above retains its original identities and policy.",
+    "scope": "Retired Testnet checkpoint program; retained proof certifies only its original identity and policy.",
     "proof_generated": true,
     "source_admitted": false,
     "contracts_deployed": false,
     "funded_swap": false,
     "proof_verified": true,
-    "verified_height": 4545439
+    "verified_height": 4545439,
+    "status": "retired",
+    "deployment_allowed": false,
+    "retirement_reason": "Incorrect post-NU7 Testnet minimum-difficulty threshold; historical receipt authenticates only the retired program."
+  },
+  "active_testnet_profile": {
+    "artifacts": "../../../deploy/source/testnet/profile.json",
+    "proof_generated": false,
+    "source_admitted": false,
+    "funded_swap": false
   }
 }

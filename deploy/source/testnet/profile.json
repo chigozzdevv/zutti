@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "status": "prepared",
+  "deployment_allowed": false,
+  "network": "testnet",
+  "settlement_chain_id": "11155111",
+  "pairs": [
+    "ZEC/USDC"
+  ],
+  "nonpayment_refunds": false,
+  "input_visibility": "public",
+  "source_rules": {
+    "post_nu7_testnet_minimum_difficulty_seconds": 450
+  },
+  "checkpoint": {
+    "commitment": "d9c278d2534d696f084fbce91acbecce9bca2b1fba0eaa7d145a04559dc20a86",
+    "height": 4546283,
+    "hash": "5645266a726ba9b28cab31b1a0a70cfab231185add31548e2cc6ea1c02140000",
+    "rpc_display_hash": "000014021ceac62c8e5431dd5a1831b2fa0ca7a0b131ab8cb2a96b726a264556",
+    "context_headers": 113,
+    "work": "000000000000000000000000000000000000000000000000000000000246ff11",
+    "work_basis": "retained_context"
+  },
+  "policy": {
+    "id": "8a2ba0117654c736db918e0d3bbcb17f8cb6286e7733feb5d3a487d94de83e17",
+    "version": 2,
+    "confirmations": 10,
+    "window_blocks": 128,
+    "valid_through": 5000000
+  },
+  "programs": {
+    "source": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "11cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa",
+      "kind": "spv_source",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "14ce0c2c40340a3b3e5fb1d1bb03d0fb3c759ee6a9e06d10cde2f66abc897dce",
+      "schema": 1
+    },
+    "admission": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "7544ddcafa67f1f654a58eadf10314187e962ae9c7fbdf8f63d4fe06271dcdc1",
+      "kind": "spv_admission",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "44b0d679d5da55a2a0f7923c31d475661e177d84d94902a38be71fd890060bbf",
+      "schema": 1
+    },
+    "binding": {
+      "admitted": false,
+      "composition": "native",
+      "image_id": "e31866af4cfb9c0dce67bc3b975b3474fc6fe8dd1eb41e517b8f84c84de9125a",
+      "kind": "payment_binding",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "5e0492ef2310b46c026e342ce4ad179f3bcbcb329ca8d81eb93a2fa2cc949ae3",
+      "schema": 1
+    },
+    "pool": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "0b6083b45ac62b229881d58bd9a3bc3bbc925a57eeb794531830456bb7a02689",
+      "kind": "spv_pool",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "043f8a67e060f3c1c2cef6d0492f2128c77e22bf12bdb44d5bfa2583e33d8005",
+      "schema": 1
+    }
+  },
+  "proof_profile_id": "c5a0fd4b2f26d49c4881aa282424522121928ea5872a62c94501f800a719a2cd",
+  "registry": {
+    "observation_period": 120,
+    "maximum_age": 3600,
+    "future_drift": 300
+  },
+  "minimum_remaining": 64,
+  "artifacts": {
+    "headers.bin": {
+      "bytes": 168031,
+      "sha256": "d959820bcee666022d6436a5d24ee6f8de6a1e42aa0bf7e7aa9302b916360c3c"
+    },
+    "checkpoint.bin": {
+      "bytes": 5075,
+      "sha256": "d34a6bf07dfd93ec497245598f6624390eec6537cb5b46e0f958859a75a6bcc7"
+    },
+    "following-headers.bin": {
+      "bytes": 29740,
+      "sha256": "f9226b690cf16f68d9e1af823aa1f53e1748c87bfb108db225166facbbe57188"
+    },
+    "confirmations.bin": {
+      "bytes": 14870,
+      "sha256": "58ce7b1502c0bda18b820d1ab15cb7ec8b8c76622a1012466461bdefc3554eea"
+    }
+  },
+  "source_execution": {
+    "first_height": 4546284,
+    "last_height": 4546303,
+    "cycles": 117906393,
+    "host_assumptions": 0,
+    "image_id": "11cd2407b7404e198b295d4ae0770d51441abd4a1cdb311caf8aab66402952aa",
+    "journal_matches": true,
+    "paid_jobs": 0,
+    "proof_generated": false,
+    "seconds": 2.026968167
+  },
+  "source_admitted": false,
+  "contracts_deployed": false,
+  "funded_swap": false,
+  "assumptions": [
+    "The deployer selects the starting Testnet checkpoint and validation context.",
+    "Miners enforce Zcash transaction validity; source programs verify SPV headers and payment evidence.",
+    "Source acceptance depends on mining, observation, reorganization and data availability.",
+    "Public Testnet proving inputs do not provide witness confidentiality."
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "source_receipt_verified",
+  "status": "retired",
   "network": "testnet",
   "settlement_chain_id": "11155111",
   "pairs": [
@@ -127,5 +127,12 @@
     "verified_height": 4545439,
     "source_admitted": false,
     "swap_executed": false
+  },
+  "deployment_allowed": false,
+  "retirement": {
+    "reason": "The source program uses a 150-second post-NU7 Testnet minimum-difficulty threshold; the required threshold is 450 seconds.",
+    "first_observed_rejected_height": 4546261,
+    "replacement_profile": "../testnet/profile.json",
+    "historical_receipt_preserved": true
   }
 }
