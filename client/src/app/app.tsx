@@ -240,7 +240,7 @@ export function App() {
             route("/");
           }}
         >
-          <img src="/wordmark.svg" alt="zutti" width="102" height="40" />
+          <img src="/wordmark.svg" alt="Zutti" width="102" height="40" />
         </a>
         <nav aria-label="Main navigation">
           <a
