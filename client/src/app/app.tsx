@@ -356,18 +356,18 @@ export function App() {
           title={session.connected ? "Your wallet" : "Connect wallet"}
           close={() => set_modal(null)}
         >
-          <div className="wallet-option">
-            <span className="wallet-option-icon">
-              <Wallet size={24} />
-            </span>
-            <div>
-              <strong>{session.connected ? session.label : "Zutti wallet"}</strong>
-              <span>
-                {session.connected ? "Connected · Testnet" : "Your keys stay on your device"}
+          {(session.connected || information?.wallet_available) && (
+            <div className="wallet-option">
+              <span className="wallet-option-icon">
+                <Wallet size={24} />
               </span>
+              <div>
+                <strong>{session.connected ? session.label : "Local wallet"}</strong>
+                <span>{session.connected ? "Connected · Testnet" : "Zcash · Private USDC"}</span>
+              </div>
+              {session.connected && <span className="connected-dot" />}
             </div>
-            {session.connected && <span className="connected-dot" />}
-          </div>
+          )}
           {session.connected ? (
             <>
               <p className="dialog-caption">
@@ -399,19 +399,25 @@ export function App() {
               <p className="dialog-caption">
                 {information?.wallet_available
                   ? "Connect your local wallet to request maker quotes."
-                  : "Open a configured Zutti wallet runtime to connect."}
+                  : "Wallet connection is not available in this build yet."}
               </p>
-              <button
-                className="primary-button"
-                disabled={modal_busy || !information?.wallet_available}
-                onClick={() => {
-                  void connect();
-                }}
-              >
-                {modal_busy ? <LoaderCircle size={17} className="spin" /> : null}
-                {information?.wallet_available ? "Connect wallet" : "Wallet not running"}
-                {information?.wallet_available && <ArrowRight size={17} />}
-              </button>
+              {information?.wallet_available ? (
+                <button
+                  className="primary-button"
+                  disabled={modal_busy}
+                  onClick={() => {
+                    void connect();
+                  }}
+                >
+                  {modal_busy ? <LoaderCircle size={17} className="spin" /> : null}
+                  Connect wallet
+                  <ArrowRight size={17} />
+                </button>
+              ) : (
+                <button className="secondary-button" onClick={() => set_modal(null)}>
+                  Close
+                </button>
+              )}
             </>
           )}
           {modal_error && (

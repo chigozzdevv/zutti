@@ -45,7 +45,10 @@ export class WalletService {
 
   async connect(): Promise<{ token: string; session: WalletSession }> {
     if (!this.factory)
-      throw new ZuttiError("wallet_unavailable", "Start your Zutti wallet to connect.");
+      throw new ZuttiError(
+        "wallet_unavailable",
+        "Wallet connection is not available in this build yet.",
+      );
     for (const [key, session] of this.sessions) {
       if (
         session.expires < Date.now() &&
