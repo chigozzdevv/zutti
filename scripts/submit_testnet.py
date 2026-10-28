@@ -1,6 +1,7 @@
 import argparse
 import fcntl
 import hashlib
+from http.client import RemoteDisconnected
 import json
 import os
 from pathlib import Path
@@ -8,6 +9,7 @@ import re
 import subprocess
 import tempfile
 import time
+from urllib.error import HTTPError, URLError
 import urllib.request
 
 
@@ -35,8 +37,21 @@ class Rpc:
             json.dumps({"jsonrpc": "2.0", "id": 1, "method": method, "params": params}).encode(),
             {"Content-Type": "application/json", "User-Agent": "Zutti/1.0"},
         )
-        with urllib.request.urlopen(request, timeout=30) as response:
-            result = json.load(response)
+        attempts = 3 if method in {
+            "eth_chainId", "eth_getTransactionReceipt", "eth_estimateGas",
+            "eth_getBlockByNumber", "eth_getBlockByHash", "eth_getBlockReceipts",
+            "eth_getBalance", "eth_call", "eth_getTransactionCount",
+        } else 1
+        for attempt in range(attempts):
+            try:
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    result = json.load(response)
+                break
+            except (URLError, RemoteDisconnected, ConnectionError, TimeoutError) as error:
+                if (attempt + 1 == attempts
+                        or isinstance(error, HTTPError) and error.code not in (429, 502, 503, 504)):
+                    raise
+                time.sleep(0.5 * (attempt + 1))
         if "error" in result or "result" not in result:
             raise RuntimeError(f"{method} failed: {result.get('error')}")
         return result["result"]
