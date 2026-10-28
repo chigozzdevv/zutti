@@ -2,6 +2,7 @@
 pub mod authorization;
 pub mod inventory;
 pub mod notes;
+pub mod readiness;
 #[cfg(feature = "spv-fulfillment")]
 pub mod spv_authorization;
 #[cfg(feature = "spv-fulfillment")]

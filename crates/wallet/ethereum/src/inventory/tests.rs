@@ -221,3 +221,43 @@ fn request_limits_and_duplicate_nullifiers_are_checked_before_proofs() {
         assert!(check_request(&request).is_err());
     }
 }
+
+#[test]
+fn quoting_readiness_requires_unspent_inventory_and_the_exact_admitted_nonhalted_source() {
+    use crate::{
+        SourceGuard,
+        notes::NoteRequest,
+        readiness::{ReadinessRequest, verify_storage},
+    };
+    for change in 0..=5 {
+        let (inventory, mut pool, mut source, root) = fixture(change);
+        pool.storage_proof.remove(1);
+        source.storage_proof.remove(0);
+        let request = ReadinessRequest {
+            note: NoteRequest {
+                chain_id: inventory.chain_id,
+                pool: inventory.pool,
+                pool_code_hash: inventory.pool_code_hash,
+                root: inventory.root,
+                nullifier: inventory.nullifiers[0],
+            },
+            source: SourceGuard {
+                address: inventory.source,
+                code_hash: inventory.source_code_hash,
+                checkpoint: inventory.checkpoint,
+            },
+        };
+        let eligible = matches!(change, 0 | 2);
+        assert_eq!(
+            verify_storage(&request, &pool, &source, root).is_ok(),
+            eligible,
+            "state {change}"
+        );
+        let mut changed = request.clone();
+        changed.source.checkpoint[0] ^= 1;
+        assert!(verify_storage(&changed, &pool, &source, root).is_err());
+        let mut changed = request;
+        changed.source.address = changed.note.pool;
+        assert!(verify_storage(&changed, &pool, &source, root).is_err());
+    }
+}

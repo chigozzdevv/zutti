@@ -223,6 +223,7 @@ export class RfqMaker {
       canonical(payload.policy) !== canonical(this.domain.policy)
     )
       throw new ZuttiError("invalid_message", "Request binding does not match");
+    await this.provider(this.config.preflight(), signal);
     const id = `maker-response-${message.request_id}-${message.sender_id}`;
     const request_digest = await digest("request-envelope", message);
     let stored = await this.config.store.read(id);

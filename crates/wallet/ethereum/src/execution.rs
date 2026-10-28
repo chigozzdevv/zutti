@@ -50,6 +50,28 @@ pub struct Args {
 
 #[derive(Debug, Subcommand)]
 enum Command {
+    ReadyRequest {
+        #[arg(long)]
+        inventory: PathBuf,
+        #[arg(long)]
+        position: u32,
+        #[arg(long)]
+        source: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    Ready {
+        #[arg(long)]
+        inventory: PathBuf,
+        #[arg(long)]
+        position: u32,
+        #[arg(long)]
+        source: PathBuf,
+        #[arg(long)]
+        headers: PathBuf,
+        #[arg(long)]
+        evidence: PathBuf,
+    },
     FundingCheck {
         #[arg(long)]
         witness: PathBuf,
@@ -295,6 +317,55 @@ impl Context {
             &self.key,
         )?)?)
     }
+    fn readiness(
+        &self,
+        path: &Path,
+        position: u32,
+        source: &Path,
+    ) -> Result<(
+        zutti_ethereum::readiness::ReadinessRequest,
+        HeaderClaim,
+        u128,
+    )> {
+        let inventory = self.inventory(path)?;
+        let note = inventory
+            .notes()
+            .iter()
+            .find(|note| note.path.position == position)
+            .ok_or("maker note is missing")?;
+        let domain = self.profile.domain.id()?;
+        if note.note.domain() != domain
+            || note.note.recipient() != self.account.note_keys().recipient()?
+        {
+            return Err("maker inventory ownership mismatch".into());
+        }
+        note.path
+            .verify(domain, note.note.commitment()?, inventory.root())?;
+        let receipt = receipt(source)?;
+        let anchor = HeaderClaim::from_bytes(&receipt.journal.bytes)?;
+        if anchor.policy() != self.profile.policy {
+            return Err("source policy differs from the deployment".into());
+        }
+        verify(&receipt, self.profile.policy.program(), &anchor.to_bytes()?)?;
+        Ok((
+            zutti_ethereum::readiness::ReadinessRequest {
+                note: zutti_ethereum::notes::NoteRequest {
+                    chain_id: self.profile.ethereum.chain_id,
+                    pool: Address::from(self.profile.domain.pool()),
+                    pool_code_hash: self.profile.pool_code_hash,
+                    root: B256::from(inventory.root().0),
+                    nullifier: B256::from(self.account.note_keys().nullifier(&note.note)?.0),
+                },
+                source: zutti_ethereum::SourceGuard {
+                    address: self.registry,
+                    code_hash: self.registry_code,
+                    checkpoint: B256::from(anchor.id()?.0),
+                },
+            },
+            anchor,
+            note.note.amount().units(),
+        ))
+    }
     fn plan(&self, path: &Path) -> Result<SpvFundingPlan> {
         Ok(SpvFundingPlan::from_bytes(&backup::open(
             self.profile.domain.id()?,
@@ -353,6 +424,88 @@ fn stage(out: &Path, files: &[(&str, Vec<u8>)]) -> Result<()> {
 pub fn run(args: Args, now: u64) -> Result<()> {
     let context = Context::open(&args)?;
     match args.command {
+        Command::ReadyRequest {
+            inventory,
+            position,
+            source,
+            out,
+        } => {
+            let (request, anchor, _) = context.readiness(&inventory, position, &source)?;
+            if now
+                > u64::from(anchor.timestamp()?).saturating_add(context.profile.maximum_source_age)
+                || u64::from(anchor.maximum_time())
+                    > now.saturating_add(context.profile.future_drift)
+            {
+                return Err("refresh source evidence before collecting quote readiness".into());
+            }
+            backup::persist_new(&out, &serde_json::to_vec(&request)?)?;
+            println!(
+                "{}",
+                serde_json::json!({"prepared":true,"proof_generated":false,"funded":false})
+            );
+        }
+        Command::Ready {
+            inventory,
+            position,
+            source,
+            headers,
+            evidence,
+        } => {
+            let (request, anchor, amount) = context.readiness(&inventory, position, &source)?;
+            let evidence =
+                read::<zutti_ethereum::readiness::ReadinessEvidence>(&evidence, 16_777_216)?;
+            let verified = zutti_ethereum::readiness::verify(
+                &context.profile.ethereum,
+                &request,
+                &evidence,
+                now,
+            )?;
+            let bytes = bounded(&headers, 512 * HEADER_BYTES)?;
+            if bytes.len() % HEADER_BYTES != 0 {
+                return Err("invalid current source headers".into());
+            }
+            let headers: Vec<_> = bytes
+                .chunks_exact(HEADER_BYTES)
+                .map(<[u8]>::to_vec)
+                .collect();
+            if headers.len() > anchor.policy().window_blocks() as usize {
+                return Err("current source continuation exceeds the swap window".into());
+            }
+            let current = if headers.is_empty() {
+                anchor.clone()
+            } else {
+                anchor.advance(&headers)?
+            };
+            let height = current.height()?;
+            let expiry = anchor
+                .height()?
+                .checked_add(anchor.policy().window_blocks())
+                .ok_or("source height overflow")?;
+            let required = height
+                .checked_add(context.profile.minimum_blocks)
+                .and_then(|height| height.checked_add(2 * anchor.policy().confirmations()))
+                .ok_or("source height overflow")?;
+            let timestamp = u64::from(current.timestamp()?);
+            if required > expiry
+                || u64::from(expiry) + u64::from(anchor.policy().confirmations())
+                    > u64::from(anchor.policy().valid_through())
+                || timestamp > now.saturating_add(context.profile.future_drift)
+                || u64::from(current.maximum_time())
+                    > now.saturating_add(context.profile.future_drift)
+                || now > timestamp.saturating_add(context.profile.maximum_source_age)
+                || now
+                    > u64::from(anchor.timestamp()?)
+                        .saturating_add(context.profile.maximum_source_age)
+            {
+                return Err("source evidence must be refreshed before quoting".into());
+            }
+            println!(
+                "{}",
+                serde_json::json!({"ready":true,"source_height":anchor.height()?,"current_height":height,
+                "source_policy_id":anchor.policy().id()?.to_string(),"domain":context.profile.domain.id()?.to_string(),
+                "note_position":position,"amount_units":amount.to_string(),"ethereum":verified,"funded":false})
+            );
+        }
         Command::FundingCheck {
             witness,
             funding,

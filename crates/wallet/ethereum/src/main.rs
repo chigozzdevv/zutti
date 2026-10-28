@@ -17,6 +17,14 @@ struct Args {
 }
 #[derive(Debug, Subcommand)]
 enum Command {
+    Ready {
+        #[arg(long)]
+        config: PathBuf,
+        #[arg(long)]
+        request: PathBuf,
+        #[arg(long)]
+        evidence: PathBuf,
+    },
     Transfer {
         #[arg(long)]
         config: PathBuf,
@@ -85,6 +93,7 @@ enum Command {
 }
 #[derive(Debug, Clone, ValueEnum)]
 enum EvidenceKind {
+    Ready,
     Note,
     Reservation,
     Inventory,
@@ -97,6 +106,13 @@ fn proof_keys(
     use alloy::primitives::{B256, U256};
     use zutti_ethereum::mapping_key;
     Ok(match kind {
+        EvidenceKind::Ready => {
+            let value = read::<zutti_ethereum::readiness::ReadinessRequest>(request, 16_384)?;
+            serde_json::json!({
+                "pool":{"address":value.note.pool,"keys":value.note.storage_keys()?},
+                "source":{"address":value.source.address,"keys":[B256::from(U256::from(4).to_be_bytes::<32>()),mapping_key(value.source.checkpoint,19)]}
+            })
+        }
         EvidenceKind::Note => {
             let value = read::<zutti_ethereum::notes::NoteRequest>(request, 16_384)?;
             serde_json::json!({"pool":{"address":value.pool,"keys":value.storage_keys()?}})
@@ -139,6 +155,21 @@ fn read<T: serde::de::DeserializeOwned>(
 fn run() -> Result<(), Box<dyn std::error::Error>> {
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
     match Args::parse().command {
+        Command::Ready {
+            config,
+            request,
+            evidence,
+        } => {
+            println!(
+                "{}",
+                serde_json::to_string(&zutti_ethereum::readiness::verify(
+                    &read::<ConsensusConfig>(&config, 65_536)?,
+                    &read::<zutti_ethereum::readiness::ReadinessRequest>(&request, 16_384)?,
+                    &read::<zutti_ethereum::readiness::ReadinessEvidence>(&evidence, 16_777_216)?,
+                    now,
+                )?)?
+            );
+        }
         #[cfg(feature = "spv-fulfillment")]
         Command::Swap(args) => execution::run(args, now)?,
         #[cfg(feature = "spv-fulfillment")]

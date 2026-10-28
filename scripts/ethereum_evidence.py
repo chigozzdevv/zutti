@@ -165,7 +165,7 @@ def native(binary, args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--kind", choices=["finality", "note", "reservation", "inventory"], required=True)
+    parser.add_argument("--kind", choices=["finality", "note", "reservation", "inventory", "ready"], required=True)
     parser.add_argument("--config", type=Path, required=True)
     parser.add_argument("--request", type=Path)
     parser.add_argument("--native", type=Path, required=True)
