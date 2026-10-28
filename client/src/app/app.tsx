@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
-  Check,
   ChevronRight,
   LoaderCircle,
-  LogOut,
   ShieldCheck,
   Wallet,
 } from "lucide-react";
@@ -26,9 +24,14 @@ import { Progress } from "../components/progress.js";
 import { Swap } from "../components/swap.js";
 import { Token } from "../components/token.js";
 import { Maker } from "../components/maker.js";
+import { WalletDialog } from "../components/wallet.js";
+import { EthereumWallet } from "../shared/ethereum-wallet.js";
+import type { WalletBrowser } from "../shared/ethereum-wallet.js";
 
 type Modal = "wallet" | "review" | "withdraw" | null;
 export function App() {
+  const [ethereum_wallet] = useState(() => new EthereumWallet(window as unknown as WalletBrowser));
+  const ethereum = useSyncExternalStore(ethereum_wallet.subscribe, ethereum_wallet.snapshot);
   const [path, set_path] = useState(location.pathname);
   const [information, set_information] = useState<AppInformation | null>(null);
   const [session, set_session] = useState<WalletSession>({ connected: false, label: null });
@@ -50,6 +53,10 @@ export function App() {
   const selected: Offer | null =
     quotes?.offers.items.find((item) => item.id === selected_id) ?? null;
 
+  useEffect(() => {
+    ethereum_wallet.start();
+    return () => ethereum_wallet.stop();
+  }, [ethereum_wallet]);
   useEffect(() => {
     const navigate = () => set_path(location.pathname);
     addEventListener("popstate", navigate);
@@ -134,6 +141,7 @@ export function App() {
     ];
   });
   function open_modal(value: Modal) {
+    if (value === "withdraw" && !to && ethereum.account) set_to(ethereum.account);
     set_modal_error(null);
     set_modal(value);
   }
@@ -278,11 +286,11 @@ export function App() {
         </nav>
         <div className="header-actions">
           <button
-            className={`wallet-button${session.connected ? " connected" : ""}`}
+            className={`wallet-button${session.connected || ethereum.account ? " connected" : ""}`}
             onClick={() => open_modal("wallet")}
           >
             <Wallet size={16} />
-            <span>{session.connected ? "My wallet" : "Connect wallet"}</span>
+            <span>{session.connected || ethereum.account ? "My wallet" : "Connect wallet"}</span>
           </button>
         </div>
       </header>
@@ -336,6 +344,7 @@ export function App() {
               set_busy(false);
             }}
             connected={session.connected}
+            ethereum_connected={!!ethereum.account}
             loading={busy}
             ready={!!information}
             now={now}
@@ -352,80 +361,29 @@ export function App() {
         )}
       </main>
       {modal === "wallet" && (
-        <Dialog
-          title={session.connected ? "Your wallet" : "Connect wallet"}
+        <WalletDialog
+          ethereum={ethereum}
+          connect_ethereum={() => {
+            void ethereum_wallet.connect();
+          }}
+          disconnect_ethereum={() => ethereum_wallet.disconnect()}
+          switch_network={() => {
+            void ethereum_wallet.switch_network();
+          }}
+          session={session}
+          native_available={!!information?.wallet_available}
+          connect_native={() => {
+            void connect();
+          }}
+          disconnect_native={() => {
+            void disconnect();
+          }}
+          busy={modal_busy}
+          pending_swap={pending}
+          error={modal_error}
+          received={swap_operation?.receipt?.received.amount ?? null}
           close={() => set_modal(null)}
-        >
-          {(session.connected || information?.wallet_available) && (
-            <div className="wallet-option">
-              <span className="wallet-option-icon">
-                <Wallet size={24} />
-              </span>
-              <div>
-                <strong>{session.connected ? session.label : "Local wallet"}</strong>
-                <span>{session.connected ? "Connected · Testnet" : "Zcash · Private USDC"}</span>
-              </div>
-              {session.connected && <span className="connected-dot" />}
-            </div>
-          )}
-          {session.connected ? (
-            <>
-              <p className="dialog-caption">
-                Your wallet handles signing and keeps your swap records.
-              </p>
-              {swap_operation?.receipt && (
-                <div className="received-summary">
-                  <Token asset="USDC" small />
-                  <div>
-                    <span>Last swap received</span>
-                    <strong>{swap_operation.receipt.received.amount} USDC</strong>
-                  </div>
-                  <Check size={16} />
-                </div>
-              )}
-              <button
-                className="secondary-button"
-                disabled={modal_busy || pending}
-                onClick={() => {
-                  void disconnect();
-                }}
-              >
-                <LogOut size={16} /> Disconnect
-              </button>
-              {pending && <p className="dialog-caption">A swap is running in this wallet.</p>}
-            </>
-          ) : (
-            <>
-              <p className="dialog-caption">
-                {information?.wallet_available
-                  ? "Connect your local wallet to request maker quotes."
-                  : "Wallet connection is not available in this build yet."}
-              </p>
-              {information?.wallet_available ? (
-                <button
-                  className="primary-button"
-                  disabled={modal_busy}
-                  onClick={() => {
-                    void connect();
-                  }}
-                >
-                  {modal_busy ? <LoaderCircle size={17} className="spin" /> : null}
-                  Connect wallet
-                  <ArrowRight size={17} />
-                </button>
-              ) : (
-                <button className="secondary-button" onClick={() => set_modal(null)}>
-                  Close
-                </button>
-              )}
-            </>
-          )}
-          {modal_error && (
-            <p className="form-error" role="alert">
-              {modal_error}
-            </p>
-          )}
-        </Dialog>
+        />
       )}
       {modal === "review" && selected && (
         <Dialog

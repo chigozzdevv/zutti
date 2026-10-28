@@ -397,6 +397,30 @@ svg {
   font-size: 10px;
   color: #a2a2a2;
 }
+.wallet-option > .text-button {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.wallet-section-title {
+  color: #858585;
+  font-size: 11px;
+  margin-bottom: 14px;
+}
+.wallet-zcash-title {
+  border-top: 1px solid #303030;
+  margin-top: 24px;
+  padding-top: 21px;
+}
+.wallet-address {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: #bcbcbc;
+}
 .connected-dot {
   width: 6px;
   height: 6px;

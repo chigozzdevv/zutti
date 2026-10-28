@@ -7,6 +7,7 @@ interface SwapProps {
   amount: string;
   set_amount: (value: string) => void;
   connected: boolean;
+  ethereum_connected: boolean;
   loading: boolean;
   ready: boolean;
   now: number;
@@ -25,7 +26,9 @@ export function Swap(props: SwapProps) {
   const label = loading
     ? "Finding your quotes"
     : !connected
-      ? "Connect wallet"
+      ? props.ethereum_connected
+        ? "Connect Zcash wallet"
+        : "Connect wallet"
       : expired
         ? "Refresh quotes"
         : selected
