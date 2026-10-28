@@ -591,27 +591,19 @@ fn scan(
             .as_str()
             .ok_or("missing Ironwood anchor")?,
     )?;
-    let mut blocks = Vec::new();
-    let mut total = 0_usize;
-    for file in block {
+    let blocks = block.into_iter().map(|file| -> zutti_wallet::Result<Vec<u8>> {
         let mut block_data = Vec::new();
         fs::File::open(file)?
             .take(2_000_001)
             .read_to_end(&mut block_data)?;
-        total = total
-            .checked_add(block_data.len())
-            .ok_or("block range overflow")?;
-        if block_data.len() > 2_000_000 || total > 16_777_216 {
-            return Err("scan blocks exceed their bound".into());
-        }
-        blocks.push(block_data);
-    }
-    let scan = zutti_wallet::source_notes::scan_ironwood(
+        Ok(block_data)
+    });
+    let scan = zutti_wallet::source_notes::scan_ironwood_stream(
         &account.source_viewing_key(),
         height,
         parent,
         &tree,
-        &blocks,
+        blocks,
         anchor.try_into().map_err(|_| "invalid anchor")?,
     )?;
     if scan.block.to_string()

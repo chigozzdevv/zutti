@@ -290,15 +290,25 @@ pub fn scan_ironwood(
     blocks: &[Vec<u8>],
     expected_anchor: [u8; 32],
 ) -> Result<SourceScan> {
-    if blocks.is_empty()
-        || blocks.len() > 4096
-        || tree_bytes.len() > 4096
-        || blocks
-            .iter()
-            .map(Vec::len)
-            .try_fold(0_usize, usize::checked_add)
-            .is_none_or(|bytes| bytes > 16_777_216)
-    {
+    scan_ironwood_stream(
+        viewing,
+        previous_height,
+        previous_hash,
+        tree_bytes,
+        blocks.iter().map(|block| Ok(block.as_slice())),
+        expected_anchor,
+    )
+}
+
+pub fn scan_ironwood_stream<B: AsRef<[u8]>>(
+    viewing: &FullViewingKey,
+    previous_height: u32,
+    previous_hash: Digest,
+    tree_bytes: &[u8],
+    blocks: impl IntoIterator<Item = Result<B>>,
+    expected_anchor: [u8; 32],
+) -> Result<SourceScan> {
+    if tree_bytes.len() > 4096 {
         return Err(Error::SourceState("scan bounds"));
     }
     let mut input = tree_bytes;
@@ -312,7 +322,16 @@ pub fn scan_ironwood(
     let mut spent = std::collections::BTreeSet::new();
     let mut height = previous_height;
     let mut parent = previous_hash;
+    let mut count = 0_usize;
+    let mut bytes = 0_usize;
     for raw in blocks {
+        let raw = raw?;
+        let raw = raw.as_ref();
+        count = count.checked_add(1).ok_or(Error::Archive)?;
+        bytes = bytes.checked_add(raw.len()).ok_or(Error::Archive)?;
+        if count > 4096 || raw.len() > 2_000_000 || bytes > 67_108_864 {
+            return Err(Error::SourceState("scan bounds"));
+        }
         let block = zutti_source::block::ParsedBlock::parse(raw, &TEST_NETWORK)
             .map_err(|_| Error::SourceState("block encoding or transaction commitments"))?;
         height = height.checked_add(1).ok_or(Error::Archive)?;
@@ -354,6 +373,9 @@ pub fn scan_ironwood(
             }
         }
         parent = block.hash();
+    }
+    if count == 0 {
+        return Err(Error::SourceState("scan bounds"));
     }
     if tree.root().to_bytes() != expected_anchor {
         return Err(Error::SourceState(
