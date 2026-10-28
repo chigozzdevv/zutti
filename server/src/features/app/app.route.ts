@@ -58,6 +58,12 @@ export async function app_route(
     send_json(response, 200, await wallet.quote(token, await read_json(request)));
   } else if (request.method === "GET" && path === "/api/operations") {
     send_json(response, 200, wallet.list(token));
+  } else if (request.method === "GET" && path === "/api/maker") {
+    send_json(response, 200, await wallet.maker_summary(token));
+  } else if (request.method === "POST" && path === "/api/maker/control") {
+    send_json(response, 202, await wallet.maker_control(token, await read_json(request)));
+  } else if (request.method === "POST" && path === "/api/maker/deposits") {
+    send_json(response, 202, await wallet.maker_deposit(token, await read_json(request)));
   } else {
     const accept = /^\/api\/intents\/([0-9a-f]{64})\/accept$/.exec(path);
     const operation = /^\/api\/operations\/([0-9a-f]{64})$/.exec(path);

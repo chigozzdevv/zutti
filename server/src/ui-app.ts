@@ -54,7 +54,7 @@ export function create_app_server(options: AppServerOptions) {
           ? path
           : ["/icon.svg", "/wordmark.svg", "/fonts-license.txt"].includes(path)
             ? path
-            : ["/", "/activity", "/wallet"].includes(path)
+            : ["/", "/activity", "/wallet", "/maker"].includes(path)
               ? "/index.html"
               : null;
         if (!asset) {

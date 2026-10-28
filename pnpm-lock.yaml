@@ -206,6 +206,9 @@ importers:
 
   server:
     dependencies:
+      '@zutti/maker-sdk':
+        specifier: workspace:*
+        version: link:../packages/maker-sdk
       '@zutti/runtime':
         specifier: workspace:*
         version: link:../packages/runtime

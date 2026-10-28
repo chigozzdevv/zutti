@@ -10,10 +10,13 @@ import type {
   WalletSession,
 } from "@zutti/schema";
 import { canonical } from "@zutti/runtime";
+import { MakerService } from "../maker/maker.service.js";
+import type { MakerConnection } from "../maker/maker.service.js";
 
 export interface WalletConnection {
   wallet: WalletProvider;
   label: string;
+  maker?: MakerConnection;
 }
 export type ConnectWallet = () => Promise<WalletConnection>;
 interface RetainedIntent {
@@ -24,6 +27,7 @@ interface RetainedIntent {
 }
 interface Session {
   sdk: Zutti;
+  maker: MakerService | null;
   label: string;
   expires: number;
   intents: Map<string, RetainedIntent>;
@@ -49,6 +53,7 @@ export class WalletService {
           (item) => item.state === "pending" || item.state === "paused",
         )
       ) {
+        await session.maker?.close();
         await session.sdk.close();
         this.sessions.delete(key);
       }
@@ -64,9 +69,17 @@ export class WalletService {
         "Wallet is connected to a different deployment.",
       );
     }
+    let maker: MakerService | null = null;
+    try {
+      if (connection.maker) maker = new MakerService(connection.maker, this.information.profile);
+    } catch (error) {
+      await sdk.close();
+      throw error;
+    }
     const token = identifier();
     this.sessions.set(token, {
       sdk,
+      maker,
       label: connection.label.slice(0, 60),
       expires: Date.now() + 86_400_000,
       intents: new Map(),
@@ -92,6 +105,14 @@ export class WalletService {
     if (!token) return;
     const session = this.sessions.get(token);
     if (!session) return;
+    if (session.maker) {
+      const maker = await session.maker.snapshot();
+      if (session.maker.busy() || maker.state !== "stopped")
+        throw new ZuttiError(
+          "service_unavailable",
+          "Stop quoting before disconnecting your maker wallet.",
+        );
+    }
     if (
       [...session.operations.values()].some(
         (item) => item.state === "pending" || item.state === "paused",
@@ -101,6 +122,7 @@ export class WalletService {
         "service_unavailable",
         "Your swap is still running. Keep this wallet session connected.",
       );
+    await session.maker?.close();
     await session.sdk.close();
     this.sessions.delete(token);
   }
@@ -237,8 +259,28 @@ export class WalletService {
   list(token: string | undefined): AppOperation[] {
     return structuredClone([...this.session(token).operations.values()]);
   }
+  maker_summary(token: string | undefined) {
+    return this.session(token).maker?.snapshot() ?? Promise.resolve(MakerService.unavailable());
+  }
+  maker_control(token: string | undefined, input: unknown) {
+    const maker = this.session(token).maker;
+    if (!maker)
+      throw new ZuttiError("wallet_unavailable", "Connect a maker wallet to manage quoting.");
+    return maker.control(input);
+  }
+  maker_deposit(token: string | undefined, input: unknown) {
+    const maker = this.session(token).maker;
+    if (!maker)
+      throw new ZuttiError("wallet_unavailable", "Connect a maker wallet to fund inventory.");
+    return maker.deposit(input);
+  }
   async close(): Promise<void> {
-    await Promise.all([...this.sessions.values()].map((session) => session.sdk.close()));
+    await Promise.all(
+      [...this.sessions.values()].map(async (session) => {
+        await session.maker?.close();
+        await session.sdk.close();
+      }),
+    );
     this.sessions.clear();
   }
 }
