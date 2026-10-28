@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "chain_id": 11155111,
+  "deployer": "0x489649CdA4599ccFD4Eb3d4e8c9eF0E9000D9C2A",
+  "registry": "0x0c611DAAdB31A15d81D53C428a1433959B509767",
+  "pool": "0xc32e6CD02D9F53508632Ef09Ab69bc2e2E36E84D",
+  "token": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+  "verifier": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+  "source_policy": "5a5554544953505002007111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19020a00000000020000404b4c00fecd414cfd1546725a6db9c05b60d9286516ec50517e15864b329c652641c318",
+  "source_policy_id": "ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e46328",
+  "source_image": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
+  "admission_image": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+  "binding_image": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
+  "pool_image": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+  "proof_profile_id": "49bb5355ad7d882f9730abad99a0e354d824bed704f1a9e54f9d0484ae748812",
+  "domain": "3c062f84d3c2a22614398af31c84f1ee7d7f26d5b6b1d0f0920859f242d920a9",
+  "domain_encoding": "5a55545449444f4d0100382c4a332661c7ed0671f32a34d724619f086c61873bce7c99859dd9920aa605a736aa0000000000c32e6cd02d9f53508632ef09ab69bc2e2e36e84d1c7d4b196cb0c7b01d743fbc6116a902379c72384bb5604f4ae4c18f51e97e7e9fd4362fc295c5f5bd26ac8a7236d0c679e39060ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e4632849bb5355ad7d882f9730abad99a0e354d824bed704f1a9e54f9d0484ae748812",
+  "source_height": 4550284,
+  "source_admitted": false,
+  "contracts_deployed": true,
+  "code_hashes": {
+    "registry": "0xbd134fb5af8189f014dc3def1a40e80758c503ec003c6bb5ba46dccbd8f45548",
+    "pool": "0x8f741ef4ada1bd89e60a6053bf5cc372a745ca600a85824be88cb0720bff9609"
+  },
+  "deployment_transactions": {
+    "registry": {
+      "transaction_id": "0x26e27f65650fd01abbdf86b2f18991b734742857490570e528736ef60c8925a9",
+      "contract": "0x0c611daadb31a15d81d53c428a1433959b509767",
+      "height": 12011103,
+      "block_hash": "0x769fb368146628c0e0e0be67a404b2a669ef204c319b7f72bac04e479024db9b",
+      "gas_used": 9150697
+    },
+    "pool": {
+      "transaction_id": "0x4040b9df3a0831949af6715b26735decba2605ab18f8955fa6f870ad5eae233e",
+      "contract": "0xc32e6cd02d9f53508632ef09ab69bc2e2e36e84d",
+      "height": 12011116,
+      "block_hash": "0x7f7026995ddd7c3cc23aff0b70584037c673538379a8f5bc399b9d97e3eed9bc",
+      "gas_used": 16803589
+    }
+  },
+  "status": "deployed-awaiting-source-and-swap-proofs",
+  "source_profile": "source-profile.json",
+  "program_verification_evidence": "../../source/optimized-admission/proof.json",
+  "maker_deposit_applied": false,
+  "swap_executed": false,
+  "ethereum_finality_verified": false,
+  "deployment_checked_via_rpc": true,
+  "requires_live_freshness_check": true
+}

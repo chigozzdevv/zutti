@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "status": "deployed-awaiting-genuine-source-and-swap-proofs",
+  "deployment_allowed": true,
+  "settlement_chain_id": "11155111",
+  "pairs": [
+    "ZEC/USDC"
+  ],
+  "nonpayment_refunds": false,
+  "input_visibility": "public",
+  "checkpoint": {
+    "commitment": "fecd414cfd1546725a6db9c05b60d9286516ec50517e15864b329c652641c318",
+    "height": 4550264,
+    "hash": "8422b55a9c32d523839431bf9e034ec8690f96eae11125fce2d667f7f3180000",
+    "rpc_display_hash": "000018f3f767d6e2fc2511e1ea960f69c84e039ebf31948323d5329c5ab52284",
+    "context_headers": 113,
+    "work": "000000000000000000000000000000000000000000000000000000000224eb57",
+    "work_basis": "retained_context"
+  },
+  "policy": {
+    "id": "ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e46328",
+    "version": 2,
+    "confirmations": 10,
+    "window_blocks": 512,
+    "valid_through": 5000000
+  },
+  "programs": {
+    "source": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
+      "kind": "spv_source",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "bb2b52c809ae246d4553b51ebd0246f87b527b49891f3ba595e0dd99eda4b17a",
+      "schema": 1
+    },
+    "admission": {
+      "admission_inputs": [
+        "header",
+        "payment-window"
+      ],
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+      "kind": "spv_admission",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "fcf299b8d242a445676acb2df8a58a03045d5f71943de37ec78a08b755c99a34",
+      "schema": 1
+    },
+    "binding": {
+      "admitted": false,
+      "composition": "native",
+      "image_id": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
+      "kind": "payment_binding",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "8c8e0c58ad58b8256c340223cb91e63d9f4d0de589b3fa6972141ff81e3b9e7a",
+      "schema": 1
+    },
+    "pool": {
+      "admitted": false,
+      "composition": "inline-groth16",
+      "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+      "kind": "spv_pool",
+      "network_scope": "Testnet prototype",
+      "program_sha256": "d102b860a92f303fddf3a3383a6b5957847708cefbca0aa9252e40e94f0cf0c8",
+      "schema": 1
+    }
+  },
+  "proof_profile_id": "49bb5355ad7d882f9730abad99a0e354d824bed704f1a9e54f9d0484ae748812",
+  "proof_profile_derivation": {
+    "hash": "Zutti framed SHA-256",
+    "tag": "spv-proof-profile-v1",
+    "parts": [
+      "source",
+      "admission",
+      "binding",
+      "pool"
+    ]
+  },
+  "source_policy_encoding": "5a5554544953505002007111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19020a00000000020000404b4c00fecd414cfd1546725a6db9c05b60d9286516ec50517e15864b329c652641c318",
+  "registry": {
+    "observation_period": 120,
+    "maximum_age": 7200,
+    "future_drift": 300
+  },
+  "minimum_remaining": 64,
+  "minimum_payment_remaining": 16,
+  "source_proof_verified": false,
+  "admission_proof_verified": false,
+  "source_admitted": false,
+  "funded_swap": false,
+  "contracts_deployed": true,
+  "source_execution": {
+    "cycles": 117906153,
+    "host_assumptions": 0,
+    "image_id": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
+    "journal_matches": true,
+    "paid_jobs": 0,
+    "proof_generated": false,
+    "seconds": 2.323773875
+  }
+}
