@@ -50,7 +50,10 @@ export function create_handler(
 ): OnRpcRequestHandler {
   let busy = false;
   return async ({ origin, originMetadata, request }) => {
-    if (!allowed_origins.includes(origin) || originMetadata !== null) {
+    if (
+      !allowed_origins.includes(origin) ||
+      (originMetadata !== null && originMetadata !== undefined)
+    ) {
       throw new Error("This origin cannot use the Zutti Testnet wallet");
     }
     if (busy) throw new Error("Complete the pending wallet request first");

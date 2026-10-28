@@ -95,6 +95,14 @@ test("account sharing requires approval and wipes the temporary seed", async () 
   assert.ok(approved.entropy().every((byte) => byte === 0));
 });
 
+test("verified origins remain usable when Flask omits optional origin metadata", async () => {
+  const f = fixture();
+  assert.deepEqual(
+    await f.invoke("zutti_getAccount", undefined, { originMetadata: undefined }),
+    account,
+  );
+});
+
 test("invalid evidence fails before the signing approval dialog", async () => {
   const f = fixture({ verify: false });
   await assert.rejects(f.invoke("zutti_signPayment", { payment: "{}" }), /invalid reservation/);

@@ -40,7 +40,6 @@ const manifest = {
   initialPermissions: {
     snap_dialog: {},
     snap_getEntropy: {},
-    snap_getFile: {},
     "endowment:webassembly": {},
     "endowment:rpc": { allowedOrigins: allowed_origins, maxRequestTime: 180000 },
   },
