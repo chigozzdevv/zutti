@@ -2,7 +2,6 @@ import {
   ArrowDown,
   ArrowRight,
   Check,
-  ChevronDown,
   Clock3,
   LoaderCircle,
   LockKeyhole,
@@ -25,7 +24,6 @@ interface SwapProps {
   request: () => void;
   review: () => void;
   connect: () => void;
-  info: () => void;
   error: string | null;
 }
 export function Swap(props: SwapProps) {
@@ -46,9 +44,6 @@ export function Swap(props: SwapProps) {
       <div className="swap-panel">
         <div className="panel-heading">
           <h2>Swap</h2>
-          <button className="icon-button" aria-label="About this Testnet" onClick={props.info}>
-            <LockKeyhole size={17} />
-          </button>
         </div>
         <form
           onSubmit={(event) => {
@@ -184,9 +179,6 @@ export function Swap(props: SwapProps) {
             {!loading && <ArrowRight size={18} />}
           </button>
         </form>
-        <button className="panel-disclosure" onClick={props.info}>
-          Testnet details <ChevronDown size={13} />
-        </button>
       </div>
     </section>
   );

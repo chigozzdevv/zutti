@@ -1,16 +1,16 @@
 :root {
   font-family: "DM Sans Variable", Arial, sans-serif;
-  color: #eeeeef;
-  background: #111111;
+  color: #eeeeee;
+  background: #181818;
   color-scheme: dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --ink: #eeeeef;
-  --muted: #949499;
-  --line: #303034;
-  --accent: #8172ed;
-  --paper: #1a1a1c;
+  --ink: #eeeeee;
+  --muted: #949494;
+  --line: #303030;
+  --accent: #7e7e7e;
+  --paper: #1a1a1a;
 }
 * {
   box-sizing: border-box;
@@ -48,11 +48,11 @@ a {
 }
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid #a194ff;
+  outline: 2px solid #9e9e9e;
   outline-offset: 4px;
 }
 input:focus-visible {
-  outline: 2px solid #a194ff;
+  outline: 2px solid #9e9e9e;
   outline-offset: 4px;
 }
 button,
@@ -102,26 +102,28 @@ svg {
   border-radius: 10px;
 }
 .wordmark-dot {
-  color: #9283ef;
+  color: #8e8e8e;
 }
 .header nav {
   display: flex;
   align-items: center;
-  background: #1c1c1e;
-  padding: 4px;
-  border: 1px solid #272729;
-  border-radius: 32px;
-  gap: 4px;
+  background: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  gap: 28px;
 }
 .header nav a {
   font-size: 12px;
-  padding: 9px 23px;
-  color: #929296;
-  border-radius: 28px;
+  padding: 9px 0;
+  color: #969696;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
 }
 .header nav a[aria-current="page"] {
-  background: #303033;
-  color: #f1f1f3;
+  background: none;
+  border-color: #eeeeee;
+  color: #eeeeee;
 }
 .header-actions {
   display: flex;
@@ -129,37 +131,23 @@ svg {
   gap: 21px;
   justify-self: end;
 }
-.network-badge {
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: #95959c;
-  padding: 8px 0;
-}
-.network-badge > span {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #9283ef;
-}
 .wallet-button {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 11px 16px;
-  border: 1px solid #343438;
-  border-radius: 10px;
+  border: 1px solid #383838;
+  border-radius: 2px;
   font-size: 12px;
   font-weight: 500;
-  background: #202022;
+  background: transparent;
 }
 .wallet-button:hover {
-  background: #2c2c30;
+  background: #2c2c2c;
 }
 .wallet-button.connected {
-  border-color: #5d507e;
-  background: #272234;
+  border-color: #565656;
+  background: #242424;
 }
 .app-shell main {
   flex: 1;
@@ -175,10 +163,11 @@ svg {
   margin: 0;
 }
 .swap-panel {
-  padding: 22px;
-  background: #1a1a1c;
-  border: 1px solid #2d2d30;
-  border-radius: 20px;
+  padding: 24px;
+  background: #1b1b1b;
+  border: 1px solid #303030;
+  border-radius: 0;
+  box-shadow: none;
 }
 .panel-heading {
   display: flex;
@@ -198,29 +187,29 @@ svg {
   justify-content: center;
   width: 32px;
   height: 32px;
-  color: #939399;
+  color: #939393;
   border-radius: 8px;
 }
 .icon-button:hover {
-  background: #303034;
-  color: #f3f3f5;
+  background: #303030;
+  color: #f3f3f3;
 }
 .amount-box {
-  background: #252527;
-  border: 1px solid #2d2d30;
-  border-radius: 13px;
-  padding: 17px 17px 14px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 18px 0 14px;
 }
 .amount-label {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: #acacb2;
+  color: #acacac;
   font-size: 11px;
   margin-bottom: 16px;
 }
 .amount-label > span:last-child {
-  color: #7f7f87;
+  color: #808080;
   font-size: 10px;
 }
 .amount-input-row {
@@ -235,24 +224,24 @@ svg {
   min-width: 0;
   padding: 0;
   background: none;
-  color: #f2f2f4;
+  color: #f2f2f2;
   border: 0;
   font-size: 35px;
   letter-spacing: -1px;
   font-weight: 450;
 }
 .amount-input-row input::placeholder {
-  color: #68686f;
+  color: #696969;
 }
 .asset-pill {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   flex-shrink: 0;
-  background: #363638;
-  border: 1px solid #414144;
-  border-radius: 28px;
-  padding: 7px 10px 7px 7px;
+  background: none;
+  border: 1px solid #383838;
+  border-radius: 2px;
+  padding: 7px 9px;
 }
 .asset-pill strong {
   font-size: 12px;
@@ -281,12 +270,12 @@ svg {
   stroke-linejoin: round;
 }
 .token-zec {
-  background: #e8c35e;
-  color: #332c16;
+  background: #d3d3d3;
+  color: #202020;
 }
 .token-usdc {
-  background: #4776bc;
-  color: #fff;
+  background: #d3d3d3;
+  color: #202020;
 }
 .token-usdc svg {
   stroke-width: 1.4;
@@ -295,31 +284,32 @@ svg {
   display: flex;
   align-items: center;
   gap: 4px;
-  color: #85858e;
+  color: #868686;
   font-size: 10px;
   margin-top: 12px;
 }
 .direction-divider {
   position: relative;
-  z-index: 1;
-  height: 9px;
+  height: 1px;
+  margin: 13px 0;
+  background: #303030;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .direction-divider > span {
-  width: 30px;
-  height: 30px;
-  border: 4px solid #1a1a1c;
-  background: #353538;
-  color: #b8b8c1;
-  border-radius: 9px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: #1b1b1b;
+  color: #a0a0a0;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .receive-box {
-  background: #232325;
+  background: transparent;
 }
 .output-amount {
   font-size: 35px;
@@ -328,7 +318,7 @@ svg {
   overflow-wrap: anywhere;
 }
 .empty-output {
-  color: #6d6d75;
+  color: #6e6e6e;
 }
 .primary-button {
   display: flex;
@@ -338,47 +328,33 @@ svg {
   width: 100%;
   min-height: 49px;
   padding: 13px 17px;
-  background: #7d6be9;
-  color: #fff;
-  border: 1px solid #8978ed;
-  border-radius: 10px;
+  background: #e4e4e4;
+  color: #181818;
+  border: 1px solid #e4e4e4;
+  border-radius: 2px;
   font-size: 12px;
   font-weight: 550;
 }
 .primary-button:hover:not(:disabled) {
-  background: #8d7bef;
-  border-color: #9c8cf5;
+  background: #ffffff;
+  border-color: #ffffff;
 }
 .swap-button {
   margin-top: 20px;
-}
-.panel-disclosure {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  margin: 16px auto 0;
-  padding: 2px;
-  color: #87878e;
-  font-size: 10px;
-}
-.panel-disclosure:hover {
-  color: #c5bbff;
 }
 .dialog {
   width: min(440px, calc(100vw - 32px));
   max-height: calc(100svh - 40px);
   padding: 0;
-  border: 1px solid #39393e;
-  border-radius: 18px;
-  background: #1d1d20;
-  color: #eeeeef;
-  box-shadow: 0 30px 90px #0008;
+  border: 1px solid #393939;
+  border-radius: 0;
+  background: #1d1d1d;
+  color: #eeeeee;
+  box-shadow: none;
   overflow: auto;
 }
 .dialog::backdrop {
-  background: #0009;
-  backdrop-filter: blur(5px);
+  background: #000a;
 }
 .dialog-inner {
   padding: 25px;
@@ -399,7 +375,7 @@ svg {
   flex-shrink: 0;
 }
 .dialog-caption {
-  color: #a0a0a9;
+  color: #a1a1a1;
   font-size: 12px;
   line-height: 1.7;
   margin: 14px 0 21px;
@@ -409,9 +385,9 @@ svg {
   align-items: center;
   gap: 13px;
   padding: 16px;
-  border: 1px solid #36363b;
+  border: 1px solid #363636;
   border-radius: 12px;
-  background: #252529;
+  background: #252525;
 }
 .wallet-option-icon {
   display: flex;
@@ -419,8 +395,8 @@ svg {
   justify-content: center;
   width: 43px;
   height: 43px;
-  color: #b5a6ff;
-  background: #343043;
+  color: #b0b0b0;
+  background: #323232;
   border-radius: 11px;
 }
 .wallet-option > div {
@@ -434,13 +410,13 @@ svg {
 }
 .wallet-option > div > span {
   font-size: 10px;
-  color: #a1a1ab;
+  color: #a2a2a2;
 }
 .connected-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #afa0fb;
+  background: #aaaaaa;
   margin-left: auto;
 }
 .secondary-button {
@@ -450,14 +426,14 @@ svg {
   gap: 9px;
   width: 100%;
   padding: 13px 16px;
-  border: 1px solid #414148;
+  border: 1px solid #424242;
   border-radius: 10px;
-  color: #d7d7dd;
-  background: #29292d;
+  color: #d7d7d7;
+  background: #292929;
   font-size: 12px;
 }
 .secondary-button:hover:not(:disabled) {
-  background: #343438;
+  background: #343434;
 }
 .detail-list {
   margin: 20px 0 23px;
@@ -469,20 +445,20 @@ svg {
   justify-content: space-between;
   align-items: start;
   gap: 15px;
-  border-bottom: 1px solid #34343a;
+  border-bottom: 1px solid #343434;
   padding: 12px 0;
 }
 .detail-list dt {
-  color: #9797a1;
+  color: #989898;
 }
 .detail-list dd {
   margin: 0;
   text-align: right;
-  color: #dedee4;
+  color: #dedede;
   font-weight: 500;
 }
 .small-print {
-  color: #90909c;
+  color: #919191;
   font-size: 10px;
   line-height: 1.8;
   margin-bottom: 21px;
@@ -493,7 +469,7 @@ svg {
   justify-content: space-between;
   gap: 8px;
   padding: 22px 13px;
-  background: #28282c;
+  background: #282828;
   border-radius: 12px;
 }
 .review-route > div {
@@ -509,17 +485,17 @@ svg {
   overflow-wrap: anywhere;
 }
 .review-route > div > span:last-child {
-  color: #a0a0ab;
+  color: #a1a1a1;
   font-size: 9px;
 }
 .review-route > svg {
-  color: #8b8b98;
+  color: #8c8c8c;
 }
 .review-notice {
   display: flex;
   align-items: center;
   gap: 9px;
-  color: #b6a9f0;
+  color: #b1b1b1;
   font-size: 11px;
   line-height: 1.7;
   margin: 3px 0 13px;
@@ -527,10 +503,10 @@ svg {
 .form-error {
   padding: 10px 12px;
   margin: 15px 0 0;
-  border: 1px solid #614438;
+  border: 1px solid #494949;
   border-radius: 8px;
-  background: #352721;
-  color: #e0b49e;
+  background: #2a2a2a;
+  color: #bcbcbc;
   font-size: 11px;
   line-height: 1.7;
 }
@@ -542,7 +518,7 @@ svg {
   align-items: center;
   justify-content: space-between;
   font-size: 10px;
-  color: #a3a3ad;
+  color: #a4a4a4;
   margin-bottom: 10px;
 }
 .text-button {
@@ -551,26 +527,26 @@ svg {
   justify-content: center;
   gap: 5px;
   padding: 0;
-  color: #b4a7f5;
+  color: #afafaf;
   font-size: 10px;
 }
 .text-button:hover {
-  color: #d9d0ff;
+  color: #d5d5d5;
 }
 .quote-row {
   display: flex;
   align-items: center;
   gap: 9px;
   width: 100%;
-  border: 1px solid #3a3a40;
+  border: 1px solid #3a3a3a;
   border-radius: 10px;
   padding: 12px 10px;
   margin-top: 7px;
   text-align: left;
 }
 .quote-row.selected {
-  border-color: #75649e;
-  background: #2b2638;
+  border-color: #6c6c6c;
+  background: #282828;
 }
 .quote-maker {
   display: flex;
@@ -578,12 +554,12 @@ svg {
   gap: 7px;
   flex: 1;
   font-size: 10px;
-  color: #adadba;
+  color: #aeaeae;
 }
 .maker-avatar {
   padding: 7px 5px;
-  background: #393044;
-  color: #bfb0e4;
+  background: #333333;
+  color: #b7b7b7;
   border-radius: 7px;
   font-size: 9px;
 }
@@ -593,15 +569,15 @@ svg {
 }
 .quote-row small {
   font-size: 9px;
-  color: #a6a0b4;
+  color: #a3a3a3;
 }
 .quote-row > svg {
-  color: #bba9ff;
+  color: #b3b3b3;
 }
 .quote-radio {
   width: 13px;
   height: 13px;
-  border: 1px solid #54545d;
+  border: 1px solid #555555;
   border-radius: 50%;
 }
 .quote-expiry {
@@ -609,14 +585,14 @@ svg {
   align-items: center;
   gap: 5px;
   font-size: 9px;
-  color: #a39aac;
+  color: #9d9d9d;
   margin-top: 13px;
 }
 .quote-expiry > span {
   margin-left: auto;
 }
 .no-quotes {
-  color: #a0a0ad;
+  color: #a1a1a1;
   font-size: 11px;
   line-height: 1.7;
 }
@@ -638,14 +614,14 @@ svg {
 }
 .small-label {
   font-size: 10px;
-  color: #92929f;
+  color: #939393;
   margin-bottom: 4px;
 }
 .activity-list {
   padding: 6px 19px;
-  border: 1px solid #303034;
+  border: 1px solid #303030;
   border-radius: 16px;
-  background: #1b1b1e;
+  background: #1b1b1b;
 }
 .activity-row {
   display: flex;
@@ -654,7 +630,7 @@ svg {
   width: 100%;
   padding: 21px 0;
   text-align: left;
-  border-bottom: 1px solid #333338;
+  border-bottom: 1px solid #333333;
 }
 .activity-row:last-child {
   border: 0;
@@ -666,8 +642,8 @@ svg {
   width: 41px;
   height: 41px;
   border-radius: 11px;
-  background: #302a3e;
-  color: #b1a0de;
+  background: #2d2d2d;
+  color: #a8a8a8;
 }
 .activity-description {
   display: flex;
@@ -680,12 +656,12 @@ svg {
   font-weight: 500;
 }
 .activity-description strong span {
-  color: #9d91b6;
+  color: #969696;
   margin: 0 4px;
 }
 .activity-description > span {
   font-size: 10px;
-  color: #91919f;
+  color: #929292;
 }
 .activity-state {
   display: flex;
@@ -696,26 +672,26 @@ svg {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border: 1px solid #48405b;
+  border: 1px solid #444444;
   border-radius: 24px;
   padding: 5px 8px;
-  color: #bcb0d5;
-  background: #302a3b;
+  color: #b5b5b5;
+  background: #2d2d2d;
   font-size: 9px;
 }
 .row-chevron {
-  color: #a29aad;
+  color: #9d9d9d;
 }
 .activity-caption {
   margin-top: 21px;
   text-align: center;
   font-size: 10px;
-  color: #898995;
+  color: #8a8a8a;
 }
 .empty-state {
   padding: 48px 10px;
   text-align: center;
-  color: #9993a8;
+  color: #969696;
 }
 .empty-state > svg {
   margin-bottom: 18px;
@@ -723,7 +699,7 @@ svg {
 .empty-state h2 {
   font-weight: 500;
   font-size: 18px;
-  color: #d7d0e4;
+  color: #d3d3d3;
 }
 .empty-state p {
   font-size: 11px;
@@ -736,11 +712,11 @@ svg {
   width: 100%;
   padding: 16px;
   margin-bottom: 16px;
-  border: 1px solid #514267;
+  border: 1px solid #484848;
   border-radius: 11px;
-  background: #2b2537;
+  background: #282828;
   font-size: 12px;
-  color: #c0afe1;
+  color: #b6b6b6;
 }
 .receipt-amount {
   display: flex;
@@ -756,7 +732,7 @@ svg {
 .token-pair .token {
   width: 43px;
   height: 43px;
-  border: 3px solid #1d1d20;
+  border: 3px solid #1d1d1d;
   margin-left: -8px;
 }
 .receipt-amount h3 {
@@ -765,7 +741,7 @@ svg {
   letter-spacing: -0.5px;
 }
 .receipt-amount h3 span {
-  color: #aaa0bc;
+  color: #a4a4a4;
   margin: 0 5px;
 }
 .transaction-links {
@@ -780,19 +756,19 @@ svg {
   justify-content: space-between;
   padding: 12px;
   border-radius: 9px;
-  background: #29292f;
+  background: #292929;
   font-size: 11px;
-  color: #c3bbd3;
+  color: #bebebe;
   text-align: left;
 }
 .transaction-links small {
-  color: #9990aa;
+  color: #949494;
   font-size: 9px;
   margin-left: 7px;
 }
 .transaction-links > a:hover,
 .transaction-links > button:hover {
-  background: #35303f;
+  background: #323232;
 }
 .operation-view {
   width: min(100%, 440px);
@@ -803,14 +779,14 @@ svg {
   align-items: center;
   gap: 3px;
   margin: 0 0 15px 3px;
-  color: #aaa0bd;
+  color: #a4a4a4;
   font-size: 10px;
 }
 .progress-card {
   padding: 27px;
-  border: 1px solid #313137;
-  border-radius: 18px;
-  background: #1c1c20;
+  border: 1px solid #313131;
+  border-radius: 0;
+  background: #1c1c1c;
 }
 .progress-emblem {
   width: 62px;
@@ -820,18 +796,18 @@ svg {
   justify-content: center;
   margin: 3px auto 21px;
   border-radius: 50%;
-  background: #302b3c;
-  color: #b4a4db;
+  background: #2d2d2d;
+  color: #ababab;
 }
 .progress-emblem.is-complete {
-  background: #383044;
-  color: #c1afe9;
+  background: #333333;
+  color: #b7b7b7;
 }
 .eyebrow {
   font-size: 9px;
   letter-spacing: 1.8px;
   font-weight: 500;
-  color: #9c91b0;
+  color: #969696;
 }
 .progress-card > .eyebrow {
   display: flex;
@@ -848,7 +824,7 @@ svg {
 .progress-description {
   font-size: 11px;
   line-height: 1.8;
-  color: #a19aa9;
+  color: #9d9d9d;
   text-align: center;
 }
 .progress-steps {
@@ -862,20 +838,20 @@ svg {
   gap: 12px;
   padding: 15px 0;
   font-size: 12px;
-  color: #797582;
+  color: #777777;
 }
 .progress-steps li + li {
-  border-top: 1px solid #313036;
+  border-top: 1px solid #313131;
 }
 .progress-steps li.done {
-  color: #b1a0cd;
+  color: #a7a7a7;
 }
 .progress-steps li.active {
-  color: #ddd0ee;
+  color: #d5d5d5;
 }
 .step-now {
   margin-left: auto;
-  color: #a697b9;
+  color: #9d9d9d;
   font-size: 9px;
 }
 .elapsed {
@@ -883,29 +859,29 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: #9a8ea6;
+  color: #929292;
   font-size: 9px;
 }
 .elapsed > span {
   margin: 0 2px;
-  color: #62586e;
+  color: #5c5c5c;
 }
 .progress-footnote {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-top: 1px solid #353039;
+  border-top: 1px solid #323232;
   margin-top: 25px;
   padding-top: 17px;
-  color: #95879e;
+  color: #8c8c8c;
   font-size: 9px;
 }
 .inline-notice {
-  color: #c7b39b;
+  color: #b6b6b6;
   font-size: 10px;
   line-height: 1.8;
-  background: #342e27;
+  background: #2f2f2f;
   padding: 12px;
   border-radius: 8px;
   margin-top: 15px;
@@ -925,7 +901,7 @@ svg {
   gap: 10px;
   padding: 23px;
   margin-bottom: 25px;
-  background: #2b2832;
+  background: #292929;
   border-radius: 12px;
 }
 .withdraw-amount > span {
@@ -934,12 +910,12 @@ svg {
 }
 .withdraw-amount small {
   font-size: 14px;
-  color: #ae9dc2;
+  color: #a3a3a3;
   letter-spacing: 0;
 }
 .field-label {
   display: block;
-  color: #aaa0bb;
+  color: #a4a4a4;
   font-size: 11px;
   margin-bottom: 10px;
 }
@@ -947,14 +923,14 @@ svg {
   width: 100%;
   padding: 15px;
   margin-bottom: 13px;
-  border: 1px solid #4a414f;
+  border: 1px solid #444444;
   border-radius: 10px;
-  background: #29252d;
-  color: #e3d9ec;
+  background: #262626;
+  color: #dcdcdc;
   font-size: 12px;
 }
 .address-input::placeholder {
-  color: #8e819c;
+  color: #868686;
 }
 .received-summary {
   display: flex;
@@ -962,7 +938,7 @@ svg {
   gap: 11px;
   padding: 15px;
   margin-bottom: 20px;
-  border: 1px solid #413747;
+  border: 1px solid #3a3a3a;
   border-radius: 11px;
 }
 .received-summary > div {
@@ -973,23 +949,23 @@ svg {
 }
 .received-summary > div > span {
   font-size: 9px;
-  color: #a595b4;
+  color: #9b9b9b;
 }
 .received-summary strong {
   font-size: 14px;
   font-weight: 500;
 }
 .received-summary > svg {
-  color: #baa3d0;
+  color: #ababab;
 }
 .initial-error {
   display: flex;
   gap: 16px;
   padding: 14px 18px;
   margin-bottom: 20px;
-  border: 1px solid #5a403a;
+  border: 1px solid #454545;
   border-radius: 10px;
-  color: #d0a294;
+  color: #ababab;
   font-size: 12px;
 }
 .spin {
@@ -1033,19 +1009,15 @@ svg {
     padding: 10px 12px;
     gap: 6px;
   }
-  .network-badge {
-    font-size: 10px;
-    gap: 5px;
-  }
   .app-shell main {
     padding: 24px 18px 66px;
   }
   .swap-panel {
     padding: 19px;
-    border-radius: 17px;
+    border-radius: 0;
   }
   .amount-box {
-    padding: 16px 15px 14px;
+    padding: 16px 0 14px;
   }
   .amount-input-row input,
   .output-amount {
@@ -1103,9 +1075,6 @@ svg {
   .wallet-button {
     font-size: 10px;
     padding: 10px;
-  }
-  .network-badge {
-    font-size: 9px;
   }
   .wordmark {
     gap: 6px;

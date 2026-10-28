@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   Check,
   ChevronRight,
-  ExternalLink,
   LoaderCircle,
   LogOut,
   ShieldCheck,
@@ -27,7 +26,7 @@ import { Progress } from "../components/progress.js";
 import { Swap } from "../components/swap.js";
 import { Token } from "../components/token.js";
 
-type Modal = "wallet" | "details" | "review" | "withdraw" | null;
+type Modal = "wallet" | "review" | "withdraw" | null;
 export function App() {
   const [path, set_path] = useState(location.pathname);
   const [information, set_information] = useState<AppInformation | null>(null);
@@ -269,9 +268,6 @@ export function App() {
           </a>
         </nav>
         <div className="header-actions">
-          <button className="network-badge" onClick={() => open_modal("details")}>
-            <span /> Testnet
-          </button>
           <button
             className={`wallet-button${session.connected ? " connected" : ""}`}
             onClick={() => open_modal("wallet")}
@@ -341,7 +337,6 @@ export function App() {
             }}
             review={() => open_modal("review")}
             connect={() => open_modal("wallet")}
-            info={() => open_modal("details")}
             error={error}
           />
         )}
@@ -413,45 +408,6 @@ export function App() {
             <p className="form-error" role="alert">
               {modal_error}
             </p>
-          )}
-        </Dialog>
-      )}
-      {modal === "details" && (
-        <Dialog title="Testnet details" close={() => set_modal(null)}>
-          <p className="dialog-caption">Native shielded ZEC → private USDC on Sepolia.</p>
-          <dl className="detail-list">
-            <div>
-              <dt>Zcash verification</dt>
-              <dd>Checkpoint-based SPV</dd>
-            </div>
-            <div>
-              <dt>Proving inputs</dt>
-              <dd>Public Testnet data</dd>
-            </div>
-            <div>
-              <dt>Nonpayment refunds</dt>
-              <dd>Unavailable</dd>
-            </div>
-            {information?.activity[0] && (
-              <div>
-                <dt>Last swap to private USDC</dt>
-                <dd>{duration(information.activity[0].duration_seconds)}</dd>
-              </div>
-            )}
-          </dl>
-          <p className="small-print">
-            The starting checkpoint is trusted. Swaps can remain pending when evidence is
-            unavailable. Timing varies. Use test funds only.
-          </p>
-          {information && (
-            <a
-              className="secondary-button"
-              href={`https://sepolia.etherscan.io/address/${information.profile.ethereum.pool}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              View pool contract <ExternalLink size={15} />
-            </a>
           )}
         </Dialog>
       )}
