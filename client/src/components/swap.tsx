@@ -1,12 +1,4 @@
-import {
-  ArrowDown,
-  ArrowRight,
-  Check,
-  Clock3,
-  LoaderCircle,
-  LockKeyhole,
-  RefreshCw,
-} from "lucide-react";
+import { ArrowDown, ArrowRight, Check, Clock3, LoaderCircle, RefreshCw } from "lucide-react";
 import type { Offer, QuoteResponse } from "@zutti/schema";
 import { amount_error, short_id } from "../shared/format.js";
 import { Token } from "./token.js";
@@ -77,9 +69,6 @@ export function Swap(props: SwapProps) {
                 <Token asset="ZEC" small />
                 <strong>ZEC</strong>
               </span>
-            </div>
-            <div className="amount-caption">
-              <LockKeyhole size={11} /> Shielded
             </div>
           </div>
           <div className="direction-divider">

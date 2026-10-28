@@ -274,7 +274,7 @@ export function App() {
           </button>
         </div>
       </header>
-      <main>
+      <main className={is_activity ? "activity-main" : undefined}>
         {initial_error && (
           <div className="initial-error" role="alert">
             <p>Couldn’t reach Zutti.</p>
@@ -286,7 +286,6 @@ export function App() {
         {is_activity ? (
           <Activity
             items={session.connected ? wallet_activity : (information?.activity ?? [])}
-            recorded={!session.connected}
             pending={operation?.state === "pending" || operation?.state === "paused"}
           />
         ) : operation ? (

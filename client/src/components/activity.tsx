@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, Check, Copy, ExternalLink, Inbox } from "lucide-react";
+import { ArrowUpRight, Check, Copy, ExternalLink } from "lucide-react";
 import type { ActivityItem } from "@zutti/schema";
 import { date, duration, route, short_id } from "../shared/format.js";
 import { Dialog } from "./dialog.js";
@@ -7,11 +7,9 @@ import { Token } from "./token.js";
 
 export function Activity({
   items,
-  recorded = false,
   pending = false,
 }: {
   items: readonly ActivityItem[];
-  recorded?: boolean;
   pending?: boolean;
 }) {
   const [selected, set_selected] = useState<ActivityItem | null>(null);
@@ -19,59 +17,86 @@ export function Activity({
   return (
     <section className="activity-view" aria-labelledby="activity-title">
       <div className="view-heading">
-        <div>
-          <h1 id="activity-title">Activity</h1>
-        </div>
-        <span className="small-label">
-          {recorded ? "Recorded Testnet swaps" : "Your connected wallet"}
-        </span>
+        <h1 id="activity-title">Zutti activities</h1>
       </div>
       {pending && (
         <button className="ongoing-swap" onClick={() => route("/")}>
           Your swap is in progress <ArrowUpRight size={15} />
         </button>
       )}
-      <div className="activity-list">
-        {items.length === 0 ? (
-          <div className="empty-state">
-            <Inbox size={26} />
-            <h2>Nothing here yet.</h2>
-            <p>Completed swaps will appear here.</p>
-          </div>
-        ) : (
-          items.map((item) => (
-            <button
-              className="activity-row"
-              key={item.id}
-              onClick={() => {
-                set_selected(item);
-                set_copied(false);
-              }}
-            >
-              <span className="activity-symbol">
-                <ArrowDownLeft size={21} />
-              </span>
-              <span className="activity-description">
-                <strong>
-                  {item.input.amount} ZEC <span>→</span> {item.output.amount} USDC
-                </strong>
-                <span>{date(item.settled_at)}</span>
-              </span>
-              <span className="activity-state">
-                <span className="status-tag">
-                  <Check size={12} /> {item.withdrawn_at ? "Withdrawn" : "Settled"}
-                </span>
-                <span className="row-chevron">
-                  <ArrowUpRight size={17} />
-                </span>
-              </span>
-            </button>
-          ))
-        )}
+      <div className="activity-table-wrap">
+        <table className="activity-table" aria-label="Zutti activities">
+          <thead>
+            <tr>
+              <th scope="col">Swap</th>
+              <th scope="col" className="activity-date">
+                Date
+              </th>
+              <th scope="col">Status</th>
+              <th scope="col">
+                <span className="sr-only">Details</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="activity-empty">
+                  No activities yet.
+                </td>
+              </tr>
+            ) : (
+              items.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <button
+                      className="activity-swap"
+                      onClick={() => {
+                        set_selected(item);
+                        set_copied(false);
+                      }}
+                    >
+                      <span>
+                        {item.input.amount} ZEC <span className="activity-arrow">→</span>{" "}
+                        {item.output.amount} USDC
+                      </span>
+                      <time
+                        className="activity-mobile-date"
+                        dateTime={new Date(item.settled_at).toISOString()}
+                      >
+                        {date(item.settled_at)}
+                      </time>
+                    </button>
+                  </td>
+                  <td className="activity-date">
+                    <time dateTime={new Date(item.settled_at).toISOString()}>
+                      {date(item.settled_at)}
+                    </time>
+                  </td>
+                  <td>
+                    <span className="status-tag">
+                      <Check size={12} />
+                      {item.withdrawn_at ? "Withdrawn" : "Settled"}
+                    </span>
+                  </td>
+                  <td className="activity-action">
+                    <button
+                      className="icon-button"
+                      aria-label={`View ${item.input.amount} ZEC swap details`}
+                      onClick={() => {
+                        set_selected(item);
+                        set_copied(false);
+                      }}
+                    >
+                      <ArrowUpRight size={16} />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
-      <p className="activity-caption">
-        {recorded ? "Real swaps from the Zutti Testnet runs." : "Your wallet’s completed swaps."}
-      </p>
       {selected && (
         <Dialog title="Swap details" close={() => set_selected(null)}>
           <div className="receipt-amount">

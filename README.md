@@ -115,5 +115,6 @@ The observed reductions were about 37 minutes to private ownership and 24 minute
 
 1. Reduce payment-evidence latency and measure repeated complete swaps.
 2. Package the native owner-wallet connector and verify the browser flow with a newly authorized funded swap.
-3. Operate and measure a continuous source feed and multiuser maker/prover service.
-4. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).
+3. Build the maker dashboard and replace fixed-zero reserved/active-swap summaries with authoritative inventory and obligation tracking.
+4. Operate and measure a continuous source feed and multiuser maker/prover service.
+5. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).
