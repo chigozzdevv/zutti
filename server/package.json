@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@zutti/schema": "workspace:*",
-    "@zutti/runtime": "workspace:*"
+    "@zutti/runtime": "workspace:*",
+    "@zutti/sdk": "workspace:*"
   }
 }
