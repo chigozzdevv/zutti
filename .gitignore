@@ -19,3 +19,5 @@
 
 /contracts/broadcast/
 **/__pycache__/
+
+/packages/snap/generated/

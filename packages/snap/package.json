@@ -1,0 +1,16 @@
+{
+  "name": "@zutti/snap",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --experimental-strip-types --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@metamask/snaps-sdk": "12.1.0"
+  },
+  "devDependencies": {
+    "@metamask/snaps-utils": "12.6.1"
+  }
+}

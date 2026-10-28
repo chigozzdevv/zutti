@@ -24,7 +24,11 @@
     "test:ts": "bash scripts/test-typescript.sh",
     "lint:ts": "eslint packages server client/src client/vite.config.ts --max-warnings=0",
     "typecheck:client": "pnpm --filter @zutti/client typecheck",
-    "codegen": "node --experimental-strip-types packages/bindings/codegen.ts"
+    "codegen": "node --experimental-strip-types packages/bindings/codegen.ts",
+    "build:wallet": "bash scripts/build-wallet.sh",
+    "typecheck:wallet": "tsc -p packages/snap/tsconfig.json",
+    "test:wallet": "node --experimental-strip-types --test packages/snap/test/*.test.mjs packages/snap/integration/*.test.mjs",
+    "serve:wallet": "node packages/snap/serve.mjs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
