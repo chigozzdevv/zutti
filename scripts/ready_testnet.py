@@ -83,7 +83,9 @@ def preflight(config_path, output):
                               config.get('ethereum_rpc', 'https://ethereum-sepolia-rpc.publicnode.com'),
                               config.get('allow_http_beacon', True))
         evidence = stage / 'evidence.json'
-        atomic_save(evidence, collect(transport, json.loads(Path(config['consensus']).read_text()), keys))
+        retained = config.get('readiness_capture')
+        captured = private_json(Path(retained)) if retained else None
+        atomic_save(evidence, collect(transport, json.loads(Path(config['consensus']).read_text()), keys, captured))
         captured = json.loads(evidence.read_text())
         atomic_save(stage / 'note-evidence.json', {'consensus': captured['consensus'], 'pool': captured['pool']})
         atomic_save(stage / 'note-request.json', json.loads(request.read_text())['note'])

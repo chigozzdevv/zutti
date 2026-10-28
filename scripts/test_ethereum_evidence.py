@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
-from ethereum_evidence import Transport, atomic_save, collect
+from ethereum_evidence import Transport, atomic_save, collect, request_digest
 
 
 class Endpoint:
@@ -37,6 +37,34 @@ class Endpoint:
 
 
 class EvidenceTests(unittest.TestCase):
+    def test_retained_state_proofs_are_linked_to_finality_without_refetching(self):
+        class CapturedEndpoint(Endpoint):
+            def rpc(self, method, params):
+                if method == "eth_getBlockByHash":
+                    return {"hash": "0x1234", "number": "0x2"}
+                if method == "eth_getProof":
+                    raise AssertionError("Retained state proofs must not be refetched")
+                return super().rpc(method, params)
+
+            def blocks(self, heights):
+                return [{"number": hex(height)} for height in heights]
+
+        requests = {"pool": {"address": "0xpool", "keys": ["0xslot"]}}
+        captured = {"schema": 1, "request_digest": request_digest(requests),
+                    "execution": {"hash": "0xprior", "number": "0x1"},
+                    "proofs": {"pool": {"address": "0xpool", "storageProof": []}}}
+        config = {"chain_id": 11155111, "checkpoint": "0xabcd"}
+        evidence = collect(CapturedEndpoint(), config, requests, captured)
+        self.assertEqual(evidence["consensus"]["execution"], captured["execution"])
+        self.assertEqual(evidence["consensus"]["ancestry"], [{"number": "0x2"}])
+        self.assertEqual(evidence["pool"], captured["proofs"]["pool"])
+        for changed in (
+            {**captured, "request_digest": "different"},
+            {**captured, "execution": {"number": "0x3"}},
+        ):
+            with self.assertRaises(ValueError):
+                collect(CapturedEndpoint(), config, requests, changed)
+
     @patch("ethereum_evidence.time.sleep")
     @patch("ethereum_evidence.urllib.request.urlopen")
     def test_rate_limited_proof_read_respects_retry_after(self, open_url, sleep):
