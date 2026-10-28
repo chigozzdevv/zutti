@@ -8,6 +8,9 @@
     "node": "^22.13.0 || >=24.0.0"
   },
   "scripts": {
+    "dev": "node scripts/dev-client.mjs",
+    "build:client": "pnpm build:ts && pnpm --filter @zutti/client build",
+    "start:client": "node server/dist/ui-server.js",
     "setup": "bash scripts/setup.sh",
     "build": "bash scripts/build.sh",
     "lint": "bash scripts/lint.sh",
@@ -19,7 +22,8 @@
     "build:ts": "tsc -b",
     "typecheck:ts": "tsc -b --pretty false",
     "test:ts": "bash scripts/test-typescript.sh",
-    "lint:ts": "eslint packages server --max-warnings=0",
+    "lint:ts": "eslint packages server client/src client/vite.config.ts --max-warnings=0",
+    "typecheck:client": "pnpm --filter @zutti/client typecheck",
     "codegen": "node --experimental-strip-types packages/bindings/codegen.ts"
   },
   "devDependencies": {

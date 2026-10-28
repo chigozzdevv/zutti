@@ -30,7 +30,7 @@ The maker wallet recovered the 0.01-ZEC note. The taker recovered 0.9899 ZEC of 
 5. The pool verifies the proofs and creates the precommitted private USDC note.
 6. The owner verifies that note and explicitly authorizes a public ERC-20 withdrawal.
 
-The private receiving key owns a note backed by tokens in the pool. It is not an ERC-20 address. The recorded flow uses the headless SDK RFQ, persistent native owner coordinator and SDK withdrawal adapter. [Quote execution](scripts/quote_testnet.mjs) and [withdrawal execution](scripts/withdraw_testnet.mjs) show the adapters. The application client and browser wallet connectors remain unfinished. [zutti.md](zutti.md) separates the broader intended SDK from implemented capabilities.
+The private receiving key owns a note backed by tokens in the pool. It is not an ERC-20 address. The recorded flow uses the headless SDK RFQ, persistent native owner coordinator and SDK withdrawal adapter. [Quote execution](scripts/quote_testnet.mjs) and [withdrawal execution](scripts/withdraw_testnet.mjs) show the adapters. A React client now provides quote selection, review, progress, activity and withdrawal screens through a session-scoped SDK gateway. The native owner-wallet connector still needs packaging; no browser extension integration is claimed. [zutti.md](zutti.md) separates the broader intended SDK from implemented capabilities.
 
 ## Boundaries
 
@@ -60,10 +60,26 @@ packages/bindings/     native and contract interfaces
 server/src/features/   RFQ relay
 server/src/shared/     HTTP utilities
 scripts/               build, verification and owner workers
+client/src/app/        responsive application shell and styles
+client/src/components/ swap, progress, activity and dialogs
+client/src/shared/     application transport and formatting
 deploy/                retained deployments and genuine evidence
 ```
 
 ## Development and verification
+
+Run the application locally:
+
+```sh
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+Open `http://127.0.0.1:5173`. The app API listens on loopback port 3002. For the production build, run `pnpm build:client` followed by `pnpm start:client`, then open `http://127.0.0.1:3002`. Fonts are bundled locally.
+
+Without a wallet adapter, the interface shows the completed Testnet evidence and a disconnected wallet. It does not fabricate quotes or balances. A reviewed local module can be supplied with `ZUTTI_WALLET_MODULE=/absolute/path/wallet.mjs`; it must export `connect_wallet()`, returning `{ wallet, label }`, where `wallet` implements the existing SDK `WalletProvider`. The gateway pins the deployment, uses the SDK's encrypted RFQs and execution callbacks, and keeps signing material out of browser responses. Origin checks, HTTP-only owner sessions and idempotent acceptance/withdrawal protect the local interface. The gateway retains operations across page reloads while its process runs; recovery across gateway restarts requires the durable native owner adapter. Sessions are local to this one owner process, not a multiuser hosted wallet service.
+
+App startup and read-only browsing do not request proofs or send transactions. New execution still requires the wallet's fresh evidence and spending authorization. `pnpm build:client`, `pnpm lint:ts`, and the TypeScript tests cover the client and gateway; the gateway tests do not establish a new funded swap.
 
 Use the pinned Rust, RISC Zero 3.0.5, Foundry, Node.js and pnpm versions. Existing caches can be reused through `CARGO_HOME` and `CARGO_TARGET_DIR`.
 
@@ -98,6 +114,6 @@ The observed reductions were about 37 minutes to private ownership and 24 minute
 ## Remaining work
 
 1. Reduce payment-evidence latency and measure repeated complete swaps.
-2. Package the application and wallet connectors around the demonstrated headless flow.
+2. Package the native owner-wallet connector and verify the browser flow with a newly authorized funded swap.
 3. Operate and measure a continuous source feed and multiuser maker/prover service.
 4. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).

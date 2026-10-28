@@ -15,10 +15,10 @@ export default [
   { ...js.configs.recommended, files: ["tests/**/*.mjs"] },
   ...tseslint.configs.recommended.map((config) => ({
     ...config,
-    files: ["packages/**/*.ts", "server/**/*.ts"],
+    files: ["packages/**/*.ts", "server/**/*.ts", "client/**/*.ts", "client/**/*.tsx"],
   })),
   {
-    files: ["packages/**/*.ts", "server/**/*.ts"],
+    files: ["packages/**/*.ts", "server/**/*.ts", "client/**/*.ts", "client/**/*.tsx"],
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",

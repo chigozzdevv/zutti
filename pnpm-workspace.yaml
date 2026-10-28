@@ -2,3 +2,5 @@ packages:
   - client
   - server
   - packages/*
+minimumReleaseAgeExclude:
+  - lucide-react@1.63.0
