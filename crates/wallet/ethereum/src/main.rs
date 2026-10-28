@@ -110,7 +110,7 @@ fn proof_keys(
             let value = read::<zutti_ethereum::readiness::ReadinessRequest>(request, 16_384)?;
             serde_json::json!({
                 "pool":{"address":value.note.pool,"keys":value.note.storage_keys()?},
-                "source":{"address":value.source.address,"keys":[B256::from(U256::from(4).to_be_bytes::<32>()),mapping_key(value.source.checkpoint,19)]}
+                "source":{"address":value.source.address,"keys":value.source_keys()?}
             })
         }
         EvidenceKind::Note => {

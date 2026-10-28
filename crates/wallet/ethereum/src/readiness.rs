@@ -1,8 +1,11 @@
 use crate::{
-    ConsensusConfig, Error, FinalityEvidence, Result, SourceGuard, notes::NoteRequest,
-    verify_finalized, verify_source_guard,
+    ConsensusConfig, Error, FinalityEvidence, Result, SourceGuard, mapping_key, notes::NoteRequest,
+    verify_account, verify_finalized,
 };
-use alloy::{primitives::B256, rpc::types::EIP1186AccountProofResponse};
+use alloy::{
+    primitives::{B256, U256},
+    rpc::types::EIP1186AccountProofResponse,
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -10,6 +13,23 @@ use serde::{Deserialize, Serialize};
 pub struct ReadinessRequest {
     pub note: NoteRequest,
     pub source: SourceGuard,
+}
+
+impl ReadinessRequest {
+    pub fn source_keys(&self) -> Result<[B256; 3]> {
+        if self.source.address.is_zero()
+            || self.source.address == self.note.pool
+            || self.source.code_hash.is_zero()
+            || self.source.checkpoint.is_zero()
+        {
+            return Err(Error::Configuration);
+        }
+        Ok([
+            B256::ZERO,
+            B256::from(U256::from(4).to_be_bytes::<32>()),
+            mapping_key(self.source.checkpoint, 19),
+        ])
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -63,9 +83,23 @@ pub(crate) fn verify_storage(
     source: &EIP1186AccountProofResponse,
     state_root: B256,
 ) -> Result<()> {
-    if request.source.address == request.note.pool {
-        return Err(Error::Configuration);
-    }
+    let keys = request.source_keys()?;
     crate::notes::verify_note_storage(&request.note, pool, state_root)?;
-    verify_source_guard(&request.source, source, state_root)
+    verify_account(
+        request.source.address,
+        request.source.code_hash,
+        source,
+        state_root,
+    )?;
+    crate::verify_storage(
+        source,
+        &[
+            (
+                keys[0],
+                U256::from_be_slice(request.source.checkpoint.as_slice()),
+            ),
+            (keys[1], U256::ZERO),
+            (keys[2], U256::from(1)),
+        ],
+    )
 }

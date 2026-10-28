@@ -229,10 +229,56 @@ fn quoting_readiness_requires_unspent_inventory_and_the_exact_admitted_nonhalted
         notes::NoteRequest,
         readiness::{ReadinessRequest, verify_storage},
     };
-    for change in 0..=5 {
-        let (inventory, mut pool, mut source, root) = fixture(change);
+    for change in 0..=7 {
+        let (inventory, mut pool, _, _) = fixture(change);
         pool.storage_proof.remove(1);
-        source.storage_proof.remove(0);
+        let mut source = storage(
+            inventory.source,
+            inventory.source_code_hash,
+            &[
+                (
+                    B256::ZERO,
+                    if change == 6 {
+                        U256::from(1)
+                    } else {
+                        U256::from_be_slice(inventory.checkpoint.as_slice())
+                    },
+                ),
+                (
+                    B256::from(U256::from(4).to_be_bytes::<32>()),
+                    match change {
+                        4 => U256::from(1) << 64,
+                        7 => U256::from(123),
+                        _ => U256::ZERO,
+                    },
+                ),
+                (
+                    mapping_key(inventory.checkpoint, 19),
+                    if change == 5 {
+                        U256::ZERO
+                    } else {
+                        U256::from(1)
+                    },
+                ),
+            ],
+        );
+        let accounts: Vec<_> = [&pool, &source]
+            .iter()
+            .map(|proof| {
+                (
+                    proof.address.to_vec(),
+                    rlp::encode(TrieAccount {
+                        nonce: proof.nonce,
+                        balance: proof.balance,
+                        storage_root: proof.storage_hash,
+                        code_hash: proof.code_hash,
+                    }),
+                )
+            })
+            .collect();
+        let (root, mut proofs) = trie(accounts, &[pool.address.to_vec(), source.address.to_vec()]);
+        source.account_proof = proofs.pop().unwrap();
+        pool.account_proof = proofs.pop().unwrap();
         let request = ReadinessRequest {
             note: NoteRequest {
                 chain_id: inventory.chain_id,
