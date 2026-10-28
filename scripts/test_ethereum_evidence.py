@@ -1,7 +1,10 @@
+import io
 import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
+from urllib.error import HTTPError, URLError
 
 from ethereum_evidence import Transport, atomic_save, collect
 
@@ -34,6 +37,34 @@ class Endpoint:
 
 
 class EvidenceTests(unittest.TestCase):
+    @patch("ethereum_evidence.time.sleep")
+    @patch("ethereum_evidence.urllib.request.urlopen")
+    def test_rate_limited_proof_read_respects_retry_after(self, open_url, sleep):
+        error = HTTPError("https://execution.example", 429, "Limited", {"Retry-After": "5"}, None)
+        open_url.side_effect = [error, io.BytesIO(b'{"result":{"storageProof":[]}}')]
+        transport = Transport("https://beacon.example", "https://execution.example")
+        self.assertEqual(transport.rpc("eth_getProof", []), {"storageProof": []})
+        self.assertEqual(transport.calls, 2)
+        sleep.assert_called_once_with(5)
+
+    @patch("ethereum_evidence.time.sleep")
+    @patch("ethereum_evidence.urllib.request.urlopen")
+    def test_transport_retries_remain_bounded(self, open_url, sleep):
+        open_url.side_effect = URLError("offline")
+        transport = Transport("https://beacon.example", "https://execution.example")
+        with self.assertRaises(URLError):
+            transport.rest("/eth/v1/beacon/light_client/finality_update")
+        self.assertEqual(transport.calls, 3)
+        self.assertEqual(sleep.call_count, 2)
+
+    @patch("ethereum_evidence.urllib.request.urlopen")
+    def test_transport_never_retries_a_broadcast(self, open_url):
+        open_url.side_effect = URLError("unknown broadcast outcome")
+        transport = Transport("https://beacon.example", "https://execution.example")
+        with self.assertRaises(URLError):
+            transport.rpc("eth_sendRawTransaction", ["0x01"])
+        self.assertEqual(open_url.call_count, 1)
+
     def test_proofs_are_pinned_to_the_finalized_execution_hash(self):
         endpoint = Endpoint(period=1)
         evidence = collect(endpoint, {"chain_id": 11155111, "checkpoint": "0xabcd"},

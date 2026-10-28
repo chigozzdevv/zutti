@@ -1,10 +1,13 @@
 import argparse
 import hashlib
+from http.client import RemoteDisconnected
 import json
 import os
 from pathlib import Path
 import subprocess
 import tempfile
+import time
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 import urllib.request
 
@@ -27,15 +30,35 @@ class Transport:
         self.calls = 0
 
     def request(self, url, payload=None):
-        self.calls += 1
-        if self.calls > 72:
-            raise ValueError("evidence request limit exceeded")
         request = urllib.request.Request(
             url, None if payload is None else json.dumps(payload).encode(),
             {"Accept": "application/json", "Content-Type": "application/json", "User-Agent": "Zutti/1.0"},
         )
-        with urllib.request.urlopen(request, timeout=30) as response:
-            raw = response.read(min(MAX_RESPONSE, MAX_TOTAL - self.total) + 1)
+        methods = {"eth_chainId", "eth_getBlockByNumber", "eth_getBlockByHash", "eth_getProof"}
+        calls = payload if isinstance(payload, list) else [payload]
+        readonly = payload is None or bool(calls) and all(
+            isinstance(call, dict) and call.get("method") in methods for call in calls)
+        for attempt in range(3 if readonly else 1):
+            self.calls += 1
+            if self.calls > 72:
+                raise ValueError("evidence request limit exceeded")
+            try:
+                with urllib.request.urlopen(request, timeout=30) as response:
+                    raw = response.read(min(MAX_RESPONSE, MAX_TOTAL - self.total) + 1)
+                break
+            except (URLError, RemoteDisconnected, ConnectionError, TimeoutError) as error:
+                if (not readonly or attempt == 2
+                        or isinstance(error, HTTPError) and error.code not in (429, 502, 503, 504)):
+                    raise
+                delay = 3 * (attempt + 1)
+                if isinstance(error, HTTPError):
+                    retry = error.headers.get("Retry-After")
+                    if retry and retry.isdecimal():
+                        delay = max(delay, int(retry))
+                    error.close()
+                if delay > 30:
+                    raise
+                time.sleep(delay)
         self.total += len(raw)
         if len(raw) > MAX_RESPONSE or self.total > MAX_TOTAL:
             raise ValueError("evidence exceeds its download bound")
