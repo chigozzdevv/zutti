@@ -1,4 +1,4 @@
-use super::{Error, HEADER_BYTES, HeaderClaim, MAX_HEADERS, Result};
+use super::{Error, HEADER_BYTES, HeaderClaim, MAX_HEADERS, Result, WindowClaim};
 use zutti_protocol::{
     Digest,
     encoding::{Canonical, Reader, Writer},
@@ -113,6 +113,12 @@ impl Canonical for AdmissionClaim {
 
 #[derive(Debug, Clone)]
 pub enum AdmissionWitness {
+    Payment {
+        previous: HeaderClaim,
+        stable: HeaderClaim,
+        window: Box<WindowClaim>,
+        confirmations: Vec<Vec<u8>>,
+    },
     Initialize {
         stable: HeaderClaim,
         confirmations: Vec<Vec<u8>>,
@@ -131,9 +137,16 @@ pub enum AdmissionWitness {
 impl AdmissionWitness {
     pub fn predecessor(&self) -> &HeaderClaim {
         match self {
+            Self::Payment { previous, .. } => previous,
             Self::Initialize { stable, .. } => stable,
             Self::Advance { previous, .. } => previous,
             Self::Conflict { alternative, .. } => alternative,
+        }
+    }
+    pub fn required_journal(&self) -> zutti_protocol::Result<Vec<u8>> {
+        match self {
+            Self::Payment { window, .. } => window.to_bytes(),
+            _ => self.predecessor().to_bytes(),
         }
     }
     fn check_headers(groups: &[&[Vec<u8>]]) -> Result<()> {
@@ -152,6 +165,40 @@ impl AdmissionWitness {
     pub fn evaluate(&self) -> Result<AdmissionClaim> {
         let policy = self.predecessor().policy();
         let (kind, previous, stable, head) = match self {
+            Self::Payment {
+                previous,
+                stable,
+                window,
+                confirmations,
+            } => {
+                Self::check_headers(&[confirmations])?;
+                window.to_bytes()?;
+                if confirmations.len() != policy.confirmations() as usize {
+                    return Err(Error::Confirmations);
+                }
+                if window.policy != policy.id()?
+                    || stable.policy() != policy
+                    || window.prefix != previous.id()?
+                    || window.checkpoint != stable.id()?
+                    || window.height != stable.height()?
+                    || window.tip != stable.tip()?
+                    || window.work != stable.work()?
+                    || stable.height()? <= previous.height()?
+                    || stable.work()? <= previous.work()?
+                {
+                    return Err(Error::Policy);
+                }
+                (
+                    AdmissionKind::Advance,
+                    if previous.height()? == 0 {
+                        Digest::default()
+                    } else {
+                        previous.id()?
+                    },
+                    stable.clone(),
+                    stable.advance(confirmations)?,
+                )
+            }
             Self::Initialize {
                 stable,
                 confirmations,
@@ -246,6 +293,19 @@ impl Canonical for AdmissionWitness {
         writer.fixed(b"ZUTTISAI");
         writer.u16(1);
         match self {
+            Self::Payment {
+                previous,
+                stable,
+                window,
+                confirmations,
+            } => {
+                Self::check_headers(&[confirmations]).map_err(|_| zutti_protocol::Error::Length)?;
+                writer.u8(4);
+                previous.encode(writer)?;
+                stable.encode(writer)?;
+                window.encode(writer)?;
+                write_headers(writer, confirmations);
+            }
             Self::Initialize {
                 stable,
                 confirmations,
@@ -286,6 +346,12 @@ impl Canonical for AdmissionWitness {
             return Err(zutti_protocol::Error::Version);
         }
         let witness = match reader.u8()? {
+            4 => Self::Payment {
+                previous: HeaderClaim::decode(reader)?,
+                stable: HeaderClaim::decode(reader)?,
+                window: Box::new(WindowClaim::decode(reader)?),
+                confirmations: read_headers(reader)?,
+            },
             3 => Self::Initialize {
                 stable: HeaderClaim::decode(reader)?,
                 confirmations: read_headers(reader)?,

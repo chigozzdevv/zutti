@@ -62,6 +62,8 @@ enum Command {
         confirmations: PathBuf,
         #[arg(long)]
         stable_headers: Option<PathBuf>,
+        #[arg(long, conflicts_with = "stable_headers")]
+        window_witness: Option<PathBuf>,
         #[arg(long)]
         out: PathBuf,
     },
@@ -458,9 +460,12 @@ fn build(target: &Path, out: &Path, kind: Guest, boundless: bool) -> Result<()> 
             .encode();
     fs::create_dir(out)?;
     write_new(&out.join("program.elf"), &program)?;
-    let manifest = serde_json::json!({"schema":1,"image_id":image(&program)?.to_string(),
+    let mut manifest = serde_json::json!({"schema":1,"image_id":image(&program)?.to_string(),
         "program_sha256":hex::encode(Sha256::digest(&program)),"admitted":false,"kind":name,"network_scope":"Testnet prototype",
         "composition":if boundless || matches!(kind, Guest::ReceiptCheck) {"inline-groth16"} else {"native"}});
+    if matches!(kind, Guest::Admission) {
+        manifest["admission_inputs"] = serde_json::json!(["header", "payment-window"]);
+    }
     write_new(
         &out.join("program.json"),
         &serde_json::to_vec_pretty(&manifest)?,
@@ -664,21 +669,39 @@ fn main() -> Result<()> {
             previous,
             confirmations,
             stable_headers,
+            window_witness,
             out,
         } => {
             let program = bounded(&header_program, 32 * 1024 * 1024)?;
             let receipt = read_receipt(&previous)?;
-            let prefix = verify_header_receipt(&program, &receipt)?;
             let confirmations = zutti_spv_prototype::bootstrap::headers(&confirmations)?;
-            let witness = if let Some(headers) = stable_headers {
+            let witness = if let Some(path) = window_witness {
+                let witness =
+                    Witness::from_bytes(&bounded(&path, zutti_source::spv::MAX_WITNESS)?)?;
+                let Witness::Window { previous, window } = witness else {
+                    return Err("payment admission requires a payment-window witness".into());
+                };
+                let (claim, stable) = window.evaluate_with_checkpoint(&previous)?;
+                let program_image = image(&program)?;
+                if previous.policy().program() != program_image {
+                    return Err("payment-window program does not match its policy".into());
+                }
+                verify(&receipt, program_image, &claim.to_bytes()?)?;
+                AdmissionWitness::Payment {
+                    previous,
+                    stable,
+                    window: Box::new(claim),
+                    confirmations,
+                }
+            } else if let Some(headers) = stable_headers {
                 AdmissionWitness::Advance {
-                    previous: prefix,
+                    previous: verify_header_receipt(&program, &receipt)?,
                     stable_headers: zutti_spv_prototype::bootstrap::headers(&headers)?,
                     confirmations,
                 }
             } else {
                 AdmissionWitness::Initialize {
-                    stable: prefix,
+                    stable: verify_header_receipt(&program, &receipt)?,
                     confirmations,
                 }
             };

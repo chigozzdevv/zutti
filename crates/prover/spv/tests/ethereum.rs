@@ -113,6 +113,54 @@ fn genuine_active_admission_binds_the_verified_source_prefix_and_exported_policy
 }
 
 #[test]
+fn payment_admission_composes_the_genuine_swap_receipt_without_revalidating_its_header_range() {
+    use std::{fs, path::Path};
+    use zutti_protocol::encoding::Canonical;
+    use zutti_source::spv::{
+        AdmissionClaim, AdmissionWitness, HEADER_BYTES, HeaderClaim, WindowClaim,
+    };
+    use zutti_spv_prototype::{read_receipt, verify};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../deploy");
+    let previous =
+        HeaderClaim::from_bytes(&fs::read(root.join("source/testnet/source-journal.bin")).unwrap())
+            .unwrap();
+    let headers = fs::read(root.join("ethereum/payment-window-headers.bin")).unwrap();
+    let stable = previous
+        .advance(
+            &headers
+                .chunks_exact(HEADER_BYTES)
+                .map(<[u8]>::to_vec)
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+    let receipt = read_receipt(&root.join("ethereum/window-receipt.bin")).unwrap();
+    let window = WindowClaim::from_bytes(&receipt.journal.bytes).unwrap();
+    let witness = AdmissionWitness::Payment {
+        previous,
+        stable,
+        window: Box::new(window),
+        confirmations: fs::read(root.join("ethereum/payment-window-confirmations.bin"))
+            .unwrap()
+            .chunks_exact(HEADER_BYTES)
+            .map(<[u8]>::to_vec)
+            .collect(),
+    };
+    let required = witness.required_journal().unwrap();
+    let program = witness.predecessor().policy().program();
+    verify(&receipt, program, &required).unwrap();
+    let original = AdmissionClaim::from_bytes(
+        &fs::read(root.join("ethereum/payment-admission-journal.bin")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(witness.evaluate().unwrap(), original);
+    let unrelated = read_receipt(&root.join("source/testnet/source-receipt.bin")).unwrap();
+    assert!(verify(&unrelated, program, &required).is_err());
+    let mut changed = required;
+    *changed.last_mut().unwrap() ^= 1;
+    assert!(verify(&receipt, program, &changed).is_err());
+}
+
+#[test]
 fn genuine_funded_deposit_receipt_binds_the_actual_pool_domain_and_value() {
     use std::{fs, path::Path};
     use zutti_protocol::{encoding::Canonical, pool::OperationKind};

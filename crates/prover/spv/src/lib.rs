@@ -322,7 +322,11 @@ pub fn run_admission(
     prove: bool,
 ) -> Result<()> {
     let prefix = witness.predecessor();
-    verify(previous, prefix.policy().program(), &prefix.to_bytes()?)?;
+    verify(
+        previous,
+        prefix.policy().program(),
+        &witness.required_journal()?,
+    )?;
     let input = witness.to_bytes()?;
     let claim = witness.evaluate()?;
     let journal = claim.to_bytes()?;

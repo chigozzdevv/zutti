@@ -105,7 +105,7 @@ fn expectation(kind: Kind, input: &[u8], program: Digest) -> Result<(Vec<u8>, As
             let previous = witness.predecessor();
             (
                 witness.evaluate()?.to_bytes()?,
-                vec![(previous.policy().program(), previous.to_bytes()?)],
+                vec![(previous.policy().program(), witness.required_journal()?)],
             )
         }
         Kind::Binding => (

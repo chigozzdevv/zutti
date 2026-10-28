@@ -21,17 +21,13 @@ fn main() {
     env::read_slice(&mut bytes);
     let witness = AdmissionWitness::from_bytes(&bytes).expect("invalid SPV admission witness");
     let previous = witness.predecessor();
+    let journal = witness
+        .required_journal()
+        .expect("invalid SPV dependency journal");
     #[cfg(feature = "boundless")]
-    receipt::read_and_verify(
-        previous.policy().program().0,
-        &previous.to_bytes().expect("invalid SPV predecessor"),
-    );
+    receipt::read_and_verify(previous.policy().program().0, &journal);
     #[cfg(not(feature = "boundless"))]
-    env::verify(
-        previous.policy().program().0,
-        &previous.to_bytes().expect("invalid SPV predecessor"),
-    )
-    .expect("unverified SPV predecessor");
+    env::verify(previous.policy().program().0, &journal).expect("unverified SPV predecessor");
     let claim = witness
         .evaluate()
         .expect("invalid SPV admission transition");

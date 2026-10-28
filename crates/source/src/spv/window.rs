@@ -182,6 +182,12 @@ impl WindowWitness {
         self.terms.reservation(policy, self.txid, &self.randomness)
     }
     pub fn evaluate(&self, previous: &HeaderClaim) -> Result<WindowClaim> {
+        Ok(self.evaluate_with_checkpoint(previous)?.0)
+    }
+    pub fn evaluate_with_checkpoint(
+        &self,
+        previous: &HeaderClaim,
+    ) -> Result<(WindowClaim, HeaderClaim)> {
         self.check_bounds()?;
         let policy = previous.policy();
         if policy.paid_only() && self.branch == Branch::Absent {
@@ -245,7 +251,7 @@ impl WindowWitness {
         if end.height()? < required {
             return Err(Error::Confirmations);
         }
-        Ok(WindowClaim {
+        let claim = WindowClaim {
             policy: policy.id()?,
             prefix: previous.id()?,
             checkpoint: end.id()?,
@@ -254,7 +260,8 @@ impl WindowWitness {
             tip: end.tip()?,
             work: end.work()?,
             output,
-        })
+        };
+        Ok((claim, end))
     }
 }
 

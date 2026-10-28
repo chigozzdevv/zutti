@@ -326,6 +326,111 @@ fn initialization_can_admit_an_already_proved_prefix_without_a_recent_trust_anch
     );
 }
 
+fn payment_admission() -> zutti_source::spv::AdmissionWitness {
+    use zutti_source::spv::AdmissionWitness;
+    let previous = prefix()
+        .advance(&[raw(1)[..HEADER_BYTES].to_vec()])
+        .unwrap();
+    let block = zutti_source::spv::parse_block(&raw(2), NetworkType::Test).unwrap();
+    let window = WindowWitness::new(
+        WindowTerms::new(
+            Digest([3; 32]),
+            Digest([4; 32]),
+            1,
+            previous.tip().unwrap(),
+            3,
+            Digest([5; 32]),
+            Digest([6; 32]),
+        )
+        .unwrap(),
+        block.txids()[0],
+        Secret32::from_bytes([8; 32]).unwrap(),
+        Branch::Included,
+        (2..=3).map(|h| raw(h)[..HEADER_BYTES].to_vec()).collect(),
+        vec![raw(2)],
+    )
+    .unwrap();
+    let (window, stable) = window.evaluate_with_checkpoint(&previous).unwrap();
+    AdmissionWitness::Payment {
+        previous,
+        stable,
+        window: Box::new(window),
+        confirmations: vec![raw(4)[..HEADER_BYTES].to_vec()],
+    }
+}
+
+#[test]
+fn payment_admission_reuses_the_exact_window_checkpoint_and_preserves_admission_rules() {
+    use zutti_source::spv::AdmissionWitness;
+    let witness = payment_admission();
+    let AdmissionWitness::Payment {
+        previous, window, ..
+    } = &witness
+    else {
+        unreachable!()
+    };
+    assert_eq!(
+        witness.required_journal().unwrap(),
+        window.to_bytes().unwrap()
+    );
+    assert_ne!(
+        witness.required_journal().unwrap(),
+        previous.to_bytes().unwrap()
+    );
+    let original = AdmissionWitness::Advance {
+        previous: previous.clone(),
+        stable_headers: (2..=3).map(|h| raw(h)[..HEADER_BYTES].to_vec()).collect(),
+        confirmations: vec![raw(4)[..HEADER_BYTES].to_vec()],
+    }
+    .evaluate()
+    .unwrap();
+    assert_eq!(witness.evaluate().unwrap(), original);
+    let encoded = witness.to_bytes().unwrap();
+    assert_eq!(
+        AdmissionWitness::from_bytes(&encoded)
+            .unwrap()
+            .evaluate()
+            .unwrap(),
+        original
+    );
+    let mut trailing = encoded.clone();
+    trailing.push(0);
+    assert!(AdmissionWitness::from_bytes(&trailing).is_err());
+    assert!(AdmissionWitness::from_bytes(&encoded[..encoded.len() - 1]).is_err());
+}
+
+#[test]
+fn payment_admission_rejects_mismatched_policy_prefix_checkpoint_and_confirmation_depth() {
+    use zutti_source::spv::AdmissionWitness;
+    for case in 0..11 {
+        let mut witness = payment_admission();
+        let AdmissionWitness::Payment {
+            previous,
+            stable,
+            window,
+            confirmations,
+        } = &mut witness
+        else {
+            unreachable!()
+        };
+        match case {
+            0 => window.policy.0[0] ^= 1,
+            1 => window.prefix.0[0] ^= 1,
+            2 => window.checkpoint.0[0] ^= 1,
+            3 => window.height -= 1,
+            4 => window.tip.0[0] ^= 1,
+            5 => window.work[31] ^= 1,
+            6 => *previous = prefix(),
+            7 => *stable = previous.clone(),
+            8 => confirmations.clear(),
+            9 => confirmations.push(raw(4)[..HEADER_BYTES].to_vec()),
+            10 => confirmations[0] = raw(3)[..HEADER_BYTES].to_vec(),
+            _ => unreachable!(),
+        }
+        assert!(witness.evaluate().is_err(), "accepted mismatch {case}");
+    }
+}
+
 #[test]
 fn initialization_rejects_genesis_missing_confirmations_and_wrong_ancestry() {
     use zutti_source::spv::AdmissionWitness;
