@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "kind": "private-usdc-deposit",
+  "network": "testnet",
+  "chain_id": 11155111,
+  "amount_usdc": "15",
+  "wallet": "0xe4a55f3a95f282503ee6dbc1600a13cf1aca1434",
+  "pool": "0xc32e6cd02d9f53508632ef09ab69bc2e2e36e84d",
+  "proof": {
+    "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+    "receipt": "flask-deposit-receipt.bin",
+    "receipt_sha256": "e71e9e0436a3d6f8dcf951e20aae0fe7c9c293b5e829319b9d14ce1cd5cb2306",
+    "journal_sha256": "2ce59d39aa255dea2e209905aa929f53761a2763bae183b2261116e7897c5741",
+    "native_verification": true,
+    "flask_verification": true,
+    "contract_acceptance": true,
+    "prover_fee_wei": "16800000000000",
+    "requests_submitted": 1
+  },
+  "transaction": {
+    "id": "0x4bcd817111b5ff696366c7bb680a65d06e2f42e8342deb909e7299560bc7fe71",
+    "height": 12015062,
+    "block_hash": "0x6387ed21de1ac34e2368187c150082dab473e8a559423dfbb0249da07585c82c",
+    "status": 1,
+    "gas_used": 1262912
+  },
+  "confirmation": {
+    "profile": "rpc-finalized-canonical-block",
+    "finalized": true,
+    "checked_finalized_height": 12015071,
+    "checked_at": "2026-10-28T21:57:13.741468+00:00"
+  },
+  "browser_swap_executed": false,
+  "private_inventory_state_verified": false
+}

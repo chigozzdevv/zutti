@@ -8,12 +8,12 @@ The Testnet prototype uses a deployment-pinned Zcash checkpoint and SPV proofs. 
 
 **One funded Testnet swap and withdrawal are complete:** 0.01 shielded Testnet ZEC → 1 private Sepolia USDC → 1 public USDC at the taker's withdrawal address. The source payment, funded reservation, private payout and withdrawal used genuine proofs and real chain transactions.
 
-| Step | Observed result | Evidence |
-| --- | --- | --- |
-| Reservation | 1 USDC reserved and verified against Ethereum finality | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3) |
-| Zcash payment | 0.01 shielded ZEC received; mined at 4547730 with twenty following blocks | `eca18c82bf3bb690f23a11f98ea0cbf6d664e8b87f400385fe0780ac8c38c11b` |
-| Private payout | 1-USDC note decrypted; ownership and unspent state verified against Ethereum finality | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x5a7f3ba4957a6c227030b1379e58c8ddb463df168f43156deef441b70007eca7) |
-| Withdrawal | 1 USDC transferred to the taker; transaction and receipt roots authenticated against Ethereum finality | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x4ac40981f66bb1044b0f6bd409c4aa5e68b84e5beced22f1e7d7a9180afb5592) |
+| Step           | Observed result                                                                                        | Evidence                                                                                                                  |
+| -------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| Reservation    | 1 USDC reserved and verified against Ethereum finality                                                 | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x7dba135cc675ecb58d18b7499fc78bc0aa911b21b7e7e0bc04153fa42ab73dc3) |
+| Zcash payment  | 0.01 shielded ZEC received; mined at 4547730 with twenty following blocks                              | `eca18c82bf3bb690f23a11f98ea0cbf6d664e8b87f400385fe0780ac8c38c11b`                                                        |
+| Private payout | 1-USDC note decrypted; ownership and unspent state verified against Ethereum finality                  | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x5a7f3ba4957a6c227030b1379e58c8ddb463df168f43156deef441b70007eca7) |
+| Withdrawal     | 1 USDC transferred to the taker; transaction and receipt roots authenticated against Ethereum finality | [Sepolia transaction](https://sepolia.etherscan.io/tx/0x4ac40981f66bb1044b0f6bd409c4aa5e68b84e5beced22f1e7d7a9180afb5592) |
 
 The maker wallet recovered the 0.01-ZEC note. The taker recovered 0.9899 ZEC of change after a 0.0001-ZEC network fee. Its public USDC balance increased from zero to 1, and the active pool's token balance returned to zero. The quoted 100-USDC-per-ZEC rate was a chosen demo quote.
 
@@ -30,7 +30,7 @@ The maker wallet recovered the 0.01-ZEC note. The taker recovered 0.9899 ZEC of 
 5. The pool verifies the proofs and creates the precommitted private USDC note.
 6. The owner verifies that note and explicitly authorizes a public ERC-20 withdrawal.
 
-The private receiving key owns a note backed by tokens in the pool. It is not an ERC-20 address. The recorded flow uses the headless SDK RFQ, persistent native owner coordinator and SDK withdrawal adapter. [Quote execution](scripts/quote_testnet.mjs) and [withdrawal execution](scripts/withdraw_testnet.mjs) show the adapters. A React client now provides quote selection, review, progress, activity and withdrawal screens through a session-scoped SDK gateway. The native owner-wallet connector still needs packaging; no browser extension integration is claimed. [zutti.md](zutti.md) separates the broader intended SDK from implemented capabilities.
+The private receiving key owns a note backed by tokens in the pool. It is not an ERC-20 address. The recorded flow uses the headless SDK RFQ, persistent native owner coordinator and SDK withdrawal adapter. [Quote execution](scripts/quote_testnet.mjs) and [withdrawal execution](scripts/withdraw_testnet.mjs) show the adapters. A React client provides quote selection, review, progress, activity and withdrawal screens through a session-scoped SDK gateway. MetaMask Flask connects the experimental Zutti Testnet Snap; completing a fresh extension-signed swap still requires the browser execution adapter. [zutti.md](zutti.md) separates the broader intended SDK from implemented capabilities.
 
 ## Boundaries
 
@@ -91,6 +91,10 @@ The built WASM verifies the genuine retained optimized source receipt, and the b
 
 The Maker page provides quote settings, start/pause/resume/stop controls, USDC funding and trades. A wallet module can additionally return `maker: { wallet, settings?, inventory?, trades?, deposit? }`; its maker wallet implements `MakerWalletProvider`. Optional inventory and trade readers must return fresh records bound to the maker and deployment. Missing, stale or mismatched records display as unavailable; the SDK's placeholder reserved and active-swap zeros are ignored. The optional deposit adapter must retain the supplied operation ID, authorize spending and verify the resulting on-chain inventory before returning a matching receipt. The gateway deduplicates attempts within its session and never retries ambiguous deposits. Native adapters own durable reconciliation across restarts. Stop controls end quoting and do not cancel funded obligations. Gateway shutdown stops quoting, and disconnect requires a stopped maker without pending funding.
 
+Flask funding no longer requires a native maker session. The browser reads the connected Sepolia account's USDC balance and checks gas funding before requesting preparation. The Snap creates a randomized private note for its own receiving keys and asks permission to disclose the public Testnet deposit witness. The loopback gateway stores that witness in a private, content-addressed queue; it does not submit a paid job. `ZUTTI_DEPOSIT_DIRECTORY` selects the absolute private queue directory. `scripts/browser_deposit.py prepare --config /absolute/private/owner.json --directory /absolute/private/deposit` exports and execution-checks the job without submitting it. Submit only with an explicitly authorized prover ledger, then use the helper's `collect` action with the existing request. The Snap independently verifies the resulting genuine Groth16 receipt, exact journal, recipient and embedded deployment before returning deposit calldata. A separate explicit action requests the exact USDC allowance and deposit transaction in MetaMask. Account/network changes stop execution, ambiguous submissions remain retained for inspection, and completion waits for the wallet RPC's finalized canonical block. This path does not yet supply independently verified private inventory, quoting or a browser swap executor; those remain separate integration work.
+
+A **15-USDC deposit through Flask and MetaMask is finalized on Sepolia**. The genuine Groth16 proof verified locally and inside Flask, then the deployed pool accepted it and received the tokens. The wallet's public balance changed from 20 to 5 USDC. One Boundless request cost **0.0000168 ETH in prover fees**, below its 0.000035-ETH cap; submission gas is separate. The browser restored the prepared deposit after a reload without another paid proof. [Transaction](https://sepolia.etherscan.io/tx/0x4bcd817111b5ff696366c7bb680a65d06e2f42e8342deb909e7299560bc7fe71), [public evidence](deploy/ethereum/optimized/flask-deposit.json) and [receipt](deploy/ethereum/optimized/flask-deposit-receipt.bin). Ethereum finalization here was checked through RPC; this deposit does not establish independent private-inventory verification or an extension-signed Zcash swap.
+
 App startup and read-only browsing do not request proofs or send transactions. New execution still requires the wallet's fresh evidence and spending authorization. `pnpm build:client`, `pnpm lint:ts`, and the TypeScript tests cover the client and gateway; the gateway tests do not establish a new funded swap.
 
 Use the pinned Rust, RISC Zero 3.0.5, Foundry, Node.js and pnpm versions. Existing caches can be reused through `CARGO_HOME` and `CARGO_TARGET_DIR`.
@@ -116,10 +120,10 @@ The owner runtime now checks source admission and finalized spendable inventory 
 
 The optimized admission guest reuses the genuine payment-window receipt, reducing its work from **1.912 billion to 242.9 million cycles**. Its isolated [proof](deploy/source/optimized-admission/proof.json) fulfilled in 85 seconds. The [optimized registry and pool](deploy/ethereum/optimized/sepolia.json) now have a completed live SDK run: **0.01 Testnet ZEC → 1 private USDC → 1 USDC withdrawn**. All nine Boundless receipts verified, and the final ERC-20 transfer was independently authenticated against Ethereum finality. Proof fees, including source admission and the maker deposit, totaled **0.0001498 ETH**, within the approved 0.00035-ETH cap. [Evidence and timings](deploy/ethereum/optimized/swap-proof.json).
 
-| From accepting the offer | Earlier run | Optimized run |
-| --- | --- | --- |
-| Verified private USDC ownership | 3 h 19 min | 2 h 42 min |
-| Finalized public withdrawal | 3 h 38 min | 3 h 14 min |
+| From accepting the offer        | Earlier run | Optimized run |
+| ------------------------------- | ----------- | ------------- |
+| Verified private USDC ownership | 3 h 19 min  | 2 h 42 min    |
+| Finalized public withdrawal     | 3 h 38 min  | 3 h 14 min    |
 
 The observed reductions were about 37 minutes to private ownership and 24 minutes through withdrawal. These are individual runs with different source ranges and marketplace conditions; deployment and wallet/source warm-up are excluded. The payment-evidence request still took **66 min 48 s**, so practical swap latency remains unresolved. Zcash confirmation depth and Ethereum finality are unchanged.
 
