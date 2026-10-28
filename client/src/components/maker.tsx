@@ -132,10 +132,9 @@ export function Maker({ connected }: { connected: boolean }) {
       <div className="maker-heading">
         <div>
           <h1 id="maker-title">Maker</h1>
-          <span className="maker-state">
-            {!connected
-              ? "Not connected"
-              : working
+          {connected && (
+            <span className="maker-state">
+              {working
                 ? "Updating"
                 : snapshot?.available
                   ? state === "running"
@@ -144,7 +143,8 @@ export function Maker({ connected }: { connected: boolean }) {
                       ? "Paused"
                       : "Stopped"
                   : "Not configured"}
-          </span>
+            </span>
+          )}
         </div>
         {connected && (
           <div className="maker-controls">
