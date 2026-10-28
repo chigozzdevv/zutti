@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "network_scope": "Zcash Testnet historical payment admission replay",
+  "image_id": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+  "proof_verified": true,
+  "proof_generated": true,
+  "registry_admitted": false,
+  "new_swap_executed": false,
+  "market": {
+    "chain_id": 8453,
+    "fulfilled_at": 1793173873,
+    "fulfillment_block": 53192263,
+    "fulfillment_transaction": "0x89b5ae2eeb95d60dddc0f11dbe3390358107869649e8371e22181834c200f196",
+    "image_id": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+    "input_visibility": "public",
+    "lock_to_fulfillment_seconds": 64,
+    "locked_at": 1793173809,
+    "price_wei": "30000000000000",
+    "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748388f24522",
+    "submission_to_fulfillment_seconds": 85,
+    "submitted_at": 1793173788,
+    "version": 1
+  },
+  "request_cap_wei": "62500000000000",
+  "paid_requests": 1,
+  "automatic_resubmission": false,
+  "execution": {
+    "cycles": 242930152,
+    "cycle_allowance": 400000000,
+    "host_assumptions": 0,
+    "baseline_cycles": 1912024730,
+    "baseline_market": {
+      "chain_id": 8453,
+      "fulfilled_at": 1793116037,
+      "fulfillment_block": 53163345,
+      "fulfillment_transaction": "0x3df4d6193a05c6f7c9471da9c662735105991346b13e59d93745b4e342f335c6",
+      "image_id": "1462124d09d5e9e0c505abe0a6f5876f5a8fdc37d50c84e34826136a22d8f124",
+      "input_visibility": "public",
+      "lock_to_fulfillment_seconds": 4016,
+      "locked_at": 1793112021,
+      "price_wei": "35000000000000",
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748380db4175",
+      "submission_to_fulfillment_seconds": 4043,
+      "submitted_at": 1793111994,
+      "version": 1
+    }
+  },
+  "statement": {
+    "journal_matches_original": true,
+    "policy_id": "6dffb83b9c021a7cad9284ca50a49d186a1ca7be6147f66a5b3eadc0daea43bc",
+    "previous": "f81258b219134434a94882ecb6221489e615589ff8f8a1fe2e675cdfdde4fa2e",
+    "stable_checkpoint": "d91ddf7dc8da2eb18cc5b69033bbfc9ab8ed69a828b07450ca7356fda1762ece",
+    "stable_height": 4547740,
+    "head_checkpoint": "45214fe98a5d5cdd1ca223a711420a9b87d2005f87089d0f4f09a1d7137f1085",
+    "head_height": 4547750,
+    "confirmation_headers": 10
+  },
+  "dependency": {
+    "receipt": "../../ethereum/window-receipt.bin",
+    "receipt_sha256": "a4ffdeb50c1e73797904e607e05191d539cf6b240f609188f5cae65a532ca68f"
+  },
+  "job_hashes": {
+    "program_sha256": "fcf299b8d242a445676acb2df8a58a03045d5f71943de37ec78a08b755c99a34",
+    "stdin_sha256": "3f53e677855b386067c8cf976b7771a3f23813299198ac33411354730978c088",
+    "journal_sha256": "430c7bfb622f1523076cd3a61434546c8593cce91945e1b1cc6d46b18e4a4d7b"
+  },
+  "native_audit": {
+    "changed_proof_rejected": true,
+    "changed_receipt_journal_rejected": true,
+    "development_mode": false,
+    "settlement_authority": false,
+    "valid_receipt_verified": true,
+    "wrong_expected_journal_rejected": true,
+    "wrong_image_rejected": true
+  },
+  "sepolia_router": {
+    "chain_id": 11155111,
+    "router": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+    "execution_height": 12010942,
+    "execution_hash": "0x4c77acc555f4d62cf3014b9c2f3fbda919d391baa9f5ff443b9cd4ddd2925cd2",
+    "image_id": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+    "journal_sha256": "430c7bfb622f1523076cd3a61434546c8593cce91945e1b1cc6d46b18e4a4d7b",
+    "valid_receipt_verified": true,
+    "wrong_image_rejected": true,
+    "changed_seal_rejected": true,
+    "read_only": true,
+    "transaction_submitted": false,
+    "registry_admitted": false
+  },
+  "artifacts": {
+    "program.elf": {
+      "bytes": 1144708,
+      "sha256": "fcf299b8d242a445676acb2df8a58a03045d5f71943de37ec78a08b755c99a34"
+    },
+    "program.json": {
+      "bytes": 374,
+      "sha256": "4d8954256ade5ccd9c602f73259d249b65fdc469a29721adcf9769e064474d79"
+    },
+    "witness.bin": {
+      "bytes": 25337,
+      "sha256": "57b211f7f2c6eb452018247a6937193d1f3c412203ade4750bd8abbeb112562f"
+    },
+    "journal.bin": {
+      "bytes": 287,
+      "sha256": "430c7bfb622f1523076cd3a61434546c8593cce91945e1b1cc6d46b18e4a4d7b"
+    },
+    "receipt.bin": {
+      "bytes": 1060,
+      "sha256": "860431a6cd2f8725390cb414b0c5906efe23e7bad908d9ea0bf67f6b3a4ef623"
+    },
+    "seal.bin": {
+      "bytes": 260,
+      "sha256": "2a6f13c0e50328ae2ce594947eda2b034706e19244cb0387ba7f8dfffb2816c3"
+    }
+  },
+  "swap_asset_transfers": false
+}

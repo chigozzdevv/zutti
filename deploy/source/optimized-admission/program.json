@@ -1,0 +1,13 @@
+{
+  "admission_inputs": [
+    "header",
+    "payment-window"
+  ],
+  "admitted": false,
+  "composition": "inline-groth16",
+  "image_id": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+  "kind": "spv_admission",
+  "network_scope": "Testnet prototype",
+  "program_sha256": "fcf299b8d242a445676acb2df8a58a03045d5f71943de37ec78a08b755c99a34",
+  "schema": 1
+}

@@ -161,6 +161,42 @@ fn payment_admission_composes_the_genuine_swap_receipt_without_revalidating_its_
 }
 
 #[test]
+fn optimized_admission_has_its_own_genuine_receipt_for_the_original_statement() {
+    use std::{fs, path::Path};
+    use zutti_protocol::encoding::Canonical;
+    use zutti_source::spv::{AdmissionClaim, WindowClaim};
+    use zutti_spv_prototype::{image, read_receipt, verify};
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../deploy");
+    let directory = root.join("source/optimized-admission");
+    let program = image(&fs::read(directory.join("program.elf")).unwrap()).unwrap();
+    let receipt = read_receipt(&directory.join("receipt.bin")).unwrap();
+    let journal = fs::read(directory.join("journal.bin")).unwrap();
+    verify(&receipt, program, &journal).unwrap();
+    assert_eq!(
+        journal,
+        fs::read(root.join("ethereum/payment-admission-journal.bin")).unwrap()
+    );
+    let claim = AdmissionClaim::from_bytes(&journal).unwrap();
+    let window =
+        WindowClaim::from_bytes(&fs::read(root.join("ethereum/window-journal.bin")).unwrap())
+            .unwrap();
+    assert_eq!(claim.previous, window.prefix);
+    assert_eq!(claim.stable.prefix, window.checkpoint);
+    assert_eq!(claim.policy, window.policy);
+    assert_eq!(claim.head.height - claim.stable.height, 10);
+    let original =
+        image(&fs::read(root.join("source/testnet/admission-program.elf")).unwrap()).unwrap();
+    assert_ne!(program, original);
+    assert!(verify(&receipt, original, &journal).is_err());
+    let original_receipt =
+        read_receipt(&root.join("ethereum/payment-admission-receipt.bin")).unwrap();
+    assert!(verify(&original_receipt, program, &journal).is_err());
+    let mut altered = journal;
+    *altered.last_mut().unwrap() ^= 1;
+    assert!(verify(&receipt, program, &altered).is_err());
+}
+
+#[test]
 fn genuine_funded_deposit_receipt_binds_the_actual_pool_domain_and_value() {
     use std::{fs, path::Path};
     use zutti_protocol::{encoding::Canonical, pool::OperationKind};
