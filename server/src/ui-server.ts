@@ -1,5 +1,6 @@
 import { isAbsolute, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { homedir } from "node:os";
 import { load_app_information } from "./features/app/app.service.js";
 import type { ConnectWallet } from "./features/wallet/wallet.service.js";
 import { create_app_server } from "./ui-app.js";
@@ -30,6 +31,9 @@ const server = create_app_server({
   information: await load_app_information(repository, !!connect_wallet),
   origins,
   assets: resolve(repository, "client/dist"),
+  deposit_directory:
+    process.env.ZUTTI_DEPOSIT_DIRECTORY ??
+    resolve(homedir(), "Library/Application Support/Zutti/testnet/browser-deposits"),
   ...(connect_wallet ? { connect_wallet } : {}),
 });
 server.listen(port, "127.0.0.1", () => console.log(`Zutti app API: http://127.0.0.1:${port}`));

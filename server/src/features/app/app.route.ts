@@ -3,6 +3,7 @@ import { ZuttiError } from "@zutti/schema";
 import type { AppInformation } from "@zutti/schema";
 import { WalletService } from "../wallet/wallet.service.js";
 import { read_json, send_json } from "../../shared/http.js";
+import type { DepositService } from "../wallet/deposit.service.js";
 
 function session_token(request: IncomingMessage): string | undefined {
   return request.headers.cookie
@@ -17,6 +18,7 @@ export async function app_route(
   request: IncomingMessage,
   response: ServerResponse,
   origins: readonly string[],
+  deposits?: DepositService,
 ): Promise<void> {
   const path = new URL(request.url ?? "/", "http://localhost").pathname;
   const token = session_token(request);
@@ -30,7 +32,12 @@ export async function app_route(
     });
     return;
   }
-  if (request.method === "GET" && path === "/api/app") {
+  const browser_deposit = /^\/api\/browser\/deposits\/([0-9a-f]{64})$/.exec(path);
+  if (deposits && request.method === "POST" && path === "/api/browser/deposits") {
+    send_json(response, 202, await deposits.prepare(await read_json(request)));
+  } else if (deposits && request.method === "GET" && browser_deposit?.[1]) {
+    send_json(response, 200, await deposits.get(browser_deposit[1]));
+  } else if (request.method === "GET" && path === "/api/app") {
     send_json(response, 200, information);
   } else if (request.method === "GET" && path === "/api/wallet") {
     send_json(response, 200, wallet.summary(token));

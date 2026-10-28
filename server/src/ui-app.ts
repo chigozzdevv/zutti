@@ -7,15 +7,20 @@ import { app_route } from "./features/app/app.route.js";
 import { WalletService } from "./features/wallet/wallet.service.js";
 import type { ConnectWallet } from "./features/wallet/wallet.service.js";
 import { send_json } from "./shared/http.js";
+import { DepositService } from "./features/wallet/deposit.service.js";
 
 export interface AppServerOptions {
   information: AppInformation;
   origins: readonly string[];
   connect_wallet?: ConnectWallet;
   assets?: string;
+  deposit_directory?: string;
 }
 export function create_app_server(options: AppServerOptions) {
   const wallet = new WalletService(options.information, options.connect_wallet);
+  const deposits = options.deposit_directory
+    ? new DepositService(options.deposit_directory)
+    : undefined;
   const allowed_hosts = new Set(options.origins.map((origin) => new URL(origin).host));
   const buckets = new Map<string, { count: number; until: number }>();
   const server = createServer(
@@ -42,7 +47,14 @@ export function create_app_server(options: AppServerOptions) {
       void (async () => {
         const path = new URL(request.url ?? "/", "http://localhost").pathname;
         if (path.startsWith("/api/")) {
-          await app_route(wallet, options.information, request, response, options.origins);
+          await app_route(
+            wallet,
+            options.information,
+            request,
+            response,
+            options.origins,
+            deposits,
+          );
           return;
         }
         if (request.method !== "GET" || !options.assets) {
