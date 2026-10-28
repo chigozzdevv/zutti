@@ -52,7 +52,7 @@ export function create_app_server(options: AppServerOptions) {
         }
         const asset = /^\/assets\/[a-zA-Z0-9_.-]+$/.test(path)
           ? path
-          : ["/icon.svg", "/fonts-license.txt"].includes(path)
+          : ["/icon.svg", "/wordmark.svg", "/fonts-license.txt"].includes(path)
             ? path
             : ["/", "/activity", "/wallet"].includes(path)
               ? "/index.html"

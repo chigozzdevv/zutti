@@ -105,9 +105,6 @@ export function Swap(props: SwapProps) {
                 <strong>USDC</strong>
               </span>
             </div>
-            <div className="amount-caption">
-              <LockKeyhole size={11} /> Private balance
-            </div>
           </div>
           {quotes && (
             <div className="quotes-section">

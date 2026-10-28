@@ -90,19 +90,12 @@ svg {
 .wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
   justify-self: start;
 }
-.wordmark > span {
-  font-size: 29px;
-  letter-spacing: -1.6px;
-  font-weight: 650;
-}
 .wordmark img {
-  border-radius: 10px;
-}
-.wordmark-dot {
-  color: #8e8e8e;
+  display: block;
+  width: 102px;
+  height: auto;
 }
 .header nav {
   display: flex;
@@ -983,12 +976,9 @@ svg {
     grid-template-columns: 1fr auto;
     grid-template-rows: 72px 44px;
   }
-  .wordmark > span {
-    font-size: 27px;
-  }
   .wordmark img {
-    width: 30px;
-    height: 30px;
+    width: 94px;
+    height: auto;
   }
   .header nav {
     grid-row: 2;
@@ -1076,15 +1066,9 @@ svg {
     font-size: 10px;
     padding: 10px;
   }
-  .wordmark {
-    gap: 6px;
-  }
   .wordmark img {
-    width: 27px;
-    height: 27px;
-  }
-  .wordmark > span {
-    font-size: 25px;
+    width: 88px;
+    height: auto;
   }
   .app-shell main {
     padding-left: 14px;

@@ -240,10 +240,7 @@ export function App() {
             route("/");
           }}
         >
-          <img src="/icon.svg" alt="" width="34" height="34" />
-          <span>
-            zutti<span className="wordmark-dot">.</span>
-          </span>
+          <img src="/wordmark.svg" alt="zutti" width="102" height="40" />
         </a>
         <nav aria-label="Main navigation">
           <a
