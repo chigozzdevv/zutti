@@ -1075,6 +1075,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32637268377fc7b10a8c6d51de3e7fba1ce5dd371a96e342b34e6078db558e7f"
 
 [[package]]
+name = "bellman"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "973b16549796a1274a63e00159a03250e66e8263e2ac6344b1c9fdfe9b7a8325"
+dependencies = [
+ "bitvec",
+ "blake2s_simd",
+ "byteorder",
+ "ff 0.14.0",
+ "group 0.14.0",
+ "rand_core 0.10.1",
+ "subtle",
+]
+
+[[package]]
 name = "bincode"
 version = "1.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2543,6 +2558,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
+name = "groth16"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8bb1e0bde2dbacd81474ae216c5dd4901307bd1c75fd26ed49590e88048c8442"
+dependencies = [
+ "bellman",
+ "byteorder",
+ "ff 0.14.0",
+ "group 0.14.0",
+ "pairing 0.24.0",
+ "rand_core 0.10.1",
+]
+
+[[package]]
 name = "group"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2560,9 +2589,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7fd1a1c7a5206c5b7a3f5a0d7ccd3ff85d0c8f5133d62a02680255b0004af5f4"
 dependencies = [
  "ff 0.14.0",
+ "memuse",
  "rand_core 0.10.1",
  "subtle",
 ]
+
+[[package]]
+name = "halo2_gadgets"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8862c7f2d99964760016516103fcc621352e77a505b22b0fc25140f09e4b8bb0"
+dependencies = [
+ "arrayvec",
+ "bitvec",
+ "ff 0.14.0",
+ "group 0.14.0",
+ "halo2_poseidon",
+ "halo2_proofs",
+ "pasta_curves",
+ "rand 0.10.3",
+ "sinsemilla",
+ "subtle",
+ "uint",
+]
+
+[[package]]
+name = "halo2_legacy_pdqsort"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47716fe1ae67969c5e0b2ef826f32db8c3be72be325e1aa3c1951d06b5575ec5"
 
 [[package]]
 name = "halo2_poseidon"
@@ -2574,6 +2629,24 @@ dependencies = [
  "ff 0.14.0",
  "group 0.14.0",
  "pasta_curves",
+]
+
+[[package]]
+name = "halo2_proofs"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5af2a9457f494f862cd07b81c2e98a19f50b06a2057b7569450d7c26b167d1c"
+dependencies = [
+ "blake2b_simd",
+ "ff 0.14.0",
+ "group 0.14.0",
+ "halo2_legacy_pdqsort",
+ "indexmap 2.14.2",
+ "maybe-rayon",
+ "pasta_curves",
+ "rand 0.10.3",
+ "rand_core 0.10.1",
+ "tracing",
 ]
 
 [[package]]
@@ -3081,6 +3154,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "maybe-rayon"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8ea1f30cedd69f0a2954655f7188c6a834246d2bcf1e315e2ac40c4b24dc9519"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3262,7 +3344,9 @@ dependencies = [
  "fpe",
  "getset",
  "group 0.14.0",
+ "halo2_gadgets",
  "halo2_poseidon",
+ "halo2_proofs",
  "hex",
  "incrementalmerkletree",
  "lazy_static",
@@ -3275,6 +3359,7 @@ dependencies = [
  "serde",
  "sinsemilla",
  "subtle",
+ "tracing",
  "visibility",
  "zcash_note_encryption",
  "zcash_spec",
@@ -3723,6 +3808,8 @@ dependencies = [
  "jubjub",
  "pasta_curves",
  "rand_core 0.10.1",
+ "serde",
+ "thiserror 2.0.21",
  "zeroize",
 ]
 
@@ -4096,14 +4183,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a2cbdcfeef20006adf72699cd466f21fe349674277cc05d3fc9b7302db7b182"
 dependencies = [
  "aes",
+ "bellman",
  "bitvec",
  "blake2b_simd",
  "blake2s_simd",
  "bls12_381 0.9.0",
  "corez",
+ "document-features",
  "ff 0.14.0",
  "fpe",
  "getset",
+ "groth16",
  "group 0.14.0",
  "hex",
  "incrementalmerkletree",
@@ -4114,6 +4204,7 @@ dependencies = [
  "rand_core 0.10.1",
  "redjubjub",
  "subtle",
+ "tracing",
  "zcash_note_encryption",
  "zcash_spec",
  "zeroize",
@@ -5386,6 +5477,7 @@ name = "zutti-browser-wallet"
 version = "0.1.0"
 dependencies = [
  "bincode",
+ "chacha20poly1305 0.10.1",
  "hex",
  "hkdf",
  "incrementalmerkletree",
@@ -5469,13 +5561,17 @@ name = "zutti-wallet"
 version = "0.1.0"
 dependencies = [
  "chacha20poly1305 0.10.1",
+ "getrandom 0.3.4",
  "hkdf",
+ "incrementalmerkletree",
  "k256",
  "orchard",
  "pczt",
+ "rand 0.10.3",
  "sha2 0.10.9",
  "thiserror 2.0.21",
  "x25519-dalek",
+ "zcash_address",
  "zcash_note_encryption",
  "zcash_primitives",
  "zcash_protocol",

@@ -261,7 +261,7 @@ impl SourceScan {
     }
 }
 
-#[cfg(feature = "proving")]
+#[cfg(any(feature = "proving", feature = "transaction-proofs"))]
 pub fn prove_payment(bytes: &[u8], terms: &OrderTerms, randomness: &Secret32) -> Result<Vec<u8>> {
     use orchard::circuit::{OrchardCircuitVersion, ProvingKey};
     use pczt::{Pczt, roles::prover::Prover};

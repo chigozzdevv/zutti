@@ -37,7 +37,7 @@ pub struct VerifiedNoteState {
     pub finalized_slot: u64,
 }
 
-#[cfg(feature = "spv-fulfillment")]
+#[cfg(feature = "spv-verification")]
 #[derive(Debug, Serialize)]
 pub struct VerifiedOwnedNote {
     pub commitment: String,
@@ -45,7 +45,7 @@ pub struct VerifiedOwnedNote {
     pub state: VerifiedNoteState,
 }
 
-#[cfg(feature = "spv-fulfillment")]
+#[cfg(feature = "spv-verification")]
 #[derive(Debug)]
 pub struct OwnedNoteRequest<'a> {
     pub domain: &'a zutti_protocol::domain::Domain,
@@ -55,7 +55,7 @@ pub struct OwnedNoteRequest<'a> {
     pub position: u32,
 }
 
-#[cfg(feature = "spv-fulfillment")]
+#[cfg(feature = "spv-verification")]
 pub fn verify_owned(
     config: &ConsensusConfig,
     request: OwnedNoteRequest<'_>,

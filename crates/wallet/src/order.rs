@@ -197,6 +197,20 @@ impl PreparedOrder {
     pub fn payment(&self) -> &[u8] {
         &self.pczt
     }
+    pub fn with_payment(mut self, payment: Vec<u8>) -> Result<Self> {
+        if crate::prepare::inspect_ironwood(
+            &payment,
+            &self.reservation.terms,
+            &self.reservation.order_randomness,
+        )?
+        .txid()
+            != self.reservation.txid
+        {
+            return Err(Error::Payment);
+        }
+        self.pczt = Zeroizing::new(payment);
+        Ok(self)
+    }
 }
 
 impl Canonical for PreparedOrder {

@@ -9,11 +9,17 @@ pub mod backup;
 pub mod binding;
 #[cfg(feature = "spv-pool")]
 pub mod deposit;
-#[cfg(all(feature = "native", feature = "spv-pool"))]
+#[cfg(all(
+    any(feature = "native", feature = "source-wallet"),
+    feature = "spv-pool"
+))]
 pub mod funding;
-#[cfg(all(feature = "native", feature = "spv-pool"))]
+#[cfg(feature = "spv-pool")]
 pub mod inventory;
-#[cfg(all(feature = "native", feature = "spv-pool"))]
+#[cfg(all(
+    any(feature = "native", feature = "source-wallet"),
+    feature = "spv-pool"
+))]
 pub mod order;
 #[cfg(feature = "native")]
 pub mod payment;
@@ -23,7 +29,10 @@ pub mod preparation;
 pub mod prepare;
 #[cfg(feature = "note-crypto")]
 pub mod private_note;
-#[cfg(all(feature = "native", feature = "spv-pool"))]
+#[cfg(all(
+    any(feature = "native", feature = "source-wallet"),
+    feature = "spv-pool"
+))]
 pub mod source_notes;
 #[cfg(feature = "spv-pool")]
 pub mod spv_pool;

@@ -1,4 +1,4 @@
-import { initSync, BrowserWallet } from "../generated/wallet.js";
+import initialize_wallet, { BrowserWallet } from "../generated/wallet.js";
 import { create_handler, type Wallet } from "./handler.ts";
 
 let ready: Promise<unknown> | undefined;
@@ -12,7 +12,7 @@ async function initialize(): Promise<unknown> {
     throw new Error("Invalid packaged wallet module");
   }
   const bytes = Uint8Array.from(file.slice(2).match(/../g)!, (pair) => parseInt(pair, 16));
-  return initSync({ module: bytes });
+  return initialize_wallet({ module_or_path: bytes });
 }
 
 export const onRpcRequest = create_handler(

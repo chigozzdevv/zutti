@@ -13,7 +13,9 @@ note-crypto = ["zutti-protocol/notes", "dep:chacha20poly1305", "dep:k256", "dep:
 pool = ["note-crypto", "zutti-protocol/pool", "dep:zutti-source", "zutti-source/authenticated"]
 spv = ["dep:zutti-source", "zutti-source/spv"]
 spv-pool = ["pool", "spv"]
-proving = ["native", "pczt/prover"]
+source-wallet = ["spv-pool", "zutti-protocol/entropy", "dep:getrandom", "dep:rand", "dep:zcash_address", "dep:incrementalmerkletree", "pczt/io-finalizer"]
+transaction-proofs = ["source-wallet", "pczt/prover"]
+proving = ["native", "transaction-proofs"]
 
 [dependencies]
 zutti-protocol.workspace = true

@@ -12,12 +12,12 @@ resolver = "3"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-zutti-wallet = { path = "..", default-features = false, features = ["spv-pool"] }
+zutti-wallet = { path = "..", default-features = false, features = ["transaction-proofs"] }
 zutti-ethereum = { path = "../ethereum", default-features = false, features = ["spv-verification"] }
 zutti-protocol = { path = "../../protocol", features = ["notes"] }
 zutti-source = { path = "../../source", default-features = false, features = ["spv"] }
 orchard = { version = "=0.16.0", default-features = false, features = ["zeroize"] }
-pczt = { version = "=0.10.0-pre.0", default-features = false, features = ["signer"] }
+pczt = { version = "=0.10.0-pre.0", default-features = false, features = ["signer", "tx-extractor"] }
 zcash_address = "=0.14.0-pre.0"
 zcash_protocol = "=0.11.0-pre.0"
 zip32 = "=0.3.0"
@@ -30,6 +30,7 @@ hkdf = "=0.12.4"
 sha2 = "=0.10.9"
 zeroize = "=1.9.0"
 rand = "=0.10.3"
+chacha20poly1305 = "=0.10.1"
 zcash_note_encryption = "=0.5.1"
 risc0-zkvm = { version = "=3.0.5", default-features = false, features = ["std"] }
 

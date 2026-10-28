@@ -146,6 +146,9 @@ impl OrderTerms {
     pub const fn direction(&self) -> Direction {
         self.direction
     }
+    pub const fn offer(&self) -> Digest {
+        self.offer
+    }
     pub const fn zec(&self) -> Amount {
         self.zec
     }

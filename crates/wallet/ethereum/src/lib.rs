@@ -5,7 +5,7 @@ pub mod notes;
 pub mod readiness;
 #[cfg(feature = "spv-verification")]
 pub mod spv_authorization;
-#[cfg(feature = "spv-fulfillment")]
+#[cfg(feature = "spv-verification")]
 pub mod spv_funding;
 pub mod transfers;
 

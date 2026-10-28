@@ -1,5 +1,8 @@
 mod deposit;
+mod pool;
 mod profile;
+mod source;
+mod state;
 
 #[cfg(test)]
 #[path = "../../../../tests/support/payment.rs"]
@@ -44,7 +47,8 @@ type Result<T> = std::result::Result<T, String>;
 #[serde(deny_unknown_fields)]
 struct SigningRequest {
     record: String,
-    pczt: String,
+    pczt: Option<String>,
+    order: Option<String>,
     ethereum: Evidence,
     source: SourceEvidence,
 }
@@ -61,6 +65,7 @@ struct SourceEvidence {
 pub struct BrowserWallet {
     source: SpendingKey,
     notes: NoteKeys,
+    state: Secret32,
 }
 
 #[wasm_bindgen]
@@ -70,6 +75,7 @@ pub struct SigningAuthorization {
     owner: NoteRecipient,
     review: String,
     spends: Vec<usize>,
+    export_pczt: bool,
 }
 
 fn clock(now: f64) -> Result<u64> {
@@ -139,7 +145,11 @@ impl BrowserWallet {
             secret(b"nullifier")?,
         )
         .map_err(|_| "note key derivation failed")?;
-        Ok(Self { source, notes })
+        Ok(Self {
+            source,
+            notes,
+            state: secret(b"encrypted-state")?,
+        })
     }
 
     pub fn account(&self) -> Result<String> {
@@ -175,7 +185,28 @@ impl BrowserWallet {
             serde_json::from_str(request).map_err(|_| "invalid signing request")?;
         let record = SpvSwapRecord::from_bytes(&decode(&request.record, 131_072)?)
             .map_err(|_| "invalid swap record")?;
-        let pczt = Zeroizing::new(decode(&request.pczt, MAX_PCZT)?);
+        let (pczt, export_pczt) = match (request.pczt, request.order) {
+            (Some(encoded), None) => (Zeroizing::new(decode(&encoded, MAX_PCZT)?), true),
+            (None, Some(encoded)) => {
+                let order = zutti_wallet::order::PreparedOrder::from_bytes(
+                    &self.open_state(b"prepared-order", &encoded)?,
+                )
+                .map_err(|_| "invalid prepared order")?;
+                if order
+                    .reservation()
+                    .to_bytes()
+                    .map_err(|_| "order reservation")?
+                    != record
+                        .reservation()
+                        .to_bytes()
+                        .map_err(|_| "funded reservation")?
+                {
+                    return Err("funded reservation differs from your prepared payment".into());
+                }
+                (Zeroizing::new(order.payment().to_vec()), false)
+            }
+            _ => return Err("provide exactly one prepared payment".into()),
+        };
         let (receipt, head) = source_receipt(&decode(&request.source.receipt, MAX_RECEIPT)?)?;
         let headers = |values: Vec<String>| -> Result<Vec<Vec<u8>>> {
             if values.len() > MAX_HEADERS {
@@ -232,6 +263,7 @@ impl BrowserWallet {
             pczt,
             owner,
             spends,
+            export_pczt,
         })
     }
 }
@@ -304,6 +336,42 @@ impl SigningAuthorization {
     }
 
     pub fn sign(self, wallet: &BrowserWallet, now: f64) -> Result<Vec<u8>> {
+        if !self.export_pczt {
+            return Err("private prepared payments must be finalized inside the wallet".into());
+        }
+        self.signed_pczt(wallet, now)
+    }
+
+    pub fn sign_transaction(self, wallet: &BrowserWallet, now: f64) -> Result<String> {
+        let swap = self.payment.swap();
+        let expected = self.payment.txid();
+        let signed = Zeroizing::new(self.signed_pczt(wallet, now)?);
+        let pczt = Pczt::parse(&signed).map_err(|_| "invalid signed payment")?;
+        if pczt.ironwood().zkproof().is_none() {
+            return Err("native Zcash proof required".into());
+        }
+        let mut rng = StdRng::try_from_rng(&mut SysRng)
+            .map_err(|_| "secure signing randomness unavailable")?;
+        let transaction = pczt::roles::tx_extractor::TransactionExtractor::new(pczt)
+            .extract(&mut rng)
+            .map_err(|_| "signed transaction verification failed")?;
+        if transaction.txid().as_ref() != &expected.0 {
+            return Err("signed transaction identity mismatch".into());
+        }
+        let mut bytes = Vec::new();
+        transaction
+            .write(&mut bytes)
+            .map_err(|_| "transaction encoding")?;
+        Ok(json!({ "swap_id": swap.to_string(),
+            "txid": hex::encode(expected.0.iter().rev().copied().collect::<Vec<_>>()),
+            "transaction": hex::encode(bytes),
+        })
+        .to_string())
+    }
+}
+
+impl SigningAuthorization {
+    fn signed_pczt(self, wallet: &BrowserWallet, now: f64) -> Result<Vec<u8>> {
         self.payment
             .fresh(clock(now)?)
             .map_err(|_| "payment authorization expired; refresh the evidence")?;
@@ -381,7 +449,7 @@ mod tests {
         let pczt = payment.pczt.serialize().unwrap();
         let wallet = BrowserWallet {
             source: payment.key,
-            notes: BrowserWallet::new(vec![42; 32]).unwrap().notes,
+            ..BrowserWallet::new(vec![42; 32]).unwrap()
         };
         let (spends, fee) = wallet.check_ownership(&pczt, &payment.terms).unwrap();
         assert_eq!(spends, vec![payment.spend]);

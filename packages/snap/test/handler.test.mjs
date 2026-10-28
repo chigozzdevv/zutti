@@ -40,6 +40,17 @@ function fixture({ approve = true, verify = true } = {}) {
       if (!verify) throw new Error("invalid deposit proof");
       return JSON.stringify({ chain_id: 11155111, data: "0x1d0a9b2e" });
     },
+    pool: (request) => {
+      calls.push(["pool", request]);
+      return JSON.stringify({ witness: "aabb", review: "Reserve 1 USDC for 0.01 ZEC" });
+    },
+    prepare_order: () =>
+      JSON.stringify({ zec: "0.01", usdc: "1", recipient: "utest1-maker", expiry_height: 4560000 }),
+    prove_order: (state) => {
+      calls.push(["prove-order", state]);
+      return JSON.stringify({ state: "sealed", native_proof: true });
+    },
+    scan_source: () => JSON.stringify({ state: "encrypted-scan", balance: "0.01" }),
     free: () => calls.push(["free-wallet"]),
   };
   let retained_entropy;
@@ -75,6 +86,49 @@ function fixture({ approve = true, verify = true } = {}) {
     });
   return { calls, invoke, entropy: () => retained_entropy };
 }
+
+test("private preparation stays opaque and maker spending requires wallet consent", async () => {
+  const allowed = fixture();
+  assert.equal(
+    (await allowed.invoke("zutti_proveOrder", { state: "encrypted" })).native_proof,
+    true,
+  );
+  assert.equal(
+    (await allowed.invoke("zutti_scanSource", { request: "{}" })).state,
+    "encrypted-scan",
+  );
+  assert.equal(
+    (await allowed.invoke("zutti_pool", { request: '{"action":"authorize_funding"}' })).witness,
+    "aabb",
+  );
+  assert.ok(allowed.calls.some(([method]) => method === "snap_dialog"));
+  const denied = fixture({ approve: false });
+  await assert.rejects(
+    denied.invoke("zutti_pool", { request: '{"action":"authorize_funding"}' }),
+    /declined/,
+  );
+  await assert.rejects(denied.invoke("zutti_prepareOrder", { request: "{}" }), /declined/);
+  await assert.rejects(denied.invoke("zutti_proveOrder", { state: "encrypted", export_key: true }));
+  await assert.rejects(denied.invoke("zutti_pool", { request: "" }));
+});
+
+test("refresh confirms only the already-known receiving account without another disclosure dialog", async () => {
+  const f = fixture();
+  assert.deepEqual(
+    await f.invoke("zutti_restoreAccount", { account: JSON.stringify(account) }),
+    account,
+  );
+  assert.equal(
+    f.calls.some(([method]) => method === "snap_dialog"),
+    false,
+  );
+  await assert.rejects(
+    f.invoke("zutti_restoreAccount", {
+      account: JSON.stringify({ ...account, zcash_address: "another-wallet" }),
+    }),
+    /wallet changed/,
+  );
+});
 
 test("unapproved origins and unknown methods cannot reach private entropy", async () => {
   const f = fixture();

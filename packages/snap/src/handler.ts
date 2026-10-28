@@ -5,6 +5,7 @@ import { allowed_origins } from "./policy.ts";
 export interface Authorization {
   review(): string;
   sign(wallet: Wallet, now: number): Uint8Array;
+  sign_transaction(wallet: Wallet, now: number): string;
   free(): void;
 }
 
@@ -13,6 +14,10 @@ export interface Wallet {
   authorize(payment: string, now: number): Authorization;
   prepare_deposit(amount: string, owner: string): string;
   verify_deposit(witness: string, receipt: string): string;
+  scan_source(request: string): string;
+  prepare_order(request: string, now: number): string;
+  prove_order(state: string): string;
+  pool(request: string, now: number): string;
   free(): void;
 }
 
@@ -62,9 +67,15 @@ export function create_handler(
     if (
       ![
         "zutti_getAccount",
+        "zutti_restoreAccount",
         "zutti_signPayment",
         "zutti_prepareDeposit",
         "zutti_verifyDeposit",
+        "zutti_scanSource",
+        "zutti_prepareOrder",
+        "zutti_proveOrder",
+        "zutti_signTransaction",
+        "zutti_pool",
       ].includes(request.method)
     ) {
       throw new Error("Unsupported Zutti wallet method");
@@ -80,7 +91,18 @@ export function create_handler(
     let payment: string | undefined;
     if (request.method === "zutti_getAccount") {
       if (fields.length !== 0) throw new Error("Account access takes no parameters");
-    } else if (request.method === "zutti_signPayment") {
+    } else if (request.method === "zutti_restoreAccount") {
+      if (
+        fields.length !== 1 ||
+        fields[0] !== "account" ||
+        typeof params?.account !== "string" ||
+        params.account.length > 8192
+      )
+        throw new Error("A previously connected public account is required");
+    } else if (
+      request.method === "zutti_signPayment" ||
+      request.method === "zutti_signTransaction"
+    ) {
       if (fields.length !== 1 || fields[0] !== "payment" || typeof params?.payment !== "string") {
         throw new Error("A prepared payment and verification evidence are required");
       }
@@ -99,6 +121,21 @@ export function create_handler(
         /^0x0{40}$/.test(params.owner)
       ) {
         throw new Error("A positive USDC amount and Sepolia funding address are required");
+      }
+    } else if (
+      ["zutti_scanSource", "zutti_prepareOrder", "zutti_proveOrder", "zutti_pool"].includes(
+        request.method,
+      )
+    ) {
+      const field = request.method === "zutti_proveOrder" ? "state" : "request";
+      if (
+        fields.length !== 1 ||
+        fields[0] !== field ||
+        typeof params?.[field] !== "string" ||
+        (params[field] as string).length === 0 ||
+        (params[field] as string).length > 48 * 1024 * 1024
+      ) {
+        throw new Error("A bounded wallet preparation request is required");
       }
     } else {
       if (
@@ -143,6 +180,58 @@ export function create_handler(
         entropy.fill(0);
       }
       if (request.method === "zutti_getAccount") return JSON.parse(wallet.account());
+      if (request.method === "zutti_restoreAccount") {
+        const expected = JSON.parse(params!.account as string);
+        const actual = JSON.parse(wallet.account());
+        const canonical = (value: unknown): string => {
+          if (value === null || typeof value !== "object") return JSON.stringify(value);
+          if (Array.isArray(value)) return JSON.stringify(value.map(canonical));
+          return JSON.stringify(
+            Object.keys(value)
+              .sort()
+              .map((key) => [key, canonical((value as Record<string, unknown>)[key])]),
+          );
+        };
+        if (canonical(actual) !== canonical(expected))
+          throw new Error("The wallet changed. Connect it again.");
+        return actual;
+      }
+      if (request.method === "zutti_pool") {
+        const result = JSON.parse(wallet.pool(params!.request as string, now()));
+        if (typeof result.review === "string") {
+          const approved = await provider.request({
+            method: "snap_dialog",
+            params: {
+              type: "confirmation",
+              content: content("Approve Testnet pool operation", result.review),
+            },
+          });
+          if (approved !== true) throw new Error("Pool operation declined");
+        }
+        return result;
+      }
+      if (request.method === "zutti_scanSource")
+        return JSON.parse(wallet.scan_source(params!.request as string));
+      if (request.method === "zutti_proveOrder")
+        return JSON.parse(wallet.prove_order(params!.state as string));
+      if (request.method === "zutti_prepareOrder") {
+        const prepared = JSON.parse(wallet.prepare_order(params!.request as string, now()));
+        const approved = await provider.request({
+          method: "snap_dialog",
+          params: {
+            type: "confirmation",
+            content: content(
+              "Prepare Testnet swap",
+              `Send ${prepared.zec} ZEC for ${prepared.usdc} private USDC on Sepolia.`,
+              `Zcash recipient: ${prepared.recipient}`,
+              `Payment expires at block ${prepared.expiry_height}.`,
+              "This prepares the payment without authorizing a Zcash spend. Signing and viewing keys remain in Flask. The demo's remote proving inputs reveal swap details.",
+            ),
+          },
+        });
+        if (approved !== true) throw new Error("Swap preparation declined");
+        return prepared;
+      }
       if (request.method === "zutti_prepareDeposit") {
         const prepared = JSON.parse(
           wallet.prepare_deposit(params!.amount as string, params!.owner as string),
@@ -197,6 +286,8 @@ export function create_handler(
       if (approved !== true) throw new Error("Payment declined");
       const capability = authorization;
       authorization = undefined;
+      if (request.method === "zutti_signTransaction")
+        return JSON.parse(capability.sign_transaction(wallet, now()));
       const signed = capability.sign(wallet, now());
       try {
         return { swap_id: review.swap_id, txid: review.txid, pczt: encode(signed) };

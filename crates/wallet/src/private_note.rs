@@ -90,7 +90,7 @@ impl NoteEncryption {
             nonce,
         }
     }
-    #[cfg(feature = "native")]
+    #[cfg(any(feature = "native", feature = "source-wallet"))]
     pub fn random() -> Result<Self> {
         let mut nonce = [0; 24];
         getrandom::fill(&mut nonce).map_err(|_| Error::Entropy)?;

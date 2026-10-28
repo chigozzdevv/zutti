@@ -12,10 +12,23 @@ test("the built bundle runs in a restricted compartment with generated Testnet e
   const source = await readFile(new URL("../dist/bundle.js", import.meta.url), "utf8");
   const wasm = await readFile(new URL("../dist/files/wallet.wasm", import.meta.url));
   const calls = [];
+  let asynchronous_instantiations = 0;
+  const assembly = new Proxy(WebAssembly, {
+    get(target, key) {
+      if (key === "Module" || key === "Instance") return new Proxy(target[key], {
+        construct() { throw new Error("Synchronous large WASM construction is disabled"); },
+      });
+      if (key === "instantiate") return (...args) => {
+        asynchronous_instantiations++;
+        return WebAssembly.instantiate(...args);
+      };
+      return Reflect.get(target, key);
+    },
+  });
   const exports = {};
   const compartment = new Compartment({
     exports,
-    WebAssembly,
+    WebAssembly: assembly,
     TextEncoder,
     TextDecoder,
     crypto: webcrypto,
@@ -41,6 +54,7 @@ test("the built bundle runs in a restricted compartment with generated Testnet e
   const account = await exports.onRpcRequest(request);
   assert.equal(account.network, "testnet");
   assert.ok(account.zcash_address.startsWith("utest1"));
+  assert.equal(asynchronous_instantiations, 1);
   assert.deepEqual(calls, ["snap_dialog", "snap_getEntropy", "snap_getFile"]);
   const deposit = await exports.onRpcRequest({
     ...request,
