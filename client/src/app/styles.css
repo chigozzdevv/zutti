@@ -1076,3 +1076,247 @@ svg {
     scroll-behavior: auto !important;
   }
 }
+
+.maker-view {
+  width: min(100%, 920px);
+}
+.maker-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.maker-heading > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+.maker-heading h1 {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.4px;
+}
+.maker-state {
+  font-size: 11px;
+  color: #909090;
+}
+.maker-controls {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+.maker-controls .primary-button,
+.maker-controls .secondary-button {
+  width: auto;
+  min-height: 36px;
+  padding: 9px 13px;
+  font-size: 11px;
+  border-radius: 2px;
+}
+.maker-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid #343434;
+  border-bottom: 1px solid #303030;
+  margin: 0 0 30px;
+  padding: 25px 0;
+}
+.maker-stats > div {
+  padding: 0 22px;
+  border-right: 1px solid #303030;
+}
+.maker-stats > div:first-child {
+  padding-left: 0;
+}
+.maker-stats > div:last-child {
+  border: 0;
+}
+.maker-stats dt {
+  font-size: 11px;
+  color: #929292;
+}
+.maker-stats dd {
+  margin: 13px 0 0;
+  font-size: 26px;
+  letter-spacing: -0.8px;
+}
+.maker-panels {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 44px;
+}
+.maker-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 21px;
+}
+.maker-section-heading h2 {
+  font-size: 14px;
+  font-weight: 500;
+}
+.maker-section-heading > span {
+  font-size: 10px;
+  color: #858585;
+}
+.maker-fields {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  min-width: 0;
+}
+.maker-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  color: #999999;
+  font-size: 11px;
+}
+.maker-fields input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #353535;
+  border-radius: 0;
+  background: #1b1b1b;
+  color: #dedede;
+  font-size: 12px;
+  padding: 11px 12px;
+}
+.maker-fields:disabled input {
+  color: #858585;
+}
+.maker-limits {
+  grid-column: 1 / -1;
+}
+.maker-limits summary {
+  color: #9a9a9a;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 5px 0;
+}
+.maker-limits[open] summary {
+  margin-bottom: 15px;
+}
+.maker-muted {
+  color: #808080;
+  font-size: 10px;
+  line-height: 1.7;
+  margin-top: 13px;
+}
+.maker-funding {
+  border-left: 1px solid #303030;
+  padding-left: 34px;
+}
+.maker-funding-label {
+  display: block;
+  color: #999999;
+  font-size: 11px;
+  margin-bottom: 9px;
+}
+.maker-deposit-row {
+  display: flex;
+  gap: 9px;
+}
+.maker-deposit-row input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #353535;
+  border-radius: 0;
+  background: #1b1b1b;
+  color: #dedede;
+  font-size: 15px;
+  padding: 11px 12px;
+}
+.maker-deposit-row .secondary-button {
+  width: auto;
+  flex-shrink: 0;
+  border-radius: 0;
+  font-size: 11px;
+  padding: 11px 13px;
+}
+.maker-wallet-balance {
+  margin-top: 25px;
+  border-top: 1px solid #303030;
+  padding-top: 18px;
+  font-size: 11px;
+}
+.maker-wallet-balance > div {
+  display: flex;
+  justify-content: space-between;
+}
+.maker-wallet-balance dt {
+  color: #999999;
+}
+.maker-wallet-balance dd {
+  margin: 0;
+}
+.maker-deposit-status {
+  font-size: 11px;
+  color: #bcbcbc;
+  padding-top: 15px;
+}
+.maker-trades {
+  margin-top: 34px;
+}
+.maker-trades .activity-empty {
+  font-size: 11px;
+}
+@media (max-width: 760px) {
+  .header nav a {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  .maker-heading {
+    gap: 10px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+  }
+  .maker-heading > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .maker-controls {
+    gap: 6px;
+  }
+  .maker-controls .primary-button,
+  .maker-controls .secondary-button {
+    font-size: 10px;
+    padding: 9px 11px;
+  }
+  .maker-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 23px 0;
+    padding: 21px 0;
+  }
+  .maker-stats > div {
+    padding: 0 16px;
+  }
+  .maker-stats > div:nth-child(odd) {
+    padding-left: 0;
+  }
+  .maker-stats > div:nth-child(even) {
+    border: 0;
+  }
+  .maker-stats dd {
+    font-size: 23px;
+  }
+  .maker-panels {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .maker-funding {
+    border-left: 0;
+    border-top: 1px solid #303030;
+    padding-left: 0;
+    padding-top: 24px;
+  }
+  .maker-trades {
+    margin-top: 28px;
+  }
+}

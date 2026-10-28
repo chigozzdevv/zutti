@@ -25,6 +25,7 @@ import { Dialog } from "../components/dialog.js";
 import { Progress } from "../components/progress.js";
 import { Swap } from "../components/swap.js";
 import { Token } from "../components/token.js";
+import { Maker } from "../components/maker.js";
 
 type Modal = "wallet" | "review" | "withdraw" | null;
 export function App() {
@@ -228,6 +229,7 @@ export function App() {
   }
   const pending = operation?.state === "pending" || operation?.state === "paused";
   const is_activity = path === "/activity";
+  const is_maker = path === "/maker";
   return (
     <div className="app-shell">
       <header className="header">
@@ -245,7 +247,7 @@ export function App() {
         <nav aria-label="Main navigation">
           <a
             href="/"
-            aria-current={!is_activity ? "page" : undefined}
+            aria-current={!is_activity && !is_maker ? "page" : undefined}
             onClick={(event) => {
               event.preventDefault();
               route("/");
@@ -263,6 +265,16 @@ export function App() {
           >
             Activity
           </a>
+          <a
+            href="/maker"
+            aria-current={is_maker ? "page" : undefined}
+            onClick={(event) => {
+              event.preventDefault();
+              route("/maker");
+            }}
+          >
+            Maker
+          </a>
         </nav>
         <div className="header-actions">
           <button
@@ -274,7 +286,7 @@ export function App() {
           </button>
         </div>
       </header>
-      <main className={is_activity ? "activity-main" : undefined}>
+      <main className={is_activity || is_maker ? "activity-main" : undefined}>
         {initial_error && (
           <div className="initial-error" role="alert">
             <p>Couldn’t reach Zutti.</p>
@@ -283,7 +295,9 @@ export function App() {
             </button>
           </div>
         )}
-        {is_activity ? (
+        {is_maker ? (
+          <Maker connected={session.connected} connect={() => open_modal("wallet")} />
+        ) : is_activity ? (
           <Activity
             items={session.connected ? wallet_activity : (information?.activity ?? [])}
             pending={operation?.state === "pending" || operation?.state === "paused"}

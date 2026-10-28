@@ -19,7 +19,7 @@ export function date(value: number): string {
     minute: "2-digit",
   }).format(value);
 }
-export function route(path: "/" | "/activity"): void {
+export function route(path: "/" | "/activity" | "/maker"): void {
   if (location.pathname === path) return;
   history.pushState(null, "", path);
   dispatchEvent(new PopStateEvent("popstate"));

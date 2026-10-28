@@ -1322,7 +1322,7 @@ An explicit source-upgrade handoff and historical verifier-retention strategy is
 
 ## 19. Repository ownership
 
-The repository follows this layout. Rust components, contracts, shared TypeScript packages, the SDK RFQ flow, relay and React client now exist. The client uses a loopback application gateway that calls the existing SDK with a configured owner wallet. It provides swap input, maker quote selection, review, status polling, actual recorded activity and explicit public withdrawal. Browser wallet connectors and durable native-owner packaging remain separate work. A directory listed below is not evidence that its full responsibility has been implemented.
+The repository follows this layout. Rust components, contracts, shared TypeScript packages, the SDK RFQ flow, relay and React client now exist. The client uses a loopback application gateway that calls the existing SDK with a configured owner wallet. It provides swap input, maker quote selection, review, status polling, actual recorded activity and explicit public withdrawal. Its Maker page exposes the existing quoting lifecycle, fee/limit settings and optional wallet-backed inventory funding and trade readers. Reserved balances and active counts remain unavailable unless fresh maker/deployment-bound records are supplied; fixed-zero SDK summaries are not shown as actual inventory. Funding requires an explicit reviewed request and a durable, idempotent native deposit adapter. Browser wallet connectors and durable native-owner packaging remain separate work. A directory listed below is not evidence that its full responsibility has been implemented.
 
 ```text
 zutti.md                     protocol, architecture and SDK specification

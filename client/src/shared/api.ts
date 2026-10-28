@@ -1,4 +1,5 @@
-import { app_information, app_operation } from "@zutti/schema";
+import { app_information, app_operation, maker_snapshot } from "@zutti/schema";
+import type { MakerControl, MakerDepositInput, MakerSnapshot } from "@zutti/schema";
 import type { AppInformation, AppOperation, QuoteResponse, WalletSession } from "@zutti/schema";
 
 export class ApiError extends Error {
@@ -28,6 +29,12 @@ async function request<T>(path: string, body?: unknown, signal?: AbortSignal): P
   return result;
 }
 export const api = {
+  maker: async (signal?: AbortSignal): Promise<MakerSnapshot> =>
+    maker_snapshot.parse(await request("/maker", undefined, signal)),
+  maker_control: async (input: MakerControl): Promise<MakerSnapshot> =>
+    maker_snapshot.parse(await request("/maker/control", input)),
+  maker_deposit: async (input: MakerDepositInput): Promise<MakerSnapshot> =>
+    maker_snapshot.parse(await request("/maker/deposits", input)),
   information: async (signal?: AbortSignal): Promise<AppInformation> =>
     app_information.parse(await request("/app", undefined, signal)),
   wallet: (signal?: AbortSignal) => request<WalletSession>("/wallet", undefined, signal),

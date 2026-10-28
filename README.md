@@ -61,7 +61,7 @@ server/src/features/   RFQ relay
 server/src/shared/     HTTP utilities
 scripts/               build, verification and owner workers
 client/src/app/        responsive application shell and styles
-client/src/components/ swap, progress, activity and dialogs
+client/src/components/ swap, maker, progress, activity and dialogs
 client/src/shared/     application transport and formatting
 deploy/                retained deployments and genuine evidence
 ```
@@ -78,6 +78,8 @@ pnpm dev
 Open `http://127.0.0.1:5173`. The app API listens on loopback port 3002. For the production build, run `pnpm build:client` followed by `pnpm start:client`, then open `http://127.0.0.1:3002`. Fonts are bundled locally.
 
 Without a wallet adapter, the interface shows the completed Testnet evidence and a disconnected wallet. It does not fabricate quotes or balances. A reviewed local module can be supplied with `ZUTTI_WALLET_MODULE=/absolute/path/wallet.mjs`; it must export `connect_wallet()`, returning `{ wallet, label }`, where `wallet` implements the existing SDK `WalletProvider`. The gateway pins the deployment, uses the SDK's encrypted RFQs and execution callbacks, and keeps signing material out of browser responses. Origin checks, HTTP-only owner sessions and idempotent acceptance/withdrawal protect the local interface. The gateway retains operations across page reloads while its process runs; recovery across gateway restarts requires the durable native owner adapter. Sessions are local to this one owner process, not a multiuser hosted wallet service.
+
+The Maker page provides quote settings, start/pause/resume/stop controls, USDC funding and trades. A wallet module can additionally return `maker: { wallet, settings?, inventory?, trades?, deposit? }`; its maker wallet implements `MakerWalletProvider`. Optional inventory and trade readers must return fresh records bound to the maker and deployment. Missing, stale or mismatched records display as unavailable; the SDK's placeholder reserved and active-swap zeros are ignored. The optional deposit adapter must retain the supplied operation ID, authorize spending and verify the resulting on-chain inventory before returning a matching receipt. The gateway deduplicates attempts within its session and never retries ambiguous deposits. Native adapters own durable reconciliation across restarts. Stop controls end quoting and do not cancel funded obligations. Gateway shutdown stops quoting, and disconnect requires a stopped maker without pending funding.
 
 App startup and read-only browsing do not request proofs or send transactions. New execution still requires the wallet's fresh evidence and spending authorization. `pnpm build:client`, `pnpm lint:ts`, and the TypeScript tests cover the client and gateway; the gateway tests do not establish a new funded swap.
 
@@ -115,6 +117,6 @@ The observed reductions were about 37 minutes to private ownership and 24 minute
 
 1. Reduce payment-evidence latency and measure repeated complete swaps.
 2. Package the native owner-wallet connector and verify the browser flow with a newly authorized funded swap.
-3. Build the maker dashboard and replace fixed-zero reserved/active-swap summaries with authoritative inventory and obligation tracking.
+3. Supply the Maker page's inventory, deposit and trade adapters from authoritative native wallet records; replace the maker SDK's fixed-zero summaries at their source.
 4. Operate and measure a continuous source feed and multiuser maker/prover service.
 5. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).
