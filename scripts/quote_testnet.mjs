@@ -1,17 +1,15 @@
 import { parseArgs } from "node:util";
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve, join } from "node:path";
-import { execFileSync, spawn } from "node:child_process";
-import { createWriteStream } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { create_native_core } from "../packages/bindings/dist/native.js";
-import { EncryptedStore } from "../packages/runtime/dist/native.js";
+import { EncryptedStore, create_native_execution } from "../packages/runtime/dist/native.js";
 import {
   MessagingIdentity,
   RfqClient,
   RfqMaker,
   HttpRelay,
-  random_id,
 } from "../packages/runtime/dist/index.js";
 import { create_relay_server } from "../server/dist/app.js";
 import { create_zutti } from "../packages/sdk/dist/index.js";
@@ -48,6 +46,7 @@ for (const name of [
   "core",
   "amount",
   "rate",
+  "owner-config",
 ])
   if (!values[name]) throw new Error(`Missing --${name}`);
 const deployment = JSON.parse(await readFile(values.deployment, "utf8"));
@@ -73,7 +72,62 @@ const policy = {
 };
 const domain = { network: "testnet", deployment_id: deployment.domain, policy };
 const out = resolve(values.out);
-await mkdir(out, { mode: 0o700 });
+await mkdir(out, { mode: 0o700, recursive: true });
+const owner_config = JSON.parse(await readFile(values["owner-config"], "utf8"));
+for (const [argument, field] of [
+  ["deployment", "deployment"],
+  ["maker", "maker"],
+  ["taker", "taker"],
+])
+  if (resolve(values[argument]) !== resolve(owner_config[field]))
+    throw new Error("Quote inputs differ from the owner configuration");
+const owner_execution = create_native_execution({
+  directory: out,
+  command: execFileSync("which", ["python3"], { encoding: "utf8" }).trim(),
+  arguments: [
+    resolve("scripts/settle_testnet.py"),
+    "--config",
+    resolve(values["owner-config"]),
+    "--operation",
+    out,
+    "--notes",
+    resolve(values.notes),
+    "--anchor",
+    resolve(values.anchor),
+    "--ready",
+    join(out, "readiness"),
+    "--attach",
+  ],
+});
+let retained_offer;
+try {
+  retained_offer = JSON.parse(await readFile(join(out, "selected-offer.json"), "utf8"));
+} catch (error) {
+  if (error.code !== "ENOENT") throw error;
+}
+if (retained_offer) {
+  const receipt = await owner_execution.accept(retained_offer, {
+    on_status: (value) => console.log(JSON.stringify({ status: value })),
+  });
+  console.log(JSON.stringify({ owner_operation_continued: true, receipt }));
+  process.exit(0);
+}
+const readiness = JSON.parse(
+  execFileSync(
+    "python3",
+    [
+      resolve("scripts/ready_testnet.py"),
+      "--config",
+      resolve(values["owner-config"]),
+      "--out",
+      join(out, "readiness"),
+    ],
+    { encoding: "utf8", timeout: 180_000, maxBuffer: 65_536 },
+  ),
+);
+if (readiness.verified.domain !== deployment.domain)
+  throw new Error("Readiness belongs to another deployment");
+const ready_at = performance.now();
 const raw = randomBytes(32);
 await writeFile(join(out, "messaging.key"), raw, { mode: 0o600, flag: "wx" });
 const key = await crypto.subtle.importKey("raw", raw, { name: "AES-GCM" }, false, [
@@ -110,7 +164,14 @@ const backing = await rpc("eth_call", [
   "latest",
 ]);
 const inventory = JSON.parse(await readFile(values.inventory, "utf8"));
-const units = inventory.notes.reduce((sum, note) => sum + BigInt(note.amount_units), 0n);
+const units = BigInt(readiness.verified.amount_units);
+if (
+  !inventory.notes.some(
+    (note) =>
+      note.position === readiness.verified.note_position && BigInt(note.amount_units) === units,
+  )
+)
+  throw new Error("Quote inventory differs from verified maker ownership");
 if (units === 0n || units > BigInt(backing)) throw new Error("Maker inventory is unavailable");
 const format = (units, scale) =>
   `${units / scale}.${(units % scale).toString().padStart(scale.toString().length - 1, "0")}`;
@@ -126,7 +187,8 @@ const maker = new RfqMaker({
   store: maker_store,
   relay,
   preflight: async () => {
-    if (BigInt(backing) === 0n) throw new Error("Pool has no backing");
+    if (BigInt(backing) === 0n || performance.now() - ready_at > 60_000)
+      throw new Error("Refresh verified source and inventory evidence before quoting");
   },
   receiving: async () => ({
     zcash: maker_account.zcash_address,
@@ -177,147 +239,36 @@ try {
     maker_ids: [identity.id],
     collection_ms: 5000,
   });
-  if (values["owner-config"]) {
-    const profile = {
-      name: "testnet",
-      deployment_id: deployment.domain,
-      zcash: {
-        genesis_hash: encoded.subarray(10, 42).toString("hex"),
-        payment_profile_id: policy.payment_profile_id,
-      },
-      ethereum: {
-        chain_id: "11155111",
-        usdc: deployment.token,
-        pool: deployment.pool,
-        registry: deployment.registry,
-      },
-      policy,
-    };
-    const execution = {
-      accept: async (selected, options) => {
-        const offer = join(out, "selected-offer.json");
-        await writeFile(offer, JSON.stringify(selected, null, 2), { mode: 0o600, flag: "wx" });
-        execFileSync(
-          resolve(values.wallet),
-          [
-            "order",
-            "--directory",
-            resolve(values.taker),
-            "--deployment",
-            resolve(values.deployment),
-            "--notes",
-            resolve(values.notes),
-            "--anchor",
-            resolve(values.anchor),
-            "--offer",
-            offer,
-            "--out",
-            join(out, "order"),
-          ],
-          { encoding: "utf8", timeout: 30_000 },
-        );
-        return new Promise((resolve_receipt, reject) => {
-          const child = spawn(
-            "python3",
-            [
-              resolve("scripts/settle_testnet.py"),
-              "--config",
-              resolve(values["owner-config"]),
-              "--operation",
-              out,
-            ],
-            { stdio: ["ignore", "pipe", "pipe"] },
-          );
-          const errors = createWriteStream(join(out, "worker.stderr"), {
-            flags: "wx",
-            mode: 0o600,
-          });
-          child.stderr.pipe(errors);
-          let buffered = "";
-          let receipt;
-          child.stdout.setEncoding("utf8");
-          child.stdout.on("data", (chunk) => {
-            buffered += chunk;
-            if (buffered.length > 131_072) {
-              reject(new Error("Native status exceeds its bound"));
-              return;
-            }
-            for (;;) {
-              const end = buffered.indexOf("\n");
-              if (end < 0) break;
-              const line = buffered.slice(0, end);
-              buffered = buffered.slice(end + 1);
-              try {
-                const message = JSON.parse(line);
-                if (message.type === "status") {
-                  try {
-                    options.on_status?.(message.value);
-                  } catch {}
-                } else if (message.type === "receipt") receipt = message.value;
-              } catch {
-                reject(new Error("Invalid native settlement response"));
-              }
-            }
-          });
-          child.on("error", reject);
-          child.on("close", (code) =>
-            code === 0 && receipt
-              ? resolve_receipt(receipt)
-              : reject(new Error("Settlement paused; inspect the private operation log")),
-          );
-        });
-      },
-    };
-    const zutti = create_zutti({
-      network: "testnet",
-      wallet: { zutti: () => ({ profile, rfq: client, execution }) },
-    });
-    const intent = zutti.intent({ from: "ZEC", to: "USDC", amount: values.amount });
-    const offers = await intent.offers();
-    if (offers.items.length !== 1) throw new Error("No authenticated maker quote received");
-    console.log(JSON.stringify({ authenticated_rfq: true, offer: offers.items[0] }));
-    const swap = await intent.accept({
-      offer_id: offers.items[0].id,
-      on_status: (value) => console.log(JSON.stringify({ status: value })),
-    });
-    console.log(JSON.stringify({ sdk_swap_settled: true, swap: swap.id, receipt: swap.receipt }));
-    await zutti.close();
-  } else {
-    const intent = random_id();
-    const request = { from: "ZEC", to: "USDC", amount: values.amount };
-    const offers = await client.offers(intent, request);
-    if (offers.items.length !== 1) throw new Error("No authenticated maker quote received");
-    const selected = await client.select(intent, request, offers.items[0].id);
-    const offer = join(out, "selected-offer.json");
-    await writeFile(offer, JSON.stringify(selected, null, 2), { mode: 0o600, flag: "wx" });
-    const prepared = execFileSync(
-      resolve(values.wallet),
-      [
-        "order",
-        "--directory",
-        resolve(values.taker),
-        "--deployment",
-        resolve(values.deployment),
-        "--notes",
-        resolve(values.notes),
-        "--anchor",
-        resolve(values.anchor),
-        "--offer",
-        offer,
-        "--out",
-        join(out, "order"),
-      ],
-      { encoding: "utf8", timeout: 30_000 },
-    );
-    console.log(
-      JSON.stringify({
-        authenticated_rfq: true,
-        prepared: JSON.parse(prepared),
-        funded: false,
-        quote_inventory_finality_verified: false,
-      }),
-    );
-  }
+  const profile = {
+    name: "testnet",
+    deployment_id: deployment.domain,
+    zcash: {
+      genesis_hash: encoded.subarray(10, 42).toString("hex"),
+      payment_profile_id: policy.payment_profile_id,
+    },
+    ethereum: {
+      chain_id: "11155111",
+      usdc: deployment.token,
+      pool: deployment.pool,
+      registry: deployment.registry,
+    },
+    policy,
+  };
+  const execution = owner_execution;
+  const zutti = create_zutti({
+    network: "testnet",
+    wallet: { zutti: () => ({ profile, rfq: client, execution }) },
+  });
+  const intent = zutti.intent({ from: "ZEC", to: "USDC", amount: values.amount });
+  const offers = await intent.offers();
+  if (offers.items.length !== 1) throw new Error("No authenticated maker quote received");
+  console.log(JSON.stringify({ authenticated_rfq: true, offer: offers.items[0] }));
+  const swap = await intent.accept({
+    offer_id: offers.items[0].id,
+    on_status: (value) => console.log(JSON.stringify({ status: value })),
+  });
+  console.log(JSON.stringify({ sdk_swap_settled: true, swap: swap.id, receipt: swap.receipt }));
+  await zutti.close();
 } finally {
   await maker.stop();
   server.closeAllConnections();

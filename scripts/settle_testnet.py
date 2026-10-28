@@ -1,6 +1,7 @@
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import fcntl
+import hashlib
 import json
 import os
 import re
@@ -13,21 +14,58 @@ from source_remote import RemoteSource
 from submit_testnet import Rpc
 REPOSITORY = Path(__file__).resolve().parent.parent
 
+
+def confirmation_depth(deployment):
+    policy = bytes.fromhex(deployment['source_policy'])
+    if len(policy) != 87 or policy[:10] != b'ZUTTISPP\x02\x00' or policy[42] != 2:
+        raise ValueError('Pinned checkpoint Testnet policy required')
+    depth = int.from_bytes(policy[43:47], 'little')
+    if not 1 <= depth <= 1000:
+        raise ValueError('Invalid source confirmation depth')
+    return depth
+
+
+def execution_identity(job):
+    return hashlib.sha256(Path(job).read_bytes()).hexdigest()
+
+
+def cached_execution(record, job):
+    if not record.exists():
+        return False
+    value = json.loads(record.read_text())
+    if (value.get('job_sha256') != execution_identity(job)
+            or value.get('verified', {}).get('journal_matches') is not True
+            or value.get('verified', {}).get('host_assumptions') != 0
+            or type(value.get('verified', {}).get('cycles')) is not int
+            or not 0 < value['verified']['cycles'] <= json.loads(Path(job).read_text())['cycles']):
+        raise ValueError('Cached execution does not match the exact proof job')
+    return True
+
 class Settlement:
 
-    def __init__(self, config, operation):
+    def __init__(self, config, operation, notes=None, anchor=None, ready=None):
         if config.is_symlink() or config.stat().st_mode & 0o077:
             raise ValueError('Private owner configuration required')
         self.config_path = config
         self.config = json.loads(config.read_text())
         self.root = Path(self.config['root'])
         self.operation = operation.resolve()
+        self.notes = notes
+        self.order_anchor = anchor
+        self.readiness = ready
         if self.operation.parent != self.root:
             raise ValueError('Operation must belong to this wallet runtime')
         self.deployment = json.loads(Path(self.config['deployment']).read_text())
         self.anchor_height = self.config.get('source_height', self.deployment['source_height'])
         self.source_receipt = Path(self.config.get('source_receipt', str(self.root / 'source-verified/receipt.bin')))
         self.prefix = self.config.get('operation_prefix', '')
+        self.confirmations = confirmation_depth(self.deployment)
+        admission = json.loads((self.root / 'programs/admission/program.json').read_text())
+        if admission['image_id'] != self.deployment['admission_image']:
+            raise ValueError('Admission program differs from the deployed verifier')
+        self.payment_admission = 'payment-window' in admission.get('admission_inputs', [])
+        if self.payment_admission and self.config.get('admission_previous', {}).get('height', self.anchor_height) != self.anchor_height:
+            raise ValueError('Payment admission requires the accepted source anchor')
         if self.prefix and not re.fullmatch(r'[a-z][a-z0-9-]{0,23}', self.prefix):
             raise ValueError('Invalid operation prefix')
         self.source = RemoteSource(self.config['source'])
@@ -46,8 +84,19 @@ class Settlement:
     def run(self, name, arguments, timeout=3600, env=None):
         output = self.operation / f'{name}.stdout'
         error = self.operation / f'{name}.stderr'
-        with os.fdopen(os.open(output, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'wb') as stdout, os.fdopen(os.open(error, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'wb') as stderr:
-            result = subprocess.run(list(map(str, arguments)), cwd=REPOSITORY, stdout=stdout, stderr=stderr, timeout=timeout, env=env, check=False)
+        started = time.time()
+        monotonic = time.monotonic()
+        result = None
+        try:
+            with os.fdopen(os.open(output, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'wb') as stdout, os.fdopen(os.open(error, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600), 'wb') as stderr:
+                result = subprocess.run(list(map(str, arguments)), cwd=REPOSITORY, stdout=stdout, stderr=stderr, timeout=timeout, env=env, check=False)
+        finally:
+            with os.fdopen(os.open(self.operation / 'timing.jsonl', os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600), 'a') as timing:
+                fcntl.flock(timing, fcntl.LOCK_EX)
+                timing.write(json.dumps({'step': name, 'started_at': started, 'seconds': time.monotonic() - monotonic,
+                                         'exit_code': None if result is None else result.returncode}) + '\n')
+                timing.flush()
+                os.fsync(timing.fileno())
         if result.returncode:
             raise RuntimeError(f'{name} failed; inspect its private operation log')
         raw = output.read_text()
@@ -122,10 +171,15 @@ class Settlement:
             for dependency in dependencies:
                 arguments += ['--dependency', dependency]
             self.run(name + '-export', arguments)
-        execution = self.operation / f'{name}-execution.log'
-        if execution.exists():
+        checked = self.operation / f'{name}-execution.json'
+        if not cached_execution(checked, job / 'job.json'):
             execution = self.operation / f'{name}-execution-{time.time_ns()}.log'
-        self.run(name + '-execution', ['python3', REPOSITORY / 'crates/prover/spv/run.py', '--seconds', 900, '--rss-mib', 4096, '--log', execution, '--', binary, 'boundless', 'execute', '--job', job / 'job.json'])
+            result = self.run(name + '-execution', ['python3', REPOSITORY / 'crates/prover/spv/run.py', '--seconds', 900, '--rss-mib', 4096, '--log', execution, '--', binary, 'boundless', 'execute', '--job', job / 'job.json'])
+            if not result or result.get('status') != 'completed':
+                raise RuntimeError('Local execution remains incomplete; no proof was submitted')
+            verified = json.loads(execution.read_text().strip().splitlines()[-1])
+            atomic_save(checked, {'job_sha256': execution_identity(job / 'job.json'), 'verified': verified})
+            cached_execution(checked, job / 'job.json')
         if not request.exists():
             self.run(name + '-submit', ['python3', REPOSITORY / 'scripts/prove_testnet.py', '--ledger', self.config['ledger'], '--config', self.config['prover_config'], '--binary', self.config['boundless'], '--job', job / 'job.json', '--name', name])
         return (job, request)
@@ -165,6 +219,17 @@ class Settlement:
         captured = self.operation / f'{name}-capture.json'
         evidence = self.operation / f'{name}-evidence.json'
         arguments = ['python3', REPOSITORY / 'scripts/ethereum_evidence.py', '--kind', kind, '--config', self.config['consensus'], '--request', request, '--native', self.config['ethereum'], '--beacon', 'http://unstable.sepolia.beacon-api.nimbus.team', '--allow-http-beacon']
+        if name == 'maker-inventory' and self.readiness and not evidence.exists():
+            retained = self.readiness / 'note-evidence.json'
+            if json.loads(request.read_text()) == json.loads((self.readiness / 'note-request.json').read_text()):
+                try:
+                    self.run(name + '-ready-reverify', [self.config['ethereum'], 'note', '--config', self.config['consensus'], '--request', request, '--evidence', retained])
+                    atomic_save(evidence, json.loads(retained.read_text()))
+                except RuntimeError:
+                    pass
+        if evidence.exists():
+            self.run(name + '-reverify', [self.config['ethereum'], kind, '--config', self.config['consensus'], '--request', request, '--evidence', evidence])
+            return evidence
         if not captured.exists():
             self.run(name + '-capture', [*arguments, '--capture-only', '--out', captured])
         height = int(json.loads(captured.read_text())['execution']['number'], 16)
@@ -224,7 +289,13 @@ class Settlement:
 
     def execute(self):
         self.offer = json.loads((self.operation / 'selected-offer.json').read_text())
+        completed = self.operation / 'settled-receipt.json'
+        if completed.exists():
+            self.return_receipt(json.loads(completed.read_text()))
+            return
         order = self.operation / 'order'
+        if not order.exists():
+            self.prepare_order(order)
         source_receipt = self.source_receipt
         terms = json.loads((order / 'order.json').read_text())
         if terms['offer'] != self.offer['id'] or terms['usdc'] != self.offer['output']['amount'] or terms['zec'] != self.offer['input']['amount']:
@@ -277,16 +348,17 @@ class Settlement:
             if tx.get('blockhash'):
                 header = self.source.call('getblockheader', [tx['blockhash'], True])
                 height = header['height']
-                if self.source.call('getblockchaininfo', [])['blocks'] >= height + 20:
+                if self.source.call('getblockchaininfo', [])['blocks'] >= height + 2 * self.confirmations:
                     break
             if time.monotonic() > deadline:
                 raise RuntimeError('Zcash confirmations remain pending')
             time.sleep(30)
-        all_headers = self.source.headers(self.anchor_height + 1, height + 20)
+        all_headers = self.source.headers(self.anchor_height + 1, height + 2 * self.confirmations)
         headers = self.operation / 'payment-window-headers.bin'
         confirmations = self.operation / 'payment-window-confirmations.bin'
         block = self.operation / 'payment-block.bin'
-        for path, data in [(headers, all_headers[:-14870]), (confirmations, all_headers[-14870:]), (block, bytes.fromhex(self.source.call('getblock', [tx['blockhash'], 0])))]:
+        confirmation_bytes = self.confirmations * 1487
+        for path, data in [(headers, all_headers[:-confirmation_bytes]), (confirmations, all_headers[-confirmation_bytes:]), (block, bytes.fromhex(self.source.call('getblock', [tx['blockhash'], 0])))]:
             if not path.exists():
                 fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
                 with os.fdopen(fd, 'wb') as output:
@@ -296,7 +368,7 @@ class Settlement:
         previous = self.config.get('admission_previous', {'receipt': str(source_receipt), 'height': self.anchor_height})
         predecessor = Path(previous['receipt'])
         offset = previous['height'] - self.anchor_height
-        if offset < 0 or previous['height'] >= height + 10:
+        if offset < 0 or previous['height'] >= height + self.confirmations:
             raise ValueError('Invalid admitted source predecessor')
         admission_headers = self.operation / 'admission-headers.bin'
         if not admission_headers.exists():
@@ -306,32 +378,28 @@ class Settlement:
                 output.write(data)
         if not window.exists():
             self.native('payment-window', 'taker', 'window-prepare', '--record', self.recovery_record(), '--headers', headers, '--block', block, '--out', window)
-        if not admission.exists():
+        if not admission.exists() and not self.payment_admission:
             self.run('payment-admission', [self.config['spv'], 'prepare-admission', '--header-program', self.root / 'programs/source/program.elf', '--previous', predecessor, '--stable-headers', admission_headers, '--confirmations', confirmations, '--out', admission])
         self.emit('claimable', 'Proving confirmed payment and source admission', swap)
         window_job = self.proof_start('demo-window-1', 'source', window / 'witness.bin', [source_receipt], 4000000000)
-        admission_job = self.proof_start('demo-admission-2', 'admission', admission / 'witness.bin', [predecessor], 4000000000)
         with ThreadPoolExecutor(max_workers=2) as executor:
             window_future = executor.submit(self.proof_finish, 'demo-window-1', window_job)
-            admission_future = executor.submit(self.proof_finish, 'demo-admission-2', admission_job)
+            if not self.payment_admission:
+                admission_job = self.proof_start('demo-admission-2', 'admission', admission / 'witness.bin', [predecessor], 4000000000)
+                admission_future = executor.submit(self.proof_finish, 'demo-admission-2', admission_job)
             window_proof = window_future.result()
+            if self.payment_admission:
+                if not admission.exists():
+                    self.run('payment-admission', [self.config['spv'], 'prepare-admission', '--header-program', self.root / 'programs/source/program.elf', '--previous', window_proof, '--window-witness', window / 'witness.bin', '--confirmations', confirmations, '--out', admission])
+                admission_job = self.proof_start('demo-admission-2', 'admission', admission / 'witness.bin', [window_proof], 500000000)
+                admission_future = executor.submit(self.proof_finish, 'demo-admission-2', admission_job)
+            settlement = self.settlement_witness(reservation_tx, window)
+            payout_job = self.proof_start('demo-payout-1', 'pool', settlement / 'witness.bin', [funding_proof, window_proof], 1500000000)
+            payout_future = executor.submit(self.proof_finish, 'demo-payout-1', payout_job)
             admission_proof = admission_future.result()
-        admission_call = self.operation / 'source-advance-call.json'
-        if not admission_call.exists():
-            self.run('source-advance-export', [self.config['spv'], 'export-admission', '--program', self.root / 'programs/admission/program.elf', '--receipt', admission_proof, '--policy', self.deployment['source_policy_id'], '--registry', self.deployment['registry'].removeprefix('0x'), '--out', admission_call])
-        advanced = self.send('source-payment-submit', admission_call)
-        timestamp = int(self.rpc.call('eth_getBlockByHash', [advanced['receipt']['blockHash'], False])['timestamp'], 16)
-        while int(self.rpc.call('eth_getBlockByNumber', ['latest', False])['timestamp'], 16) < timestamp + 120:
-            time.sleep(15)
-        self.send('source-payment-finalize', self.root / 'source-finalize-call.json')
-        events = self.operation / 'reserved-pool-events.json'
-        if not events.exists():
-            self.run('reserved-pool-events', ['python3', REPOSITORY / 'scripts/pool_inventory.py', '--deployment', self.config['deployment'], '--block-hash', reservation_tx['receipt']['blockHash'], '--out', events])
-        settlement = self.operation / 'settlement'
-        if not settlement.exists():
-            self.native('prepare-settlement', 'taker', 'settlement-prepare', '--record', self.recovery_record(), '--window', window / 'journal.bin', '--events', events, '--out', settlement)
-        self.emit('settling', 'Proving the fixed private USDC payout', swap)
-        payout_proof = self.proof('demo-payout-1', 'pool', settlement / 'witness.bin', [funding_proof, window_proof], 1500000000)
+            self.admit_payment_source(admission_proof)
+            payout_proof = payout_future.result()
+        self.emit('settling', 'Submitting the verified private USDC payout', swap)
         payout = self.pool_send('swap-payout', settlement / 'witness.bin', payout_proof, 'taker')
         inventory = self.inventory('taker-inventory', 'taker', payout)
         owned = json.loads((inventory / 'inventory.json').read_text())['notes']
@@ -342,12 +410,51 @@ class Settlement:
         evidence = self.evidence('payout', 'note', self.operation / 'payout-note-request.json')
         self.run('verify-owned-payout', [self.config['ethereum'], 'owned-note', '--config', self.config['consensus'], '--deployment', self.config['deployment'], '--directory', self.config['taker'], '--inventory', inventory / 'inventory.backup', '--evidence', evidence, '--position', owned[0]['position']])
         receipt = {'outcome': 'settled', 'swap_id': swap, 'received': self.offer['output'], 'source_payment': {'chain': 'zcash', 'block_hash': tx['blockhash'], 'height': str(height), 'transaction_id': sent['txid'], 'policy_id': self.deployment['source_policy_id']}, 'pool_settlement': {'chain': 'ethereum', 'block_hash': payout['receipt']['blockHash'], 'height': str(int(payout['receipt']['blockNumber'], 16)), 'transaction_id': payout['hash'], 'policy_id': self.deployment['source_policy_id']}, 'confirmed_at': int(time.time() * 1000)}
-        if not (self.operation / 'settled-receipt.json').exists():
-            atomic_save(self.operation / 'settled-receipt.json', receipt)
-        else:
-            receipt = json.loads((self.operation / 'settled-receipt.json').read_text())
+        atomic_save(self.operation / 'settled-receipt.json', receipt)
         self.emit('settled', 'Private USDC payout finalized and ownership verified', swap)
-        print(json.dumps({'type': 'receipt', 'value': receipt}), flush=True)
+        self.return_receipt(receipt)
+
+    def prepare_order(self, order):
+        if self.notes is None or self.order_anchor is None or self.readiness is None:
+            raise ValueError('Verified readiness, taker notes and source anchor are required for a new order')
+        report = json.loads((self.readiness / 'ready.json').read_text())
+        if (report.get('version') != 1 or report.get('verified', {}).get('ready') is not True
+                or report['verified']['domain'] != self.deployment['domain']
+                or not 0 <= time.time() - report['checked_at'] <= 60
+                or report['source_receipt_sha256'] != hashlib.sha256(self.source_receipt.read_bytes()).hexdigest()):
+            raise ValueError('Refresh readiness before accepting a new order')
+        self.run('check-quote-anchor', [self.config['spv'], 'verify', '--program', self.root / 'programs/source/program.elf', '--receipt', self.source_receipt, '--journal', self.order_anchor])
+        self.native('reverify-readiness', 'maker', 'ready', '--inventory', self.config.get('maker_inventory', str(self.root / 'maker-inventory/inventory.backup')),
+            '--position', self.config.get('maker_position', 0), '--source', self.source_receipt,
+            '--headers', self.readiness / 'headers.bin', '--evidence', self.readiness / 'evidence.json')
+        self.run('prepare-order', [self.config['wallet'], 'order', '--directory', self.config['taker'],
+            '--deployment', self.config['deployment'], '--notes', self.notes, '--anchor', self.order_anchor,
+            '--offer', self.operation / 'selected-offer.json', '--out', order])
+
+    def admit_payment_source(self, admission_proof):
+        admission_call = self.operation / 'source-advance-call.json'
+        if not admission_call.exists():
+            self.run('source-advance-export', [self.config['spv'], 'export-admission', '--program', self.root / 'programs/admission/program.elf', '--receipt', admission_proof, '--policy', self.deployment['source_policy_id'], '--registry', self.deployment['registry'].removeprefix('0x'), '--out', admission_call])
+        advanced = self.send('source-payment-submit', admission_call)
+        timestamp = int(self.rpc.call('eth_getBlockByHash', [advanced['receipt']['blockHash'], False])['timestamp'], 16)
+        while int(self.rpc.call('eth_getBlockByNumber', ['latest', False])['timestamp'], 16) < timestamp + 120:
+            time.sleep(15)
+        self.send('source-payment-finalize', self.root / 'source-finalize-call.json')
+
+    def return_receipt(self, receipt):
+        try:
+            print(json.dumps({'type': 'receipt', 'value': receipt}), flush=True)
+        except BrokenPipeError:
+            pass
+
+    def settlement_witness(self, reservation_tx, window):
+        events = self.operation / 'reserved-pool-events.json'
+        if not events.exists():
+            self.run('reserved-pool-events', ['python3', REPOSITORY / 'scripts/pool_inventory.py', '--deployment', self.config['deployment'], '--block-hash', reservation_tx['receipt']['blockHash'], '--out', events])
+        settlement = self.operation / 'settlement'
+        if not settlement.exists():
+            self.native('prepare-settlement', 'taker', 'settlement-prepare', '--record', self.recovery_record(), '--window', window / 'journal.bin', '--events', events, '--out', settlement)
+        return settlement
 
     def withdraw(self, request_path):
         self.offer = json.loads((self.operation / 'selected-offer.json').read_text())
@@ -426,10 +533,16 @@ def main():
     parser.add_argument('--config', type=Path, required=True)
     parser.add_argument('--operation', type=Path, required=True)
     parser.add_argument('--withdraw', type=Path)
+    parser.add_argument('--notes', type=Path)
+    parser.add_argument('--anchor', type=Path)
+    parser.add_argument('--ready', type=Path)
+    parser.add_argument('--attach', action='store_true')
     args = parser.parse_args()
-    runtime = Settlement(args.config, args.operation)
-    with (runtime.operation / 'settlement.lock').open('a') as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    runtime = Settlement(args.config, args.operation, args.notes, args.anchor, args.ready)
+    descriptor = os.open(runtime.operation / 'settlement.lock', os.O_WRONLY | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    with os.fdopen(descriptor, 'a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX if args.attach else fcntl.LOCK_EX | fcntl.LOCK_NB)
+        runtime.sequence = max((int(path.stem.split('-')[1]) for path in runtime.operation.glob('status-*.json')), default=0)
         if args.withdraw:
             runtime.withdraw(args.withdraw)
         else:

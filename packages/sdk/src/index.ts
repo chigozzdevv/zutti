@@ -157,7 +157,12 @@ export function create_zutti(config: ClientConfig): Zutti {
               "Settlement requires an admitted deployment and the native wallet execution adapter; no payment was authorized",
             );
           const receipt = settled_receipt.parse(
-            await session.execution.accept(immutable(offer), options),
+            await session.execution.accept(immutable(offer), {
+              ...options,
+              signal: options.signal
+                ? AbortSignal.any([options.signal, controller.signal])
+                : controller.signal,
+            }),
           );
           if (
             receipt.received.asset !== offer.output.asset ||
