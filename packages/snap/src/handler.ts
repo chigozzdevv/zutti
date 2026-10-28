@@ -11,6 +11,8 @@ export interface Authorization {
 export interface Wallet {
   account(): string;
   authorize(payment: string, now: number): Authorization;
+  prepare_deposit(amount: string, owner: string): string;
+  verify_deposit(witness: string, receipt: string): string;
   free(): void;
 }
 
@@ -57,18 +59,28 @@ export function create_handler(
       throw new Error("This origin cannot use the Zutti Testnet wallet");
     }
     if (busy) throw new Error("Complete the pending wallet request first");
-    if (request.method !== "zutti_getAccount" && request.method !== "zutti_signPayment") {
+    if (
+      ![
+        "zutti_getAccount",
+        "zutti_signPayment",
+        "zutti_prepareDeposit",
+        "zutti_verifyDeposit",
+      ].includes(request.method)
+    ) {
       throw new Error("Unsupported Zutti wallet method");
     }
     const params = request.params;
-    if (params !== undefined && (params === null || Array.isArray(params))) {
+    if (
+      params !== undefined &&
+      (params === null || typeof params !== "object" || Array.isArray(params))
+    ) {
       throw new Error("Invalid wallet parameters");
     }
     const fields = Object.keys(params ?? {});
     let payment: string | undefined;
     if (request.method === "zutti_getAccount") {
       if (fields.length !== 0) throw new Error("Account access takes no parameters");
-    } else {
+    } else if (request.method === "zutti_signPayment") {
       if (fields.length !== 1 || fields[0] !== "payment" || typeof params?.payment !== "string") {
         throw new Error("A prepared payment and verification evidence are required");
       }
@@ -76,12 +88,36 @@ export function create_handler(
       if (payment.length === 0 || payment.length > 48 * 1024 * 1024) {
         throw new Error("Payment request exceeds its bound");
       }
+    } else if (request.method === "zutti_prepareDeposit") {
+      if (
+        fields.sort().join(",") !== "amount,owner" ||
+        typeof params?.amount !== "string" ||
+        !/^(0|[1-9][0-9]{0,7})(\.[0-9]{1,6})?$/.test(params.amount) ||
+        !/[1-9]/.test(params.amount) ||
+        typeof params.owner !== "string" ||
+        !/^0x[0-9a-fA-F]{40}$/.test(params.owner) ||
+        /^0x0{40}$/.test(params.owner)
+      ) {
+        throw new Error("A positive USDC amount and Sepolia funding address are required");
+      }
+    } else {
+      if (
+        fields.sort().join(",") !== "receipt,witness" ||
+        typeof params?.witness !== "string" ||
+        typeof params.receipt !== "string" ||
+        !/^(?:[0-9a-f]{2})+$/.test(params.witness) ||
+        !/^(?:[0-9a-f]{2})+$/.test(params.receipt) ||
+        params.witness.length > 524288 ||
+        params.receipt.length > 32 * 1024 * 1024
+      ) {
+        throw new Error("A bounded deposit witness and genuine receipt are required");
+      }
     }
     busy = true;
     let wallet: Wallet | undefined;
     let authorization: Authorization | undefined;
     try {
-      if (payment === undefined) {
+      if (request.method === "zutti_getAccount") {
         const approved = await provider.request({
           method: "snap_dialog",
           params: {
@@ -106,7 +142,33 @@ export function create_handler(
       } finally {
         entropy.fill(0);
       }
-      if (payment === undefined) return JSON.parse(wallet.account());
+      if (request.method === "zutti_getAccount") return JSON.parse(wallet.account());
+      if (request.method === "zutti_prepareDeposit") {
+        const prepared = JSON.parse(
+          wallet.prepare_deposit(params!.amount as string, params!.owner as string),
+        );
+        const approved = await provider.request({
+          method: "snap_dialog",
+          params: {
+            type: "confirmation",
+            content: content(
+              "Prepare Testnet deposit",
+              `Deposit ${prepared.amount} USDC into your private Zutti inventory on Sepolia.`,
+              `Funding wallet: ${prepared.owner}`,
+              "This demo publishes the deposit witness to a remote prover. It reveals the amount and note opening. Signing and viewing secret keys stay in Flask.",
+              "MetaMask will request token approval and the deposit transaction after the proof verifies.",
+            ),
+          },
+        });
+        if (approved !== true) throw new Error("Deposit preparation declined");
+        return prepared;
+      }
+      if (request.method === "zutti_verifyDeposit") {
+        return JSON.parse(
+          wallet.verify_deposit(params!.witness as string, params!.receipt as string),
+        );
+      }
+      if (payment === undefined) throw new Error("Prepared payment required");
       authorization = wallet.authorize(payment, now());
       const review = JSON.parse(authorization.review()) as {
         swap_id: string;

@@ -1,3 +1,4 @@
+mod deposit;
 mod profile;
 
 #[cfg(test)]

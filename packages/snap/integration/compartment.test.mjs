@@ -42,5 +42,18 @@ test("the built bundle runs in a restricted compartment with generated Testnet e
   assert.equal(account.network, "testnet");
   assert.ok(account.zcash_address.startsWith("utest1"));
   assert.deepEqual(calls, ["snap_dialog", "snap_getEntropy", "snap_getFile"]);
+  const deposit = await exports.onRpcRequest({
+    ...request,
+    request: {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "zutti_prepareDeposit",
+      params: { amount: "1", owner: `0x${"22".repeat(20)}` },
+    },
+  });
+  assert.equal(deposit.units, "1000000");
+  assert.equal(deposit.owner, `0x${"22".repeat(20)}`);
+  assert.match(deposit.witness, /^5a55545449535056/);
+  assert.ok(!JSON.stringify(deposit).includes("spending_key"));
   await assert.rejects(exports.onRpcRequest({ ...request, origin: "https://unapproved.example" }));
 });

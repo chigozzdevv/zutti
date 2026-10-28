@@ -1,6 +1,6 @@
 use crate::{
     pool::NoteOutput,
-    private_note::{NoteEncryption, NoteKeys},
+    private_note::NoteEncryption,
     spv_pool::{SpvAction, SpvPoolClaim, SpvPoolWitness},
 };
 use zutti_protocol::{
@@ -9,9 +9,12 @@ use zutti_protocol::{
     domain::Domain,
     network::ZCASH_TESTNET_GENESIS,
     pool::{OperationKind, PoolClaim, nullifier_digest, output_digest},
-    private_note::PrivateNote,
+    private_note::{NoteRecipient, PrivateNote},
 };
 use zutti_source::spv::Policy;
+
+#[cfg(feature = "native")]
+use crate::private_note::NoteKeys;
 
 #[derive(Debug)]
 pub struct DepositContext {
@@ -49,21 +52,33 @@ impl DepositContext {
         })
     }
 
+    #[cfg(feature = "native")]
     pub fn prepare(&self, keys: &NoteKeys, amount: Amount) -> Result<SpvPoolWitness> {
+        self.prepare_for(
+            keys.recipient()?,
+            amount,
+            Secret32::random()?,
+            Secret32::random()?,
+            NoteEncryption::random()?,
+        )
+    }
+
+    pub fn prepare_for(
+        &self,
+        recipient: NoteRecipient,
+        amount: Amount,
+        rho: Secret32,
+        blinding: Secret32,
+        encryption: NoteEncryption,
+    ) -> Result<SpvPoolWitness> {
         if amount.asset() != Asset::Usdc {
             return Err(Error::Asset);
         }
         let value = u64::try_from(amount.positive()?.units()).map_err(|_| Error::Overflow)?;
         let domain = self.domain.id()?;
         let output = NoteOutput {
-            note: PrivateNote::new(
-                domain,
-                keys.recipient()?,
-                amount,
-                Secret32::random()?,
-                Secret32::random()?,
-            )?,
-            encryption: NoteEncryption::random()?,
+            note: PrivateNote::new(domain, recipient, amount, rho, blinding)?,
+            encryption,
         };
         let witness = SpvPoolWitness {
             policy: self.policy,

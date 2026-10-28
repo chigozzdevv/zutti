@@ -31,6 +31,15 @@ function fixture({ approve = true, verify = true } = {}) {
       if (!verify) throw new Error("invalid reservation");
       return authorization;
     },
+    prepare_deposit: (amount, owner) => {
+      calls.push(["prepare-deposit", amount, owner]);
+      return JSON.stringify({ amount, owner, witness: "aabb" });
+    },
+    verify_deposit: (witness, receipt) => {
+      calls.push(["verify-deposit", witness, receipt]);
+      if (!verify) throw new Error("invalid deposit proof");
+      return JSON.stringify({ chain_id: 11155111, data: "0x1d0a9b2e" });
+    },
     free: () => calls.push(["free-wallet"]),
   };
   let retained_entropy;
@@ -77,6 +86,52 @@ test("unapproved origins and unknown methods cannot reach private entropy", asyn
   await assert.rejects(f.invoke("zutti_getAccount", { seed: "42" }));
   await assert.rejects(f.invoke("zutti_signPayment", { payment: "{}", now: 100 }));
   assert.deepEqual(f.calls, []);
+});
+
+test("deposit preparation requires exact Testnet terms and consent before releasing its witness", async () => {
+  const owner = `0x${"11".repeat(20)}`;
+  const bad = fixture();
+  for (const params of [
+    { amount: "1", owner, seed: "aa" },
+    { amount: "0", owner },
+    { amount: "1.0000001", owner },
+    { amount: "1", owner: "0x0" },
+  ])
+    await assert.rejects(bad.invoke("zutti_prepareDeposit", params));
+  assert.deepEqual(bad.calls, []);
+  const denied = fixture({ approve: false });
+  await assert.rejects(denied.invoke("zutti_prepareDeposit", { amount: "1", owner }), /declined/);
+  assert.equal(denied.calls.at(-1)[0], "free-wallet");
+  const approved = fixture();
+  assert.deepEqual(await approved.invoke("zutti_prepareDeposit", { amount: "1", owner }), {
+    amount: "1",
+    owner,
+    witness: "aabb",
+  });
+  assert.ok(
+    approved.calls.find(
+      ([method, params]) =>
+        method === "snap_dialog" && JSON.stringify(params).includes("remote prover"),
+    ),
+  );
+  assert.ok(approved.entropy().every((byte) => byte === 0));
+});
+
+test("deposit proof validation cannot sign Ethereum transactions or disclose wallet keys", async () => {
+  const bad = fixture({ verify: false });
+  await assert.rejects(
+    bad.invoke("zutti_verifyDeposit", { witness: "aabb", receipt: "ccdd" }),
+    /invalid deposit proof/,
+  );
+  assert.deepEqual(
+    bad.calls.map(([method]) => method),
+    ["snap_getEntropy", "verify-deposit", "free-wallet"],
+  );
+  const approved = fixture();
+  assert.deepEqual(
+    await approved.invoke("zutti_verifyDeposit", { witness: "aabb", receipt: "ccdd" }),
+    { chain_id: 11155111, data: "0x1d0a9b2e" },
+  );
 });
 
 test("account sharing requires approval and wipes the temporary seed", async () => {
