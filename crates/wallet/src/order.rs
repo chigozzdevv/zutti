@@ -1,6 +1,5 @@
 use crate::{
     Error, Result,
-    account::WalletAccount,
     binding::PaymentBindingWitness,
     pool::{NoteOutput, escrow::EscrowNote},
     preparation::PreparationWitness,
@@ -8,6 +7,7 @@ use crate::{
     source_notes::SourceScan,
     spv_pool::SpvReservation,
 };
+use orchard::keys::FullViewingKey;
 use zeroize::Zeroizing;
 use zutti_protocol::{
     Digest, Secret32,
@@ -56,13 +56,18 @@ impl MakerRecipients {
     }
 }
 
-#[derive(Debug)]
 pub struct OrderContext<'a> {
     pub domain: Domain,
     pub policy: Policy,
     pub anchor: HeaderClaim,
     pub source: &'a SourceScan,
-    pub account: &'a WalletAccount,
+    pub viewing: &'a FullViewingKey,
+    pub payout: NoteRecipient,
+}
+impl core::fmt::Debug for OrderContext<'_> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("OrderContext([REDACTED])")
+    }
 }
 
 pub struct PreparedOrder {
@@ -87,7 +92,8 @@ impl PreparedOrder {
             policy,
             anchor,
             source,
-            account,
+            viewing,
+            payout,
         } = context;
         if !policy.paid_only()
             || anchor.policy() != policy
@@ -111,7 +117,7 @@ impl PreparedOrder {
                 encryption: NoteEncryption::random()?,
             })
         };
-        let payout = output(account.private_receiver()?)?;
+        let payout = output(payout)?;
         let refund = output(maker.refund)?;
         let expiry = source
             .height
@@ -134,11 +140,7 @@ impl PreparedOrder {
         })?;
         let order_randomness = Secret32::random()?;
         let reservation_randomness = Secret32::random()?;
-        let pczt = Zeroizing::new(source.prepare_payment(
-            &account.source_viewing_key(),
-            &terms,
-            &order_randomness,
-        )?);
+        let pczt = Zeroizing::new(source.prepare_payment(viewing, &terms, &order_randomness)?);
         let inspected = crate::prepare::inspect_ironwood(&pczt, &terms, &order_randomness)?;
         let binding = PaymentBindingWitness::new(
             policy,

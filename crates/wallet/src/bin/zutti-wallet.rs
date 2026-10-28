@@ -429,7 +429,8 @@ fn order(
             policy,
             anchor,
             source: &scan,
-            account: &account,
+            viewing: &account.source_viewing_key(),
+            payout: account.private_receiver()?,
         },
         QuoteTerms {
             offer: id,
@@ -591,13 +592,15 @@ fn scan(
             .as_str()
             .ok_or("missing Ironwood anchor")?,
     )?;
-    let blocks = block.into_iter().map(|file| -> zutti_wallet::Result<Vec<u8>> {
-        let mut block_data = Vec::new();
-        fs::File::open(file)?
-            .take(2_000_001)
-            .read_to_end(&mut block_data)?;
-        Ok(block_data)
-    });
+    let blocks = block
+        .into_iter()
+        .map(|file| -> zutti_wallet::Result<Vec<u8>> {
+            let mut block_data = Vec::new();
+            fs::File::open(file)?
+                .take(2_000_001)
+                .read_to_end(&mut block_data)?;
+            Ok(block_data)
+        });
     let scan = zutti_wallet::source_notes::scan_ironwood_stream(
         &account.source_viewing_key(),
         height,

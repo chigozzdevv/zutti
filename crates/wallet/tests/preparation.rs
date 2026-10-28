@@ -283,14 +283,17 @@ fn prepared_order_binds_owned_receivers_and_survives_restore() {
             received_height: anchor.height().unwrap(),
         }],
     };
-    let prepare = || {
+    let viewing = taker.source_viewing_key();
+    let payout = taker.private_receiver().unwrap();
+    let prepare = |viewing: &orchard::keys::FullViewingKey, payout| {
         PreparedOrder::prepare(
             OrderContext {
                 domain: domain.clone(),
                 policy,
                 anchor: anchor.clone(),
                 source: &scan,
-                account: &taker,
+                viewing,
+                payout,
             },
             QuoteTerms {
                 offer: support::digest(91),
@@ -311,7 +314,7 @@ fn prepared_order_binds_owned_receivers_and_survives_restore() {
             .unwrap(),
         )
     };
-    let order = prepare().unwrap();
+    let order = prepare(&viewing, payout).unwrap();
     let reservation = order.reservation();
     assert_eq!(reservation.terms.receiver(), &maker.source_receiver());
     assert_eq!(
@@ -333,7 +336,21 @@ fn prepared_order_binds_owned_receivers_and_survives_restore() {
         restored.binding_witness().unwrap().evaluate().unwrap(),
         reservation.binding
     );
-    assert_ne!(prepare().unwrap().reservation().txid, reservation.txid);
+    assert_ne!(
+        prepare(&viewing, payout).unwrap().reservation().txid,
+        reservation.txid
+    );
+    assert!(prepare(&maker.source_viewing_key(), payout).is_err());
+    let alternate = maker.private_receiver().unwrap();
+    assert_eq!(
+        prepare(&viewing, alternate)
+            .unwrap()
+            .reservation()
+            .payout
+            .note
+            .recipient(),
+        alternate
+    );
     let mut changed = bytes.clone();
     changed.push(0);
     assert!(PreparedOrder::from_bytes(&changed).is_err());

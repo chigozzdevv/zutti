@@ -211,6 +211,42 @@ impl<R: PaymentRecord> PaymentStateJournal<R> {
         let signed = self.apply_signatures(signatures)?;
         self.save_stage(1, &signed)
     }
+    pub fn record_signed_pczt(&self, bytes: &[u8]) -> Result<()> {
+        if self.state()? != PaymentState::Signing {
+            return Err(Error::PaymentState);
+        }
+        if bytes.is_empty() || bytes.len() > MAX_PCZT {
+            return Err(Error::Pczt);
+        }
+        let pczt = Pczt::parse(bytes).map_err(|_| Error::Pczt)?;
+        let effects = pczt.clone().into_effects().map_err(|_| Error::Pczt)?;
+        use zcash_primitives::transaction::txid::{TxIdDigester, to_txid};
+        let txid = Digest(
+            *to_txid(
+                effects.version(),
+                effects.consensus_branch_id(),
+                &effects.digest(TxIdDigester),
+            )
+            .as_ref(),
+        );
+        if txid != self.txid {
+            return Err(Error::Signatures);
+        }
+        let unsigned = Pczt::parse(&self.prepared).map_err(|_| Error::Pczt)?;
+        let signatures: Vec<_> = extract_orchard_spend_auth_signatures(&pczt)
+            .into_iter()
+            .filter(|signature| {
+                signature.value_pool() == orchard::ValuePool::Ironwood
+                    && unsigned
+                        .ironwood()
+                        .actions()
+                        .get(signature.action_index())
+                        .is_some_and(|action| action.spend().spend_auth_sig().is_none())
+            })
+            .collect();
+        let signed = self.apply_signatures(&signatures)?;
+        self.save_stage(1, &signed)
+    }
     fn apply_signatures(&self, signatures: &[SpendAuthSignature]) -> Result<Zeroizing<Vec<u8>>> {
         let pczt = Pczt::parse(&self.prepared).map_err(|_| Error::Pczt)?;
         let required: Vec<_> = pczt

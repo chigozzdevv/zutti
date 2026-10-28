@@ -29,6 +29,89 @@ fn signatures(fixture: &payment::Fixture) -> Vec<SpendAuthSignature> {
         .filter(|s| s.action_index() == fixture.spend)
         .collect()
 }
+fn signed_pczt(fixture: &payment::Fixture) -> Vec<u8> {
+    let mut signer = Signer::new(fixture.pczt.clone()).unwrap();
+    signer
+        .sign_ironwood(
+            StdRng::from_seed([44; 32]),
+            fixture.spend,
+            &SpendAuthorizingKey::from(&fixture.key),
+        )
+        .unwrap();
+    signer.finish().serialize().unwrap()
+}
+
+#[test]
+fn external_wallet_pczt_preserves_the_payment_and_survives_restart() {
+    let (fixture, record) = payment_swap::fixture();
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("payment");
+    let domain = record.domain();
+    let swap = record.id().unwrap();
+    let journal = PaymentJournal::create(
+        &path,
+        support::secret(200),
+        record,
+        fixture.pczt.clone().serialize().unwrap(),
+    )
+    .unwrap();
+    let signed = signed_pczt(&fixture);
+    assert!(journal.record_signed_pczt(&signed).is_err());
+    journal.begin_signing().unwrap();
+    assert!(journal.record_signed_pczt(&[]).is_err());
+    assert!(
+        journal
+            .record_signed_pczt(&vec![0; zutti_wallet::prepare::MAX_PCZT + 1])
+            .is_err()
+    );
+    assert!(
+        journal
+            .record_signed_pczt(&fixture.pczt.clone().serialize().unwrap())
+            .is_err()
+    );
+    assert!(
+        journal
+            .record_signed_pczt(&signed_pczt(&payment::fixture(true)))
+            .is_err()
+    );
+    assert_eq!(journal.state().unwrap(), PaymentState::Signing);
+    journal.record_signed_pczt(&signed).unwrap();
+    assert_eq!(journal.state().unwrap(), PaymentState::Signed);
+    let txid = journal.txid();
+    assert!(journal.record_signed_pczt(&signed).is_err());
+    drop(journal);
+    let restored = PaymentJournal::open(&path, support::secret(200), domain, swap).unwrap();
+    assert_eq!(restored.txid(), txid);
+    assert_eq!(
+        restored.signed_pczt().unwrap().as_slice(),
+        signed.as_slice()
+    );
+    assert!(matches!(restored.finalize(), Err(Error::Transaction)));
+}
+
+#[test]
+fn external_wallet_cannot_replace_effects_with_another_validly_signed_payment() {
+    let (fixture, record) = payment_swap::fixture();
+    let other = payment::fixture_custom(false, "0.001", 4_465_101, |input| {
+        input.domain = record.terms().domain().clone();
+        input.payout = record.terms().payout();
+        input.refund = record.terms().refund();
+        input.nonce = support::digest(212);
+    });
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("payment");
+    let journal = PaymentJournal::create(
+        &path,
+        support::secret(200),
+        record,
+        fixture.pczt.serialize().unwrap(),
+    )
+    .unwrap();
+    journal.begin_signing().unwrap();
+    assert!(journal.record_signed_pczt(&signed_pczt(&other)).is_err());
+    assert_eq!(journal.state().unwrap(), PaymentState::Signing);
+    assert!(!path.join("signed.backup").exists());
+}
 #[test]
 fn restart_retains_fixed_payment_and_does_not_repeat_signing() {
     let (fixture, record) = payment_swap::fixture();
