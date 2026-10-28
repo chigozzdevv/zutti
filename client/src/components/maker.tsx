@@ -13,7 +13,7 @@ const defaults: MakerStartOptions = {
   limits: {
     per_trade: { ZEC: { min: "0.001", max: "0.1" }, USDC: { min: "0.1", max: "10" } },
     max_committed: { ZEC: "0", USDC: "10" },
-    max_fee_per_swap: { ZEC: "0.001", USDC: "0", ETH: "0.005" },
+    max_fee_per_swap: { ZEC: "0", USDC: "0", ETH: "0.005" },
     max_active_swaps: 1,
   },
 };
@@ -329,7 +329,7 @@ export function Maker({ connected }: { connected: boolean }) {
                       }
                     />
                   </label>
-                  {(["ZEC", "USDC", "ETH"] as const).map((asset) => (
+                  {(["USDC", "ETH"] as const).map((asset) => (
                     <label key={asset}>
                       Max fee ({asset})
                       <input
@@ -406,12 +406,6 @@ export function Maker({ connected }: { connected: boolean }) {
                   : "Confirming deposit…"}
             </div>
           )}
-          <dl className="maker-wallet-balance">
-            <div>
-              <dt>ZEC balance</dt>
-              <dd>{snapshot?.inventory?.available_zec ?? "—"}</dd>
-            </div>
-          </dl>
         </section>
       </div>
       <section className="maker-trades" aria-labelledby="maker-trades-title">

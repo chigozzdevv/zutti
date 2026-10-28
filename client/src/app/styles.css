@@ -1239,22 +1239,6 @@ svg {
   font-size: 11px;
   padding: 11px 13px;
 }
-.maker-wallet-balance {
-  margin-top: 25px;
-  border-top: 1px solid #303030;
-  padding-top: 18px;
-  font-size: 11px;
-}
-.maker-wallet-balance > div {
-  display: flex;
-  justify-content: space-between;
-}
-.maker-wallet-balance dt {
-  color: #999999;
-}
-.maker-wallet-balance dd {
-  margin: 0;
-}
 .maker-deposit-status {
   font-size: 11px;
   color: #bcbcbc;
