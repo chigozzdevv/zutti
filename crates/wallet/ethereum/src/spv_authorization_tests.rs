@@ -36,6 +36,81 @@ fn genuine_source_receipt_can_be_extended_by_locally_verified_headers() {
 use crate::test_support::{fixture, support};
 use risc0_zkvm::{FakeReceipt, ReceiptClaim};
 
+#[test]
+fn external_signing_rechecks_freshness_before_request_and_response() {
+    use crate::test_support::payment;
+    use orchard::keys::SpendAuthorizingKey;
+    use pczt::roles::signer::Signer;
+    use rand::{SeedableRng, rngs::StdRng};
+    use zutti_wallet::payment::PaymentState;
+    let record = record();
+    let payment = payment::fixture_custom(false, "0.001", 4_465_101, |input| {
+        input.domain = record.terms().domain().clone();
+        input.payout = record.terms().payout();
+        input.refund = record.terms().refund();
+    });
+    let height = record.terms().window().anchor_height();
+    let domain = record.terms().domain();
+    let reservation = VerifiedReservation {
+        chain_id: 11155111,
+        pool: Address::from(domain.pool()),
+        escrow: B256::from(record.reservation().escrow.commitment().unwrap().0),
+        execution_hash: B256::repeat_byte(1),
+        execution_height: 1,
+        finalized_slot: 1,
+        execution_timestamp: 100,
+    };
+    let root = tempfile::tempdir().unwrap();
+    let journal = SpvPaymentJournal::create(
+        &root.path().join("payment"),
+        support::secret(200),
+        record,
+        payment.pczt.clone().serialize().unwrap(),
+    )
+    .unwrap();
+    let authorized = AuthorizedSpvPayment {
+        journal: &journal,
+        verified: VerifiedSpvPayment {
+            domain: journal.record().domain(),
+            swap: journal.record().id().unwrap(),
+            txid: journal.txid(),
+            window: journal.record().terms().window(),
+            reservation,
+            checked_at: 100,
+            source_height: height,
+            source_time: 100,
+            minimum_blocks: 1,
+            maximum_source_age: 90,
+            maximum_ethereum_age: 90,
+            future_drift: 30,
+        },
+    };
+    assert!(authorized.signing_request(191).is_err());
+    assert_eq!(journal.state().unwrap(), PaymentState::Prepared);
+    assert_eq!(
+        authorized.signing_request(100).unwrap(),
+        journal.unsigned_pczt()
+    );
+    assert_eq!(
+        authorized.signing_request(100).unwrap(),
+        journal.unsigned_pczt()
+    );
+    let mut signer = Signer::new(payment.pczt).unwrap();
+    signer
+        .sign_ironwood(
+            StdRng::from_seed([44; 32]),
+            payment.spend,
+            &SpendAuthorizingKey::from(&payment.key),
+        )
+        .unwrap();
+    let signed = signer.finish().serialize().unwrap();
+    assert!(authorized.reconcile_pczt(191, &signed).is_err());
+    assert_eq!(journal.state().unwrap(), PaymentState::Signing);
+    authorized.reconcile_pczt(100, &signed).unwrap();
+    assert_eq!(journal.state().unwrap(), PaymentState::Signed);
+    assert!(authorized.signing_request(100).is_err());
+}
+
 fn record() -> SpvSwapRecord {
     SpvSwapRecord::from_reservation(&fixture::reservation(
         support::digest(52),

@@ -93,8 +93,10 @@ trait TreeNode: Hashable + Clone {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct SproutNode([u8; 32]);
 
+#[cfg(feature = "blocks")]
 #[derive(Debug, Clone)]
 pub(crate) struct SproutFrontier(Frontier<SproutNode, 29>);
+#[cfg(feature = "blocks")]
 impl SproutFrontier {
     pub(crate) fn root(&self) -> Digest {
         Digest(self.0.root().0)
@@ -109,6 +111,7 @@ impl SproutFrontier {
     }
 }
 
+#[cfg(feature = "blocks")]
 impl Canonical for SproutFrontier {
     fn encode(&self, writer: &mut Writer) -> zutti_protocol::Result<()> {
         encode_tree(&self.0, writer)
@@ -240,6 +243,7 @@ impl Default for CandidateTrees {
 }
 
 impl CandidateTrees {
+    #[cfg(feature = "blocks")]
     pub(crate) fn sprout_frontier(&self) -> SproutFrontier {
         SproutFrontier(self.sprout.clone())
     }

@@ -1,21 +1,21 @@
 #[cfg(feature = "blocks")]
 mod access_index;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod auth;
 #[cfg(feature = "authenticated")]
 pub mod authenticated;
 #[cfg(feature = "blocks")]
 pub mod authorization;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod block;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod bootstrap;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod chain_history;
 #[cfg(feature = "authenticated")]
 pub mod checkpoint;
 pub mod consensus;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod difficulty;
 pub mod history;
 pub mod index;
@@ -29,7 +29,7 @@ pub mod query;
 #[cfg(feature = "blocks")]
 pub mod range;
 mod sparse;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod spv;
 #[cfg(feature = "blocks")]
 pub mod spends;
@@ -43,13 +43,13 @@ pub mod subsidy;
 pub mod transaction;
 #[cfg(feature = "blocks")]
 pub mod transition;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod trees;
 #[cfg(feature = "blocks")]
 pub mod update;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod upgrade;
-#[cfg(feature = "blocks")]
+#[cfg(feature = "spv")]
 pub mod work;
 
 pub use index::{CandidateIndex, IndexContext, IndexProof, IndexSnapshot, Observation};

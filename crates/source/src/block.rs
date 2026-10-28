@@ -220,6 +220,7 @@ impl ParsedBlock {
             transactions,
         })
     }
+    #[cfg(feature = "blocks")]
     pub(crate) fn encoded(&self) -> Result<Vec<u8>> {
         let mut bytes = Vec::new();
         self.header.write(&mut bytes).map_err(|_| Error::Block)?;

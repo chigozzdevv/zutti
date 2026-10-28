@@ -1,5 +1,6 @@
 use crate::{ConsensusConfig, Evidence, ReservationRequest, VerifiedReservation};
 use alloy::primitives::{Address, B256};
+#[cfg(feature = "spv-fulfillment")]
 use pczt::roles::signer::SpendAuthSignature;
 use risc0_zkvm::{
     Groth16Receipt, Groth16ReceiptVerifierParameters, InnerReceipt, MaybePruned, Receipt,
@@ -9,7 +10,9 @@ use zutti_protocol::{
     Digest, domain::Domain, encoding::Canonical, order::OrderTerms, private_note::NoteRecipient,
 };
 use zutti_source::spv::{HeaderClaim, Policy};
-use zutti_wallet::{payment::SpvPaymentJournal, spv_pool::recovery::SpvSwapRecord};
+#[cfg(feature = "spv-fulfillment")]
+use zutti_wallet::payment::SpvPaymentJournal;
+use zutti_wallet::spv_pool::recovery::SpvSwapRecord;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -50,9 +53,17 @@ pub struct SpvSourceEvidence<'a> {
     pub headers_from_anchor: &'a [Vec<u8>],
     pub continuation: &'a [Vec<u8>],
 }
+#[cfg(feature = "spv-fulfillment")]
 pub struct AuthorizedSpvPayment<'a> {
     journal: &'a SpvPaymentJournal,
+    verified: VerifiedSpvPayment,
+}
+pub struct VerifiedSpvPayment {
+    domain: Digest,
+    swap: Digest,
+    txid: Digest,
     reservation: VerifiedReservation,
+    window: zutti_protocol::policy::PaymentWindow,
     checked_at: u64,
     source_height: u32,
     source_time: u64,
@@ -112,6 +123,7 @@ impl SpvAuthorizationProfile {
             ),
         })
     }
+    #[cfg(feature = "spv-fulfillment")]
     pub fn verify<'a>(
         &self,
         journal: &'a SpvPaymentJournal,
@@ -120,11 +132,29 @@ impl SpvAuthorizationProfile {
         source: SpvSourceEvidence<'_>,
         now: u64,
     ) -> Result<AuthorizedSpvPayment<'a>> {
-        let record = journal.record();
+        journal.state()?;
+        let verified = self.verify_record(
+            journal.record(),
+            journal.unsigned_pczt(),
+            consent,
+            ethereum,
+            source,
+            now,
+        )?;
+        Ok(AuthorizedSpvPayment { journal, verified })
+    }
+    pub fn verify_record(
+        &self,
+        record: &SpvSwapRecord,
+        pczt: &[u8],
+        consent: SpvPaymentConsent<'_>,
+        ethereum: &Evidence,
+        source: SpvSourceEvidence<'_>,
+        now: u64,
+    ) -> Result<VerifiedSpvPayment> {
         let request = self.reservation_request(record)?;
         verify_consent(record, &consent)?;
-        journal.state()?;
-        record.inspect_payment(journal.unsigned_pczt())?;
+        let payment = record.inspect_payment(pczt)?;
         retained_funding(record)?;
         verify_receipt(
             self.policy.program(),
@@ -174,9 +204,12 @@ impl SpvAuthorizationProfile {
             return Err(Error::Source);
         }
         let reservation = crate::verify(&self.ethereum, &request, ethereum, now)?;
-        Ok(AuthorizedSpvPayment {
-            journal,
+        Ok(VerifiedSpvPayment {
+            domain: record.domain(),
+            swap: record.id().map_err(|_| Error::Profile)?,
+            txid: payment.txid(),
             reservation,
+            window: record.terms().window(),
             checked_at: now,
             source_height: height,
             source_time: time,
@@ -234,8 +267,17 @@ fn source_time(timestamp: u64, maximum_age: u64, future_drift: u64, now: u64) ->
     }
     Ok(())
 }
-impl AuthorizedSpvPayment<'_> {
-    fn fresh(&self, now: u64) -> Result<()> {
+impl VerifiedSpvPayment {
+    pub const fn domain(&self) -> Digest {
+        self.domain
+    }
+    pub const fn swap(&self) -> Digest {
+        self.swap
+    }
+    pub const fn txid(&self) -> Digest {
+        self.txid
+    }
+    pub fn fresh(&self, now: u64) -> Result<()> {
         if now < self.checked_at
             || now
                 > self
@@ -251,12 +293,15 @@ impl AuthorizedSpvPayment<'_> {
             self.future_drift,
             now,
         )?;
-        self.journal
-            .record()
-            .terms()
-            .window()
+        self.window
             .require_remaining(self.source_height, self.minimum_blocks)
             .map_err(|_| Error::Source)
+    }
+}
+#[cfg(feature = "spv-fulfillment")]
+impl AuthorizedSpvPayment<'_> {
+    fn fresh(&self, now: u64) -> Result<()> {
+        self.verified.fresh(now)
     }
     pub fn sign<F>(&self, now: u64, signer: F) -> Result<()>
     where
@@ -271,6 +316,20 @@ impl AuthorizedSpvPayment<'_> {
     pub fn reconcile_signatures(&self, now: u64, signatures: &[SpendAuthSignature]) -> Result<()> {
         self.fresh(now)?;
         self.journal.record_signatures(signatures)?;
+        Ok(())
+    }
+    pub fn signing_request(&self, now: u64) -> Result<&[u8]> {
+        self.fresh(now)?;
+        match self.journal.state()? {
+            zutti_wallet::payment::PaymentState::Prepared => self.journal.begin_signing()?,
+            zutti_wallet::payment::PaymentState::Signing => {}
+            _ => return Err(Error::Wallet(zutti_wallet::Error::PaymentState)),
+        }
+        Ok(self.journal.unsigned_pczt())
+    }
+    pub fn reconcile_pczt(&self, now: u64, signed: &[u8]) -> Result<()> {
+        self.fresh(now)?;
+        self.journal.record_signed_pczt(signed)?;
         Ok(())
     }
     pub fn finalize(&self) -> Result<Digest> {
@@ -288,7 +347,7 @@ impl AuthorizedSpvPayment<'_> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "spv-fulfillment"))]
 #[path = "spv_authorization_tests.rs"]
 mod tests;
 
