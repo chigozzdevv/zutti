@@ -39,7 +39,7 @@
       "gas_used": 16803589
     }
   },
-  "status": "paid-swap-completed-withdrawal-pending",
+  "status": "completed-testnet-swap-and-withdrawal",
   "source_profile": "source-profile.json",
   "program_verification_evidence": "../../source/optimized-admission/proof.json",
   "maker_deposit_applied": true,

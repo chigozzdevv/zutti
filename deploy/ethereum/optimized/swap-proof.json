@@ -11,15 +11,30 @@
     "asset": "USDC",
     "amount": "1"
   },
+  "swap_executed": true,
   "native_zcash_proof_generated": true,
   "reservation_applied": true,
   "reservation_finality_verified": true,
   "zec_signed": true,
   "zec_broadcast": true,
-  "zec_payment_mined": true,
-  "swap_executed": true,
-  "private_payout_applied": true,
-  "withdrawal_applied": false,
+  "maker_zec_receipt": {
+    "amount_units": 1000000,
+    "block": "fcfcdbdfab0ee1eb7a9671b31e69ad055d9831ac60363fc013bf4e7ae9110000",
+    "height": 4550624,
+    "ironwood_notes": 1,
+    "transaction_validity_verified": false
+  },
+  "taker_zec_change": {
+    "amount_units": 97980000,
+    "block": "fcfcdbdfab0ee1eb7a9671b31e69ad055d9831ac60363fc013bf4e7ae9110000",
+    "height": 4550624,
+    "ironwood_notes": 1,
+    "transaction_validity_verified": false
+  },
+  "sdk_swap_settled": true,
+  "sdk_withdrawal_confirmed": true,
+  "private_payout_finality_verified": true,
+  "private_payout_ownership_verified": true,
   "source_payment": {
     "chain": "zcash",
     "block_hash": "0000182f845af53f41a26f54f3230837fc11e2e74f1688a2126af85d357d9b40",
@@ -27,9 +42,62 @@
     "transaction_id": "6f09a56adaddf139de7fa3eedceff685b9a9c623800aef444cff9e2d4dcf3048",
     "policy_id": "ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e46328"
   },
-  "reservation_transaction": {
-    "transaction_id": "0x6c4576046d81f61eabc0b24070b7cb94ca2f7a9f0013c2a8fe95abf1b9664d00",
-    "height": 12011609
+  "pool_settlement": {
+    "chain": "ethereum",
+    "block_hash": "0x8882d31a4393b0e0e99a6080adb39b23cb6790e10d557339ec37021bcff5372a",
+    "height": "12012208",
+    "transaction_id": "0xfce1b6c65968e3ef3964ad38672d1f3ebf2f44272d795da526138a50c811d9ea",
+    "policy_id": "ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e46328"
+  },
+  "withdrawal": {
+    "operation_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+    "kind": "withdrawal",
+    "amount": {
+      "asset": "USDC",
+      "amount": "1"
+    },
+    "output_mode": "public_erc20",
+    "to": "0xFa48895f139df6A9fbfaf85dBCfCD043C343AD3d",
+    "evidence": {
+      "chain": "ethereum",
+      "block_hash": "0xfea058f857929d927495608be1e404902476d4e27e9fc44a4c1ebf94b0eac09a",
+      "height": "12012387",
+      "transaction_id": "0x9e274d999a848138d4ff045e3dec7803ec9af425f974ae5400eb5064c1f8475e",
+      "policy_id": "ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e46328"
+    },
+    "confirmed_at": 1793192192023
+  },
+  "transactions": {
+    "fast1-maker-reservation": {
+      "transaction_id": "0x6c4576046d81f61eabc0b24070b7cb94ca2f7a9f0013c2a8fe95abf1b9664d00",
+      "height": 12011609,
+      "block_hash": "0x5958243fcbe70d4bd45421051d7bcdb29261ed65eefebe32b82ac53589d53717",
+      "gas_used": 1257826
+    },
+    "fast1-source-payment-submit": {
+      "transaction_id": "0xd9352e7391d1279e625c6d0b310522cf483733e324181d56f77eff17a74a4b40",
+      "height": 12012149,
+      "block_hash": "0xa78c3c1bce6c5ef7bcfdb8892649dc4798c966530adcfd50cea1973291ca8719",
+      "gas_used": 1940014
+    },
+    "fast1-source-payment-finalize": {
+      "transaction_id": "0x20b08da3a351ed9880e5c56c18830108cbeb919b8f6f819291fcf042a87e741c",
+      "height": 12012161,
+      "block_hash": "0x964f9e6b0c3981d9f56af9b4cca5664c573a443ddafd620bd1490b65ec6bb8d4",
+      "gas_used": 288946
+    },
+    "fast1-swap-payout": {
+      "transaction_id": "0xfce1b6c65968e3ef3964ad38672d1f3ebf2f44272d795da526138a50c811d9ea",
+      "height": 12012208,
+      "block_hash": "0x8882d31a4393b0e0e99a6080adb39b23cb6790e10d557339ec37021bcff5372a",
+      "gas_used": 1141016
+    },
+    "fast1-taker-withdrawal": {
+      "transaction_id": "0x9e274d999a848138d4ff045e3dec7803ec9af425f974ae5400eb5064c1f8475e",
+      "height": 12012387,
+      "block_hash": "0xfea058f857929d927495608be1e404902476d4e27e9fc44a4c1ebf94b0eac09a",
+      "gas_used": 435576
+    }
   },
   "proofs": [
     {
@@ -279,13 +347,172 @@
           "sha256": "d9aae38a3dcb9836f5559e142205b5d0df50d7e4c524f62e9e200ba2f13a1102"
         }
       }
+    },
+    {
+      "kind": "withdrawal",
+      "program": "../pool-program.elf",
+      "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+      "cycles": 6380518,
+      "receipt_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74835e12deae",
+      "fee_wei": "15866666666666",
+      "ceiling_wei": "35000000000000",
+      "submitted_at": 1793190308,
+      "fulfilled_at": 1793191307,
+      "submission_to_fulfillment_seconds": 999,
+      "files": {
+        "receipt": {
+          "path": "withdrawal-receipt.bin",
+          "sha256": "0f650d74196e5c6e009d4eca43e70aeb70c76525823249faf3912ddbd8d2c193"
+        },
+        "seal": {
+          "path": "withdrawal-seal.bin",
+          "sha256": "50583670f2ec09d88fafb7b9043e4195344a9016f320568bae6f3cd077d39ff2"
+        },
+        "journal": {
+          "path": "withdrawal-journal.bin",
+          "sha256": "3ca8eb4aa06aaffaf46fb74632cceedd8626a18027b21e758ad5dc58737a44e2"
+        },
+        "witness": {
+          "path": "withdrawal-witness.bin",
+          "sha256": "6b25cf5e7b2eea9fff34b3e51c51078ca80cde42acc09d331b3ecce2a379826b"
+        }
+      }
     }
   ],
-  "total_proof_fees_wei": "133933333333330",
-  "pending_requests": [
+  "total_proof_fees_wei": "149799999999996",
+  "total_proof_cap_wei": "350000000000000",
+  "per_request_cap_wei": "35000000000000",
+  "metrics": {
+    "accepted_offer_saved_at_ms": 1793180540734,
+    "reservation_finality_verified_at_ms": 1793183008382,
+    "private_payout_finality_verified_at_ms": 1793190269374,
+    "withdrawal_finality_verified_at_ms": 1793192192023,
+    "accept_to_private_payout_seconds": 9728.64,
+    "accept_to_withdrawal_seconds": 11651.289,
+    "accept_to_finalized_reservation_seconds": 2467.648,
+    "timing_basis": "Local persisted acceptance/status times and independently verified completion times; proof fulfillment times are recorded separately"
+  },
+  "statuses": [
     {
-      "name": "fast1-withdrawal-1",
-      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74835e12deae"
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": null,
+      "stage": "preparing",
+      "message": "Proving the prepared shielded payment",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "1",
+      "saved_at_ms": 1793180553399
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": null,
+      "stage": "awaiting_reservation",
+      "message": "Checking finalized maker inventory",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "2",
+      "saved_at_ms": 1793181196167
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "reserved",
+      "message": "USDC reservation finalized and independently verified",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "3",
+      "saved_at_ms": 1793183008382
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "awaiting_authorization",
+      "message": "Checking current Zcash headers before signing",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "4",
+      "saved_at_ms": 1793183008383
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "payment_confirming",
+      "message": "Shielded Zcash payment broadcast",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "5",
+      "saved_at_ms": 1793183039021
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "claimable",
+      "message": "Proving confirmed payment and source admission",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "6",
+      "saved_at_ms": 1793183481568
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "settling",
+      "message": "Submitting the verified private USDC payout",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "7",
+      "saved_at_ms": 1793189188479
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "settled",
+      "message": "Private USDC payout finalized and ownership verified",
+      "blockers": [],
+      "next_action": "none",
+      "sequence": "8",
+      "saved_at_ms": 1793190269376
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "preparing",
+      "message": "Verifying the owned USDC note before withdrawal",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "9",
+      "saved_at_ms": 1793190269875
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "submitted",
+      "message": "Submitting the proven public USDC withdrawal",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "10",
+      "saved_at_ms": 1793191355690
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "confirming",
+      "message": "Authenticating the USDC transfer against Ethereum finality",
+      "blockers": [],
+      "next_action": "wait",
+      "sequence": "11",
+      "saved_at_ms": 1793191373847
+    },
+    {
+      "operation_id": "9d032a62e948514078b5c619647dddd7df67e1483f33c5e66f4e6146a3507d11",
+      "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+      "stage": "confirmed",
+      "message": "USDC withdrawal finalized and transfer independently verified",
+      "blockers": [],
+      "next_action": "none",
+      "sequence": "12",
+      "saved_at_ms": 1793192192024
     }
   ],
   "testnet_witnesses_public": true,
@@ -293,36 +520,39 @@
   "source_bootstrap": "operator-selected-checkpoint",
   "source_validity": "SPV with miner transaction-validity assumption",
   "automatic_nonpayment_refunds": false,
-  "private_payout_finality_verified": true,
-  "private_payout_ownership_verified": true,
-  "sdk_swap_settled": true,
-  "sdk_withdrawal_confirmed": false,
-  "pool_settlement": {
-    "chain": "ethereum",
-    "block_hash": "0x8882d31a4393b0e0e99a6080adb39b23cb6790e10d557339ec37021bcff5372a",
-    "height": "12012208",
-    "transaction_id": "0xfce1b6c65968e3ef3964ad38672d1f3ebf2f44272d795da526138a50c811d9ea",
-    "policy_id": "ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e46328"
+  "unfunded_accepted_attempts_before_this_run": 1,
+  "cold_setup_included_in_swap_timing": false,
+  "balances_before": {
+    "height": 12011646,
+    "block_hash": "0x01742e8c61e6d4b6fe05996ce65bef3172cf1927bee78a3e6df801734481ac3b",
+    "usdc_units": {
+      "maker": "8000000",
+      "pool": "1000000",
+      "recipient": "1000000"
+    },
+    "observation": "RPC snapshot before the new payout; independently verified transfer evidence is retained separately"
   },
-  "maker_zec_receipt": {
-    "amount_units": 1000000,
-    "block": "fcfcdbdfab0ee1eb7a9671b31e69ad055d9831ac60363fc013bf4e7ae9110000",
-    "height": 4550624,
-    "ironwood_notes": 1,
-    "transaction_validity_verified": false
+  "balances_after": {
+    "height": 12012463,
+    "block_hash": "0x47021b11413f77ded6044430c8f1f9ec49f07838211c7d8ba30bfef5f520c998",
+    "usdc_units": {
+      "maker": "8000000",
+      "pool": "0",
+      "recipient": "2000000"
+    },
+    "observation": "RPC snapshot after independently verified finalized transfer"
   },
-  "taker_zec_change": {
-    "amount_units": 97980000,
-    "block": "fcfcdbdfab0ee1eb7a9671b31e69ad055d9831ac60363fc013bf4e7ae9110000",
-    "height": 4550624,
-    "ironwood_notes": 1,
-    "transaction_validity_verified": false
-  },
-  "metrics": {
-    "accepted_offer_saved_at_ms": 1793180540734,
-    "private_payout_finality_verified_at_ms": 1793190269374,
-    "accept_to_private_payout_seconds": 9728.64,
-    "cold_setup_included": false,
-    "withdrawal_finality_verified": false
+  "approval_closed": true,
+  "automatic_resubmissions": false,
+  "withdrawal_replay_check": "withdrawal-replay-check.json",
+  "comparison": {
+    "earlier_evidence": "../swap-proof.json",
+    "earlier_accept_to_private_payout_seconds": 11939.98,
+    "earlier_accept_to_withdrawal_seconds": 13103.702,
+    "private_payout_seconds_saved": 2211.34,
+    "full_run_seconds_saved": 1452.413,
+    "private_payout_reduction_percent": 18.52,
+    "full_run_reduction_percent": 11.084,
+    "limits": "One observed run per configuration. Source ranges, marketplace prices and fulfillment conditions differ; this is not a controlled latency benchmark."
   }
 }

@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "chain_id": 11155111,
+  "pool": "0xc32e6CD02D9F53508632Ef09Ab69bc2e2E36E84D",
+  "transaction_id": "0x9e274d999a848138d4ff045e3dec7803ec9af425f974ae5400eb5064c1f8475e",
+  "check": "Read-only eth_call of the exact spent withdrawal",
+  "replay_rejected": true,
+  "expected_error": "AlreadySpent()",
+  "error_selector": "0xd4d9b0fd",
+  "observation": "RPC simulation; finalized transfer evidence is retained separately"
+}

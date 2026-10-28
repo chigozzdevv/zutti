@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "network": "testnet",
-  "status": "paid-swap-completed-withdrawal-pending",
+  "status": "completed-testnet-swap-and-withdrawal",
   "deployment_allowed": true,
   "settlement_chain_id": "11155111",
   "pairs": [

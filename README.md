@@ -86,11 +86,18 @@ RISC Zero supplies the proof programs and Boundless supplies remote compute. The
 
 The owner runtime now checks source admission and finalized spendable inventory before quoting, reuses fresh inventory evidence, and continues a retained operation after caller interruption. Payout proving overlaps source admission; source admission still gates the payout transaction. Exact-job execution checks and per-step timings are persisted.
 
-The optimized admission guest reuses the genuine payment-window receipt instead of validating its header range again, reducing this stage from **1.912 billion to 242.9 million cycles**. Its [genuine proof](deploy/source/optimized-admission/proof.json) fulfilled in **85 seconds** for **0.00003 ETH**, passed local tamper checks and a read-only Sepolia RISC Zero router check, and reproduced the original admission journal. A [new optimized registry and pool](deploy/ethereum/optimized/sepolia.json) are deployed on Sepolia with their program identities, policy and domain checked. Fresh source admission and the 1-USDC maker deposit now have [three verified receipts](deploy/ethereum/optimized/setup-proof.json), costing 0.00004853 ETH total. The [fresh optimized run](deploy/ethereum/optimized/swap-proof.json) completed 0.01 Testnet ZEC → 1 private USDC through the SDK, with payout finality and ownership verified. Acceptance to verified private balance took 2 h 42 min 9 s; explicit withdrawal is in progress. The earlier completed swap retains its original deployment. Full optimized swap latency remains unmeasured; Zcash confirmation depth and Ethereum finality are unchanged.
+The optimized admission guest reuses the genuine payment-window receipt, reducing its work from **1.912 billion to 242.9 million cycles**. Its isolated [proof](deploy/source/optimized-admission/proof.json) fulfilled in 85 seconds. The [optimized registry and pool](deploy/ethereum/optimized/sepolia.json) now have a completed live SDK run: **0.01 Testnet ZEC → 1 private USDC → 1 USDC withdrawn**. All nine Boundless receipts verified, and the final ERC-20 transfer was independently authenticated against Ethereum finality. Proof fees, including source admission and the maker deposit, totaled **0.0001498 ETH**, within the approved 0.00035-ETH cap. [Evidence and timings](deploy/ethereum/optimized/swap-proof.json).
+
+| From accepting the offer | Earlier run | Optimized run |
+| --- | --- | --- |
+| Verified private USDC ownership | 3 h 19 min | 2 h 42 min |
+| Finalized public withdrawal | 3 h 38 min | 3 h 14 min |
+
+The observed reductions were about 37 minutes to private ownership and 24 minutes through withdrawal. These are individual runs with different source ranges and marketplace conditions; deployment and wallet/source warm-up are excluded. The payment-evidence request still took **66 min 48 s**, so practical swap latency remains unresolved. Zcash confirmation depth and Ethereum finality are unchanged.
 
 ## Remaining work
 
-1. Measure a complete swap and withdrawal through the funded optimized deployment.
+1. Reduce payment-evidence latency and measure repeated complete swaps.
 2. Package the application and wallet connectors around the demonstrated headless flow.
 3. Operate and measure a continuous source feed and multiuser maker/prover service.
 4. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).
