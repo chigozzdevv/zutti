@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "network": "testnet",
-  "status": "native-payment-confirmed-claim-proofs-pending",
+  "status": "paid-swap-completed-withdrawal-pending",
   "deployment_allowed": true,
   "settlement_chain_id": "11155111",
   "pairs": [
@@ -89,7 +89,7 @@
   "source_proof_verified": true,
   "admission_proof_verified": true,
   "source_admitted": true,
-  "funded_swap": false,
+  "funded_swap": true,
   "contracts_deployed": true,
   "source_execution": {
     "cycles": 606090752,
