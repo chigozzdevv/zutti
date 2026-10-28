@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "network": "testnet",
-  "status": "source-admitted-and-funded-awaiting-finalized-readiness",
+  "status": "native-payment-confirmed-claim-proofs-pending",
   "deployment_allowed": true,
   "settlement_chain_id": "11155111",
   "pairs": [
@@ -92,12 +92,12 @@
   "funded_swap": false,
   "contracts_deployed": true,
   "source_execution": {
-    "cycles": 117906153,
+    "cycles": 606090752,
     "host_assumptions": 0,
     "image_id": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
     "journal_matches": true,
     "paid_jobs": 0,
     "proof_generated": false,
-    "seconds": 2.323773875
+    "seconds": 9.690849292
   }
 }

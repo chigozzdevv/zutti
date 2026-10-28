@@ -39,12 +39,12 @@
       "gas_used": 16803589
     }
   },
-  "status": "source-admitted-and-funded-awaiting-finalized-readiness",
+  "status": "native-payment-confirmed-claim-proofs-pending",
   "source_profile": "source-profile.json",
   "program_verification_evidence": "../../source/optimized-admission/proof.json",
   "maker_deposit_applied": true,
   "swap_executed": false,
-  "ethereum_finality_verified": false,
+  "ethereum_finality_verified": true,
   "deployment_checked_via_rpc": true,
   "requires_live_freshness_check": true,
   "setup_transactions": {
@@ -72,5 +72,6 @@
       "block_hash": "0x76a8f5c7af7f0fba0e47ee7790ed0b798e1f3eba7a1406a7a2dca00001d6e0cb",
       "gas_used": 594290
     }
-  }
+  },
+  "swap_proof": "swap-proof.json"
 }

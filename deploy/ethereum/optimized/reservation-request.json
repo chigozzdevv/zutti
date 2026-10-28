@@ -1,0 +1,13 @@
+{
+  "chain_id": 11155111,
+  "pool": "0xc32e6cd02d9f53508632ef09ab69bc2e2e36e84d",
+  "pool_code_hash": "0x8f741ef4ada1bd89e60a6053bf5cc372a745ca600a85824be88cb0720bff9609",
+  "escrow": "0x82322bda4c38231209c088f5fdc8fcbf67a7dd5bdc303c5ea62cd02100251cd5",
+  "order_tag": "0x8bf016e4896b8577785f1a798587a2804fc66db9149c2228f9382302fe6d518e",
+  "nullifier": "0x7981ce30c83d33dbd3f0fb4d5dcdee6dd2de5ab4ed68175dc01c51d5346ab68d",
+  "source": {
+    "address": "0x0c611daadb31a15d81d53c428a1433959b509767",
+    "code_hash": "0xbd134fb5af8189f014dc3def1a40e80758c503ec003c6bb5ba46dccbd8f45548",
+    "checkpoint": "0xf9ab0a05683d750004e216d7b13d55d6a6cf31127e588e71684cd05c8be1194a"
+  }
+}

@@ -1,0 +1,201 @@
+{
+  "schema": 1,
+  "network": "testnet",
+  "swap_id": "9d219351201afa5dffe7c5c4b6710d10e9fcb395912705a35aaec5010bd70c17",
+  "direction": "ZEC/USDC",
+  "input": {
+    "asset": "ZEC",
+    "amount": "0.01"
+  },
+  "output": {
+    "asset": "USDC",
+    "amount": "1"
+  },
+  "native_zcash_proof_generated": true,
+  "reservation_applied": true,
+  "reservation_finality_verified": true,
+  "zec_signed": true,
+  "zec_broadcast": true,
+  "zec_payment_mined": true,
+  "swap_executed": false,
+  "private_payout_applied": false,
+  "withdrawal_applied": false,
+  "source_payment": {
+    "transaction_id": "6f09a56adaddf139de7fa3eedceff685b9a9c623800aef444cff9e2d4dcf3048",
+    "height": 4550604,
+    "confirmation_height": 4550624
+  },
+  "reservation_transaction": {
+    "transaction_id": "0x6c4576046d81f61eabc0b24070b7cb94ca2f7a9f0013c2a8fe95abf1b9664d00",
+    "height": 12011609
+  },
+  "proofs": [
+    {
+      "kind": "source",
+      "program": "../../source/testnet/source-program.elf",
+      "image_id": "7111cd64addd814408e2722139b630306a06b11fb65837dc5e5e318541ceea19",
+      "cycles": 606090752,
+      "receipt_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483671e931e",
+      "fee_wei": "16333333333333",
+      "ceiling_wei": "35000000000000",
+      "submitted_at": 1793177525,
+      "fulfilled_at": 1793177671,
+      "submission_to_fulfillment_seconds": 146,
+      "files": {
+        "receipt": {
+          "path": "source-receipt.bin",
+          "sha256": "906aff7b6a18d8bb3574202021b1bec2fc30b8a6731e6e947061822b58011636"
+        },
+        "seal": {
+          "path": "source-seal.bin",
+          "sha256": "b3d88143072bf8baa79fb0bc98d49a4b8abe837273845c2b2dd2ed0f8f4572fe"
+        },
+        "journal": {
+          "path": "source-journal.bin",
+          "sha256": "5cf5815ae8dda02ab60b28f4e04fe7c7e936f61a02e840be1e7f26ea3f7b0148"
+        },
+        "witness": {
+          "path": "source-witness.bin",
+          "sha256": "e71de37682aa891e87b8f6f83b9fdaab8bac032e96ce53b38efb060d3b77d071"
+        }
+      }
+    },
+    {
+      "kind": "admission",
+      "program": "../../source/optimized-admission/program.elf",
+      "image_id": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+      "cycles": 242692270,
+      "receipt_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483dcce479e",
+      "fee_wei": "16333333333333",
+      "ceiling_wei": "35000000000000",
+      "submitted_at": 1793177771,
+      "fulfilled_at": 1793177855,
+      "submission_to_fulfillment_seconds": 84,
+      "files": {
+        "receipt": {
+          "path": "admission-receipt.bin",
+          "sha256": "38fda5cd1e5259da1756d7869ed6bfafd171626f19e856dceea2854b35cb7d6f"
+        },
+        "seal": {
+          "path": "admission-seal.bin",
+          "sha256": "0e858b98fec2ced3fa39cd0e350991cb175405105ba8aebc2b809654dd57beaa"
+        },
+        "journal": {
+          "path": "admission-journal.bin",
+          "sha256": "2ae2e87ce5ee90e7f027544192d13bd0d29c428476ccdb31d20f3b98d7276fc7"
+        },
+        "witness": {
+          "path": "admission-witness.bin",
+          "sha256": "b3900c63caf56782c2a899eeafee7c074e763a76b0ec16a9b3257113535365e9"
+        }
+      }
+    },
+    {
+      "kind": "deposit",
+      "program": "../pool-program.elf",
+      "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+      "cycles": 4710627,
+      "receipt_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d748378fcc869",
+      "fee_wei": "15866666666666",
+      "ceiling_wei": "35000000000000",
+      "submitted_at": 1793177434,
+      "fulfilled_at": 1793177497,
+      "submission_to_fulfillment_seconds": 63,
+      "files": {
+        "receipt": {
+          "path": "deposit-receipt.bin",
+          "sha256": "4c21ac9b8991f2959a09ada154506d1f48f37bb58fbd6942f4f2e63304fd545c"
+        },
+        "seal": {
+          "path": "deposit-seal.bin",
+          "sha256": "8c11bc3f57485c7342309816b45cecfc9a6d65112dd10d16d59ffc4e9195b347"
+        },
+        "journal": {
+          "path": "deposit-journal.bin",
+          "sha256": "5e5ae15b1b09c8489418017ba477ec2d544ac5a8b2aecf92426724b91136d6dd"
+        },
+        "witness": {
+          "path": "deposit-witness.bin",
+          "sha256": "e6d26f4977637b37cad14d9955baa6d5bce4d0d212a166c5866b563997562b50"
+        }
+      }
+    },
+    {
+      "kind": "binding",
+      "program": "../binding-program.elf",
+      "image_id": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
+      "cycles": 54680197,
+      "receipt_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d74839fedb1e7",
+      "fee_wei": "15866666666666",
+      "ceiling_wei": "35000000000000",
+      "submitted_at": 1793180656,
+      "fulfilled_at": 1793181143,
+      "submission_to_fulfillment_seconds": 487,
+      "files": {
+        "receipt": {
+          "path": "binding-receipt.bin",
+          "sha256": "ec96371896d78c7c20455ef5c1307cc8a16726bf262dc80133a8a04ee0accb22"
+        },
+        "seal": {
+          "path": "binding-seal.bin",
+          "sha256": "c481f2fbd2eaacbc9b3a2980cd8fc17af426aea0186c03f3441abb3381cb776c"
+        },
+        "journal": {
+          "path": "binding-journal.bin",
+          "sha256": "88f07eafada008813a4c5f081315684464a81b6161e7ebd3d7bcaac353caeaa0"
+        },
+        "witness": {
+          "path": "binding-witness.bin",
+          "sha256": "9b8aa47e75abed1dd24fbda95902124a6468b6b9b8307d545b28cb5dd474a751"
+        }
+      }
+    },
+    {
+      "kind": "reservation",
+      "program": "../pool-program.elf",
+      "image_id": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+      "cycles": 383113256,
+      "receipt_verified": true,
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483b7f2a092",
+      "fee_wei": "16333333333333",
+      "ceiling_wei": "35000000000000",
+      "submitted_at": 1793181507,
+      "fulfilled_at": 1793181931,
+      "submission_to_fulfillment_seconds": 424,
+      "files": {
+        "receipt": {
+          "path": "reservation-receipt.bin",
+          "sha256": "616fc8726ad2c40f57bb0c95e6ad35d5e33c5f8c727d1f9e830016b84a7b8f54"
+        },
+        "seal": {
+          "path": "reservation-seal.bin",
+          "sha256": "c1b9f805d8c8e00986b875d00f220c1723b50597f91f3734d5ec6cb8129762ae"
+        },
+        "journal": {
+          "path": "reservation-journal.bin",
+          "sha256": "576c293e33adf06e0b1793e0b45390f22cd51ac06fdbfc16780ced1ad7c49463"
+        },
+        "witness": {
+          "path": "reservation-witness.bin",
+          "sha256": "eab03955e3ce8627bec456e0430ea78baae733f90938588b13e0b0b32b4e7669"
+        }
+      }
+    }
+  ],
+  "total_proof_fees_wei": "80733333333331",
+  "pending_requests": [
+    {
+      "name": "fast1-window-1",
+      "request_id": "0x68f4482fd6d407aba396080bc8bcf1d3957d7483c3fd9441"
+    }
+  ],
+  "testnet_witnesses_public": true,
+  "signing_and_viewing_keys_local": true,
+  "source_bootstrap": "operator-selected-checkpoint",
+  "source_validity": "SPV with miner transaction-validity assumption",
+  "automatic_nonpayment_refunds": false
+}
