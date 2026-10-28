@@ -73,5 +73,6 @@
       "gas_used": 594290
     }
   },
-  "swap_proof": "swap-proof.json"
+  "swap_proof": "swap-proof.json",
+  "runtime_verification": "deployment-check.json"
 }

@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "chain_id": 11155111,
+  "evidence": "readiness-evidence.json",
+  "execution_height": 12011382,
+  "contracts": {
+    "registry": {
+      "address": "0x0c611DAAdB31A15d81D53C428a1433959B509767",
+      "source": "contracts/src/SpvRegistry.sol",
+      "runtime_matches_compiled_artifact": true,
+      "runtime_authenticated_by_state_proof": true,
+      "code_hash": "0xbd134fb5af8189f014dc3def1a40e80758c503ec003c6bb5ba46dccbd8f45548",
+      "runtime_bytes": 5775,
+      "immutables": {
+        "verifier": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+        "imageId": "836c0eb9c89fd9b37d986d65eb6c5e646f5e03f0b2611ddce16fc9520011228c",
+        "policy": "ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e46328",
+        "confirmations": 10,
+        "minimumHeight": 4550265,
+        "minimumWork": "000000000000000000000000000000000000000000000000000000000224eb57",
+        "observationPeriod": 120,
+        "maximumAge": 7200,
+        "futureDrift": 300
+      }
+    },
+    "pool": {
+      "address": "0xc32e6CD02D9F53508632Ef09Ab69bc2e2E36E84D",
+      "source": "contracts/src/SpvPool.sol",
+      "runtime_matches_compiled_artifact": true,
+      "runtime_authenticated_by_state_proof": true,
+      "code_hash": "0x8f741ef4ada1bd89e60a6053bf5cc372a745ca600a85824be88cb0720bff9609",
+      "runtime_bytes": 8191,
+      "immutables": {
+        "token": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+        "verifier": "0xb121b667dd2cf27f95f9f5107137696f56f188f6",
+        "source": "0x0c611DAAdB31A15d81D53C428a1433959B509767",
+        "bindingImage": "f0b9a294dda4e8ae4d91df238e7f78fd30070e69c96700620325ff8b31fb7403",
+        "minimumRemaining": 64,
+        "imageId": "f9ef1c53dd322376c6ab32bcd928f4563e9b2ee5bc9cf93e05ecbe730aed8f89",
+        "domain": "3c062f84d3c2a22614398af31c84f1ee7d7f26d5b6b1d0f0920859f242d920a9"
+      }
+    }
+  }
+}
