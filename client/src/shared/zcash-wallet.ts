@@ -111,9 +111,15 @@ export class ZcashWallet {
   private pending = false;
   private revision = 0;
   private active_provider: EthereumProvider | null = null;
+  private readonly storage: Pick<Storage, "getItem" | "setItem" | "removeItem"> | undefined;
+  private domain: string | null = null;
 
-  constructor(provider: () => EthereumProvider | null) {
+  constructor(
+    provider: () => EthereumProvider | null,
+    storage?: Pick<Storage, "getItem" | "setItem" | "removeItem">,
+  ) {
     this.provider = provider;
+    this.storage = storage;
   }
   snapshot = (): ZcashState => this.current;
   subscribe = (listener: () => void): (() => void) => {
@@ -131,12 +137,64 @@ export class ZcashWallet {
     this.active_provider = null;
   }
   disconnect = (): void => {
+    this.remember(null);
     this.revision++;
     this.detach();
     this.update({ account: null, error: null });
   };
   stop(): void {
-    this.disconnect();
+    this.revision++;
+    this.detach();
+    this.update({ account: null, error: null });
+  }
+  private remember(value: ZcashAccount | null): void {
+    if (!this.domain) return;
+    try {
+      if (value) this.storage?.setItem(`zutti:zcash:${this.domain}`, JSON.stringify(value));
+      else this.storage?.removeItem(`zutti:zcash:${this.domain}`);
+    } catch {
+      return;
+    }
+  }
+
+  async restore(domain: string): Promise<void> {
+    if (this.pending || this.current.account || !encoded(domain, 32)) return;
+    const provider = this.provider();
+    if (!provider || !this.storage) return;
+    let cached: ZcashAccount;
+    try {
+      const value = this.storage.getItem(`zutti:zcash:${domain}`);
+      if (!value) return;
+      cached = account(JSON.parse(value), domain);
+    } catch {
+      return;
+    }
+    this.domain = domain;
+    this.pending = true;
+    const revision = ++this.revision;
+    this.update({ pending: true });
+    try {
+      const installed = await provider.request({ method: "wallet_getSnaps" });
+      const snap = object(installed) ? installed[zutti_snap] : null;
+      if (!object(snap) || snap.enabled !== true || snap.blocked === true)
+        throw new Error("Reconnect the Zutti Snap.");
+      const value = await provider.request({
+        method: "wallet_invokeSnap",
+        params: {
+          snapId: zutti_snap,
+          request: { method: "zutti_restoreAccount", params: { account: JSON.stringify(cached) } },
+        },
+      });
+      if (revision !== this.revision || provider !== this.provider()) return;
+      this.active_provider = provider;
+      provider.on?.("disconnect", this.disconnect);
+      this.update({ account: account(value, domain), error: null });
+    } catch (error) {
+      if (revision === this.revision) this.update({ account: null, error: failure(error) });
+    } finally {
+      this.pending = false;
+      this.update({ pending: false });
+    }
   }
 
   private async invoke(method: string, params: Record<string, unknown>): Promise<unknown> {
@@ -174,6 +232,20 @@ export class ZcashWallet {
     )
       throw new Error("The wallet returned an invalid prepared deposit.");
     return result as unknown as PreparedDeposit;
+  }
+
+  async execute(method: string, params: Record<string, unknown>): Promise<unknown> {
+    if (
+      ![
+        "zutti_scanSource",
+        "zutti_prepareOrder",
+        "zutti_proveOrder",
+        "zutti_signTransaction",
+        "zutti_pool",
+      ].includes(method)
+    )
+      throw new Error("Unsupported browser wallet request.");
+    return this.invoke(method, params);
   }
 
   async verify_deposit(witness: string, receipt: string): Promise<DepositCall> {
@@ -242,6 +314,8 @@ export class ZcashWallet {
       });
       if (revision !== this.revision) return;
       this.update({ account: account(value, domain), error: null });
+      this.domain = domain;
+      this.remember(this.current.account);
     } catch (error) {
       if (revision === this.revision) this.update({ account: null, error: failure(error) });
     } finally {

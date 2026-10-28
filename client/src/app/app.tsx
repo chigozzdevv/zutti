@@ -29,12 +29,16 @@ import { EthereumWallet } from "../shared/ethereum-wallet.js";
 import type { WalletBrowser } from "../shared/ethereum-wallet.js";
 import { ZcashWallet } from "../shared/zcash-wallet.js";
 import { BrowserFunding } from "../shared/funding.js";
+import { BrowserExecution } from "../shared/execution.js";
+import { BrowserInventory } from "../shared/inventory.js";
 
 type Modal = "wallet" | "review" | "withdraw" | null;
 export function App() {
   const [ethereum_wallet] = useState(() => new EthereumWallet(window as unknown as WalletBrowser));
   const ethereum = useSyncExternalStore(ethereum_wallet.subscribe, ethereum_wallet.snapshot);
-  const [zcash_wallet] = useState(() => new ZcashWallet(ethereum_wallet.extension));
+  const [zcash_wallet] = useState(
+    () => new ZcashWallet(ethereum_wallet.extension, window.sessionStorage),
+  );
   const zcash = useSyncExternalStore(zcash_wallet.subscribe, zcash_wallet.snapshot);
   const [path, set_path] = useState(location.pathname);
   const [information, set_information] = useState<AppInformation | null>(null);
@@ -70,7 +74,55 @@ export function App() {
     funding?.start();
     return () => funding?.stop();
   }, [funding]);
+  const inventory = useMemo(
+    () =>
+      information && ethereum.account && zcash.account
+        ? new BrowserInventory(ethereum_wallet, zcash_wallet, information.profile, api.pool)
+        : null,
+    [information, ethereum.account, zcash.account, ethereum_wallet, zcash_wallet],
+  );
+  useEffect(() => {
+    if (path !== "/maker") return;
+    inventory?.start();
+    return () => inventory?.stop();
+  }, [inventory, path]);
+  useEffect(() => {
+    let execution: BrowserExecution | undefined;
+    let active = true;
+    if (zcash.account && ethereum.account && ethereum.chain_id === "0xaa36a7") {
+      void api
+        .register_browser({ account: zcash.account, ethereum_account: ethereum.account })
+        .then(() => {
+          if (!active || !information) return;
+          execution = new BrowserExecution(
+            ethereum_wallet,
+            zcash_wallet,
+            information.profile,
+            window.localStorage,
+            { request: api.browser_request, respond: api.browser_response },
+            set_error,
+          );
+          execution.start();
+        })
+        .catch((reason) => set_error(error_message(reason)));
+    }
+    return () => {
+      active = false;
+      execution?.stop();
+    };
+  }, [
+    zcash.account,
+    ethereum.account,
+    ethereum.chain_id,
+    information,
+    ethereum_wallet,
+    zcash_wallet,
+  ]);
   const revision = useRef(0);
+  useEffect(() => {
+    if (information && ethereum.account)
+      void zcash_wallet.restore(information.profile.deployment_id);
+  }, [information, ethereum.account, zcash_wallet]);
   const selected: Offer | null =
     quotes?.offers.items.find((item) => item.id === selected_id) ?? null;
 
@@ -332,7 +384,7 @@ export function App() {
           </div>
         )}
         {is_maker ? (
-          <Maker connected={session.connected} funding={funding} />
+          <Maker connected={session.connected} funding={funding} inventory={inventory} />
         ) : is_activity ? (
           <Activity
             items={session.connected ? wallet_activity : (information?.activity ?? [])}

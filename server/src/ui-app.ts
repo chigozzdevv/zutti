@@ -8,6 +8,8 @@ import { WalletService } from "./features/wallet/wallet.service.js";
 import type { ConnectWallet } from "./features/wallet/wallet.service.js";
 import { send_json } from "./shared/http.js";
 import { DepositService } from "./features/wallet/deposit.service.js";
+import { BrowserService } from "./features/wallet/browser.service.js";
+import { PoolService } from "./features/wallet/pool.service.js";
 
 export interface AppServerOptions {
   information: AppInformation;
@@ -15,13 +17,21 @@ export interface AppServerOptions {
   connect_wallet?: ConnectWallet;
   assets?: string;
   deposit_directory?: string;
+  browser_directory?: string;
+  pool_deployment_height?: number;
 }
 export function create_app_server(options: AppServerOptions) {
   const wallet = new WalletService(options.information, options.connect_wallet);
   const deposits = options.deposit_directory
     ? new DepositService(options.deposit_directory)
     : undefined;
+  const browser = options.browser_directory
+    ? new BrowserService(options.browser_directory, options.information.profile.deployment_id)
+    : undefined;
   const allowed_hosts = new Set(options.origins.map((origin) => new URL(origin).host));
+  const pool = options.pool_deployment_height
+    ? new PoolService(options.information.profile, options.pool_deployment_height)
+    : undefined;
   const buckets = new Map<string, { count: number; until: number }>();
   const server = createServer(
     { requestTimeout: 10_000, headersTimeout: 5_000, maxHeaderSize: 8_192 },
@@ -54,6 +64,8 @@ export function create_app_server(options: AppServerOptions) {
             response,
             options.origins,
             deposits,
+            browser,
+            pool,
           );
           return;
         }

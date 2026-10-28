@@ -1,6 +1,7 @@
-import { app_information, app_operation, maker_snapshot } from "@zutti/schema";
+import { app_information, app_operation, maker_snapshot, pool_events } from "@zutti/schema";
 import type { MakerControl, MakerDepositInput, MakerSnapshot } from "@zutti/schema";
 import type { AppInformation, AppOperation, QuoteResponse, WalletSession } from "@zutti/schema";
+import type { BrowserConnection } from "@zutti/schema";
 
 export class ApiError extends Error {
   constructor(
@@ -29,6 +30,12 @@ async function request<T>(path: string, body?: unknown, signal?: AbortSignal): P
   return result;
 }
 export const api = {
+  pool: async () => pool_events.parse(await request("/pool/events")),
+  browser_request: () => request<BrowserRequest | null>("/browser/request"),
+  browser_response: (id: string, result: unknown, error: string | null) =>
+    request("/browser/responses/" + id, { result, error }),
+  register_browser: (input: BrowserConnection) =>
+    request<{ registered: true }>("/browser/connect", input),
   prepare_deposit: (witness: string) => request<BrowserDeposit>("/browser/deposits", { witness }),
   deposit: (id: string, signal?: AbortSignal) =>
     request<BrowserDeposit>(`/browser/deposits/${id}`, undefined, signal),
@@ -54,6 +61,17 @@ export const api = {
   withdraw: async (id: string, amount: string, to: string): Promise<AppOperation> =>
     app_operation.parse(await request(`/operations/${id}/withdraw`, { asset: "USDC", amount, to })),
 };
+export interface BrowserRequest {
+  id: string;
+  method:
+    | "zutti_scanSource"
+    | "zutti_prepareOrder"
+    | "zutti_proveOrder"
+    | "zutti_signTransaction"
+    | "zutti_pool"
+    | "pool_transaction";
+  params: Record<string, unknown>;
+}
 export interface BrowserDeposit {
   id: string;
   witness: string;

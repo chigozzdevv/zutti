@@ -52,7 +52,12 @@ def collect(transport, deployment, block_hash):
     size = int(call("nextLeaf()"), 16)
     if size > 65_536:
         raise ValueError("inventory exceeds the supported replay bound")
-    first = deployment["transactions"]["pool"]["block"]
+    if isinstance(deployment.get('deployment_transactions', {}).get('pool'), dict):
+        first = deployment['deployment_transactions']['pool']['height']
+    else:
+        first = deployment["transactions"]["pool"]["block"]
+    if type(first) is not int or first <= 0:
+        raise ValueError('invalid pool deployment height')
     last = int(block["number"], 16)
     if last < first or last - first > 64_000:
         raise ValueError("inventory block range exceeds its bound")

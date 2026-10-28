@@ -26,6 +26,7 @@ class Provider extends EventEmitter {
   request = async ({ method, params }) => {
     this.calls.push({ method, params });
     if (method === "web3_clientVersion") return this.version;
+    if (method === "wallet_getSnaps") return { [zutti_snap]: this.installed };
     if (method === "wallet_requestSnaps") {
       if (this.approve) await this.approve;
       return { [zutti_snap]: this.installed };
@@ -34,6 +35,30 @@ class Provider extends EventEmitter {
     throw new Error("Unexpected wallet API");
   };
 }
+
+test("refresh restores a confirmed public account without installing or signing again", async () => {
+  const provider = new Provider();
+  const values = new Map();
+  const storage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value),
+    removeItem: (key) => values.delete(key),
+  };
+  const first = new ZcashWallet(() => provider, storage);
+  await first.connect(domain);
+  first.stop();
+  const offset = provider.calls.length;
+  const restored = new ZcashWallet(() => provider, storage);
+  await restored.restore(domain);
+  assert.equal(restored.snapshot().account.zcash_address, receiving.zcash_address);
+  assert.deepEqual(
+    provider.calls.slice(offset).map((call) => call.method),
+    ["wallet_getSnaps", "wallet_invokeSnap"],
+  );
+  assert.equal(provider.calls.at(-1).params.request.method, "zutti_restoreAccount");
+  restored.disconnect();
+  assert.equal(values.size, 0);
+});
 
 test("Snap connection is explicit and requests no transfer or signing method", async () => {
   const provider = new Provider();

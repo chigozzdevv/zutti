@@ -1271,6 +1271,40 @@ svg {
 .maker-trades {
   margin-top: 34px;
 }
+.history-tabs {
+  display: flex;
+  gap: 24px;
+}
+.history-tabs button {
+  padding: 0 0 12px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  color: #828282;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+.history-tabs button[aria-selected="true"] {
+  color: #e8e8e8;
+  border-bottom-color: #e8e8e8;
+}
+.transaction-hash {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #bcbcbc;
+  text-decoration: none;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.transaction-hash:hover {
+  color: #fff;
+}
+.transaction-hashes {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
 .maker-trades .activity-empty {
   font-size: 11px;
 }

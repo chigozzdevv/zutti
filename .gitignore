@@ -5,6 +5,7 @@
 **/.next/
 /.cache/
 /.data/
+/.release/
 .env
 .env.*
 !.env.example

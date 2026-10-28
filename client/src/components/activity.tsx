@@ -33,6 +33,7 @@ export function Activity({
                 Date
               </th>
               <th scope="col">Status</th>
+              <th scope="col">Transactions</th>
               <th scope="col">
                 <span className="sr-only">Details</span>
               </th>
@@ -41,7 +42,7 @@ export function Activity({
           <tbody>
             {items.length === 0 ? (
               <tr>
-                <td colSpan={4} className="activity-empty">
+                <td colSpan={5} className="activity-empty">
                   No activities yet.
                 </td>
               </tr>
@@ -78,6 +79,32 @@ export function Activity({
                       <Check size={12} />
                       {item.withdrawn_at ? "Withdrawn" : "Settled"}
                     </span>
+                  </td>
+                  <td>
+                    <div className="transaction-hashes">
+                      <a
+                        className="transaction-hash"
+                        href={`https://sepolia.etherscan.io/tx/${item.payout_transaction}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="USDC payout"
+                      >
+                        {short_id(item.payout_transaction)}
+                        <ArrowUpRight size={12} />
+                      </a>
+                      {item.withdrawal_transaction && (
+                        <a
+                          className="transaction-hash"
+                          href={`https://sepolia.etherscan.io/tx/${item.withdrawal_transaction}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="USDC withdrawal"
+                        >
+                          {short_id(item.withdrawal_transaction)}
+                          <ArrowUpRight size={12} />
+                        </a>
+                      )}
+                    </div>
                   </td>
                   <td className="activity-action">
                     <button

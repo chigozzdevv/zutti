@@ -7,3 +7,5 @@ export * from "./maker.js";
 export * from "./settlement.js";
 export * from "./app.js";
 export * from "./maker-app.js";
+export * from "./wallet.js";
+export * from "./inventory.js";

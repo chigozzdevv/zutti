@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ArrowDownLeft, LoaderCircle, Pause, Play, Square } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, LoaderCircle, Pause, Play, Square } from "lucide-react";
 import { maker_start_options } from "@zutti/schema";
 import type { MakerControl, MakerSnapshot, MakerStartOptions } from "@zutti/schema";
 import { api, error_message } from "../shared/api.js";
-import { date } from "../shared/format.js";
+import { date, short_id } from "../shared/format.js";
 import { Dialog } from "./dialog.js";
 import type { BrowserFunding, FundingState } from "../shared/funding.js";
+import { empty_inventory } from "../shared/inventory.js";
+import type { BrowserInventory } from "../shared/inventory.js";
 
 const idle_funding: FundingState = {
   stage: "idle",
@@ -16,6 +18,7 @@ const idle_funding: FundingState = {
 };
 const empty_subscribe = () => () => {};
 const empty_snapshot = () => idle_funding;
+const empty_inventory_snapshot = () => empty_inventory;
 
 const defaults: MakerStartOptions = {
   pairs: ["ZEC/USDC"],
@@ -31,10 +34,17 @@ const defaults: MakerStartOptions = {
 export function Maker({
   connected,
   funding,
+  inventory,
 }: {
   connected: boolean;
   funding: BrowserFunding | null;
+  inventory: BrowserInventory | null;
 }) {
+  const owned = useSyncExternalStore(
+    inventory?.subscribe ?? empty_subscribe,
+    inventory?.snapshot ?? empty_inventory_snapshot,
+  );
+  const [history, set_history] = useState<"trades" | "activities">("activities");
   const browser = useSyncExternalStore(
     funding?.subscribe ?? empty_subscribe,
     funding?.snapshot ?? empty_snapshot,
@@ -219,21 +229,30 @@ export function Maker({
       <dl className="maker-stats">
         <div>
           <dt>Available USDC</dt>
-          <dd>{snapshot?.inventory?.available_usdc ?? "—"}</dd>
+          <dd>
+            {snapshot?.inventory?.available_usdc ?? owned.available ?? (owned.loading ? "…" : "—")}
+          </dd>
         </div>
         <div>
           <dt>Reserved USDC</dt>
-          <dd>{snapshot?.inventory?.reserved_usdc ?? "—"}</dd>
+          <dd>
+            {snapshot?.inventory?.reserved_usdc ?? owned.reserved ?? (owned.loading ? "…" : "—")}
+          </dd>
         </div>
         <div>
           <dt>Active trades</dt>
-          <dd>{snapshot?.active_trades ?? "—"}</dd>
+          <dd>{snapshot?.active_trades ?? owned.active_trades ?? (owned.loading ? "…" : "—")}</dd>
         </div>
         <div>
           <dt>Live quotes</dt>
-          <dd>{snapshot?.live_offers ?? "—"}</dd>
+          <dd>{snapshot?.live_offers ?? owned.live_quotes ?? (owned.loading ? "…" : "—")}</dd>
         </div>
       </dl>
+      {owned.error && (
+        <p className="form-error" role="alert">
+          {owned.error}
+        </p>
+      )}
       <div className="maker-panels">
         <section className="maker-settings" aria-labelledby="maker-settings-title">
           <div className="maker-section-heading">
@@ -499,58 +518,141 @@ export function Maker({
       </div>
       <section className="maker-trades" aria-labelledby="maker-trades-title">
         <div className="maker-section-heading">
-          <h2 id="maker-trades-title">Trades</h2>
+          <div className="history-tabs" role="tablist" aria-label="Maker history">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={history === "trades"}
+              onClick={() => set_history("trades")}
+            >
+              Trades
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={history === "activities"}
+              onClick={() => set_history("activities")}
+            >
+              Activities
+            </button>
+          </div>
         </div>
-        <div className="activity-table-wrap">
-          <table className="activity-table" aria-label="Maker trades">
-            <thead>
-              <tr>
-                <th scope="col">Swap</th>
-                <th scope="col" className="activity-date">
-                  Updated
-                </th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {!trades || trades.items.length === 0 ? (
+        <h2 id="maker-trades-title" className="sr-only">
+          Maker {history}
+        </h2>
+        {history === "activities" ? (
+          <div className="activity-table-wrap">
+            <table className="activity-table" aria-label="Maker activities">
+              <thead>
                 <tr>
-                  <td colSpan={3} className="activity-empty">
-                    {!connected && !funding
-                      ? "Connect a maker wallet to see trades."
-                      : !trades
-                        ? "Trade history unavailable."
-                        : trades.complete
-                          ? "No trades yet."
-                          : "Trade history incomplete."}
-                  </td>
+                  <th>Activity</th>
+                  <th>Amount</th>
+                  <th className="activity-date">Date</th>
+                  <th>Transaction</th>
+                  <th>Status</th>
                 </tr>
-              ) : (
-                trades.items.map((trade) => (
-                  <tr key={trade.id}>
-                    <td>
-                      {trade.input.amount} {trade.input.asset}{" "}
-                      <span className="activity-arrow">→</span> {trade.output.amount}{" "}
-                      {trade.output.asset}
-                    </td>
-                    <td className="activity-date">{date(trade.updated_at)}</td>
-                    <td>
-                      {
-                        {
-                          reserved: "Reserved",
-                          payment_confirming: "Confirming ZEC",
-                          settling: "Settling",
-                          settled: "Settled",
-                          pending: "Pending",
-                        }[trade.state]
-                      }
+              </thead>
+              <tbody>
+                {owned.activities.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="activity-empty">
+                      {owned.loading
+                        ? "Loading activities…"
+                        : inventory
+                          ? "No activities yet."
+                          : "Connect your wallet to see activities."}
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  owned.activities.map((item) => (
+                    <tr key={item.id}>
+                      <td>
+                        {
+                          {
+                            deposit: "Deposit",
+                            withdrawal: "Withdrawal",
+                            reservation: "Reservation",
+                            settlement: "Settlement",
+                            transfer: "Transfer",
+                          }[item.kind]
+                        }
+                      </td>
+                      <td>{item.amount === null ? "—" : `${item.amount} USDC`}</td>
+                      <td className="activity-date">{date(item.at)}</td>
+                      <td>
+                        <a
+                          className="transaction-hash"
+                          href={`https://sepolia.etherscan.io/tx/${item.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {short_id(item.id)}
+                          <ArrowUpRight size={13} />
+                        </a>
+                      </td>
+                      <td>
+                        <span className="status-tag">Confirmed</span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="activity-table-wrap">
+            <table className="activity-table" aria-label="Maker trades">
+              <thead>
+                <tr>
+                  <th scope="col">Swap</th>
+                  <th scope="col" className="activity-date">
+                    Updated
+                  </th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!trades || trades.items.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="activity-empty">
+                      {!connected && !funding
+                        ? "Connect a maker wallet to see trades."
+                        : !trades
+                          ? owned.active_trades === 0
+                            ? "No trades yet."
+                            : "Trade history unavailable."
+                          : trades.complete
+                            ? "No trades yet."
+                            : "Trade history incomplete."}
+                    </td>
+                  </tr>
+                ) : (
+                  trades.items.map((trade) => (
+                    <tr key={trade.id}>
+                      <td>
+                        {trade.input.amount} {trade.input.asset}{" "}
+                        <span className="activity-arrow">→</span> {trade.output.amount}{" "}
+                        {trade.output.asset}
+                      </td>
+                      <td className="activity-date">{date(trade.updated_at)}</td>
+                      <td>
+                        {
+                          {
+                            reserved: "Reserved",
+                            payment_confirming: "Confirming ZEC",
+                            settling: "Settling",
+                            settled: "Settled",
+                            pending: "Pending",
+                          }[trade.state]
+                        }
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
       {deposit_review && (
         <Dialog
