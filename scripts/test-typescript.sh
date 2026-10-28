@@ -8,4 +8,5 @@ export ZUTTI_CORE_BINARY="${ZUTTI_CORE_BINARY:-$task_target/debug/zutti-core}"
 pnpm build:ts
 task_tests=(packages/*/test/*.test.mjs)
 if [[ -d server/test ]]; then task_tests+=(server/test/*.test.mjs); fi
-node --test "${task_tests[@]}"
+if [[ -d client/test ]]; then task_tests+=(client/test/*.test.mjs); fi
+node --experimental-strip-types --test "${task_tests[@]}"
