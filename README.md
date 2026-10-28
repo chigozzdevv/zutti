@@ -86,11 +86,11 @@ RISC Zero supplies the proof programs and Boundless supplies remote compute. The
 
 The owner runtime now checks source admission and finalized spendable inventory before quoting, reuses fresh inventory evidence, and continues a retained operation after caller interruption. Payout proving overlaps source admission; source admission still gates the payout transaction. Exact-job execution checks and per-step timings are persisted.
 
-An optimized admission guest reuses the genuine payment-window receipt instead of validating its header range again. Local replay reduced this stage from **1.912 billion to 242.9 million cycles**. The new guest has not yet generated its own proof or been deployed. Its remote latency and the full optimized swap time remain unmeasured. Current Zcash confirmation depth and Ethereum finality are unchanged.
+The optimized admission guest reuses the genuine payment-window receipt instead of validating its header range again, reducing this stage from **1.912 billion to 242.9 million cycles**. Its [genuine proof](deploy/source/optimized-admission/proof.json) fulfilled in **85 seconds** for **0.00003 ETH**, passed local tamper checks and a read-only Sepolia RISC Zero router check, and reproduced the original admission journal. The deployed source registry still uses the original program. Full optimized swap latency remains unmeasured; Zcash confirmation depth and Ethereum finality are unchanged.
 
 ## Remaining work
 
-1. Prove and deploy the optimized admission program, then measure a fresh complete swap.
+1. Deploy the proved optimized admission program, then measure a fresh complete swap.
 2. Package the application and wallet connectors around the demonstrated headless flow.
 3. Operate and measure a continuous source feed and multiuser maker/prover service.
 4. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).
