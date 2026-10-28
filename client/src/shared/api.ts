@@ -29,6 +29,9 @@ async function request<T>(path: string, body?: unknown, signal?: AbortSignal): P
   return result;
 }
 export const api = {
+  prepare_deposit: (witness: string) => request<BrowserDeposit>("/browser/deposits", { witness }),
+  deposit: (id: string, signal?: AbortSignal) =>
+    request<BrowserDeposit>(`/browser/deposits/${id}`, undefined, signal),
   maker: async (signal?: AbortSignal): Promise<MakerSnapshot> =>
     maker_snapshot.parse(await request("/maker", undefined, signal)),
   maker_control: async (input: MakerControl): Promise<MakerSnapshot> =>
@@ -51,6 +54,12 @@ export const api = {
   withdraw: async (id: string, amount: string, to: string): Promise<AppOperation> =>
     app_operation.parse(await request(`/operations/${id}/withdraw`, { asset: "USDC", amount, to })),
 };
+export interface BrowserDeposit {
+  id: string;
+  witness: string;
+  state: "awaiting_proof" | "proof_ready";
+  receipt: string | null;
+}
 export const error_message = (error: unknown): string =>
   error instanceof ApiError
     ? error.message

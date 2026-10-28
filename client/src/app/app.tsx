@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -28,6 +28,7 @@ import { WalletDialog } from "../components/wallet.js";
 import { EthereumWallet } from "../shared/ethereum-wallet.js";
 import type { WalletBrowser } from "../shared/ethereum-wallet.js";
 import { ZcashWallet } from "../shared/zcash-wallet.js";
+import { BrowserFunding } from "../shared/funding.js";
 
 type Modal = "wallet" | "review" | "withdraw" | null;
 export function App() {
@@ -52,6 +53,23 @@ export function App() {
   const [modal_busy, set_modal_busy] = useState(false);
   const [to, set_to] = useState("");
   const [now, set_now] = useState(Date.now());
+  const funding = useMemo(
+    () =>
+      information && ethereum.account && zcash.account
+        ? new BrowserFunding(
+            ethereum_wallet,
+            zcash_wallet,
+            information.profile,
+            window.localStorage,
+            { prepare: api.prepare_deposit, get: api.deposit },
+          )
+        : null,
+    [information, ethereum.account, zcash.account, ethereum_wallet, zcash_wallet],
+  );
+  useEffect(() => {
+    funding?.start();
+    return () => funding?.stop();
+  }, [funding]);
   const revision = useRef(0);
   const selected: Offer | null =
     quotes?.offers.items.find((item) => item.id === selected_id) ?? null;
@@ -314,7 +332,7 @@ export function App() {
           </div>
         )}
         {is_maker ? (
-          <Maker connected={session.connected} />
+          <Maker connected={session.connected} funding={funding} />
         ) : is_activity ? (
           <Activity
             items={session.connected ? wallet_activity : (information?.activity ?? [])}

@@ -1,10 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowDownLeft, LoaderCircle, Pause, Play, Square } from "lucide-react";
 import { maker_start_options } from "@zutti/schema";
 import type { MakerControl, MakerSnapshot, MakerStartOptions } from "@zutti/schema";
 import { api, error_message } from "../shared/api.js";
 import { date } from "../shared/format.js";
 import { Dialog } from "./dialog.js";
+import type { BrowserFunding, FundingState } from "../shared/funding.js";
+
+const idle_funding: FundingState = {
+  stage: "idle",
+  amount: null,
+  balance: null,
+  error: null,
+  transaction: null,
+};
+const empty_subscribe = () => () => {};
+const empty_snapshot = () => idle_funding;
 
 const defaults: MakerStartOptions = {
   pairs: ["ZEC/USDC"],
@@ -17,7 +28,17 @@ const defaults: MakerStartOptions = {
     max_active_swaps: 1,
   },
 };
-export function Maker({ connected }: { connected: boolean }) {
+export function Maker({
+  connected,
+  funding,
+}: {
+  connected: boolean;
+  funding: BrowserFunding | null;
+}) {
+  const browser = useSyncExternalStore(
+    funding?.subscribe ?? empty_subscribe,
+    funding?.snapshot ?? empty_snapshot,
+  );
   const [snapshot, set_snapshot] = useState<MakerSnapshot | null>(null);
   const [settings, set_settings] = useState<MakerStartOptions>(() => structuredClone(defaults));
   const [busy, set_busy] = useState(false);
@@ -93,6 +114,11 @@ export function Maker({ connected }: { connected: boolean }) {
   }
   async function deposit() {
     if (busy) return;
+    if (!connected && funding) {
+      await funding.prepare(amount);
+      set_deposit_review(false);
+      return;
+    }
     if (!/^(0|[1-9][0-9]{0,7})(\.[0-9]{1,6})?$/.test(amount) || !/[1-9]/.test(amount)) {
       set_error("Enter a USDC amount greater than zero.");
       return;
@@ -125,7 +151,9 @@ export function Maker({ connected }: { connected: boolean }) {
         : state === "paused"
           ? "Resume quoting"
           : "Start quoting";
-  const funding_pending = !!snapshot?.deposit && snapshot.deposit.state !== "confirmed";
+  const browser_pending = !!funding && browser.stage !== "idle" && browser.stage !== "confirmed";
+  const funding_pending =
+    (!!snapshot?.deposit && snapshot.deposit.state !== "confirmed") || browser_pending;
   const trades = snapshot?.trades;
   return (
     <section className="maker-view" aria-labelledby="maker-title">
@@ -360,6 +388,7 @@ export function Maker({ connected }: { connected: boolean }) {
           <form
             onSubmit={(event) => {
               event.preventDefault();
+              if ((!connected && !funding) || funding_pending || busy) return;
               set_deposit_review(true);
             }}
           >
@@ -373,7 +402,7 @@ export function Maker({ connected }: { connected: boolean }) {
                 inputMode="decimal"
                 placeholder="0.00"
                 autoComplete="off"
-                value={amount}
+                value={browser_pending ? (browser.amount ?? amount) : amount}
                 disabled={funding_pending || busy}
                 onChange={(event) => {
                   set_amount(event.target.value);
@@ -384,7 +413,10 @@ export function Maker({ connected }: { connected: boolean }) {
                 className="secondary-button"
                 type="submit"
                 disabled={
-                  !connected || !snapshot?.can_deposit || !amount || funding_pending || busy
+                  (!(connected && snapshot?.can_deposit) && !funding) ||
+                  !amount ||
+                  funding_pending ||
+                  busy
                 }
               >
                 <ArrowDownLeft size={14} />
@@ -393,10 +425,67 @@ export function Maker({ connected }: { connected: boolean }) {
             </div>
           </form>
           <p className="maker-muted">
-            {snapshot?.can_deposit
-              ? "Funds your maker inventory."
-              : "Funding unavailable until a maker wallet is connected."}
+            {funding && !connected
+              ? `Wallet: ${browser.balance ?? "—"} USDC`
+              : snapshot?.can_deposit
+                ? "Funds your maker inventory."
+                : "Connect your Ethereum and Zcash wallets to fund inventory."}
           </p>
+          {funding && !connected && (
+            <>
+              <a
+                className="text-button"
+                href="https://faucet.circle.com/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Get test USDC
+              </a>
+              {browser.error && (
+                <p className="form-error" role="alert">
+                  {browser.error}
+                </p>
+              )}
+              {browser.stage !== "idle" && (
+                <div className="maker-deposit-status" role="status">
+                  {
+                    {
+                      preparing: "Preparing deposit…",
+                      awaiting_proof: "Deposit prepared · awaiting prover authorization",
+                      proof_ready: "Deposit proof ready",
+                      approving: "Approve USDC in MetaMask",
+                      depositing: "Confirm deposit in MetaMask",
+                      confirming: "Waiting for Ethereum finality…",
+                      confirmed: `${browser.amount} USDC deposited`,
+                      inspect: "Inspect MetaMask activity before continuing",
+                      idle: "",
+                    }[browser.stage]
+                  }
+                  {browser.stage === "proof_ready" && (
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() => {
+                        void funding.complete();
+                      }}
+                    >
+                      Complete deposit
+                    </button>
+                  )}
+                  {browser.transaction && (
+                    <a
+                      className="text-button"
+                      href={`https://sepolia.etherscan.io/tx/${browser.transaction}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      View transaction
+                    </a>
+                  )}
+                </div>
+              )}
+            </>
+          )}
           {snapshot?.deposit && (
             <div className="maker-deposit-status" role="status">
               {snapshot.deposit.state === "confirmed"
@@ -427,7 +516,7 @@ export function Maker({ connected }: { connected: boolean }) {
               {!trades || trades.items.length === 0 ? (
                 <tr>
                   <td colSpan={3} className="activity-empty">
-                    {!connected
+                    {!connected && !funding
                       ? "Connect a maker wallet to see trades."
                       : !trades
                         ? "Trade history unavailable."
@@ -476,8 +565,9 @@ export function Maker({ connected }: { connected: boolean }) {
             </span>
           </div>
           <p className="dialog-caption">
-            Deposit to your maker’s USDC pool on Sepolia. Your wallet will verify the resulting
-            inventory.
+            {funding && !connected
+              ? "Prepare your private USDC deposit in Flask, then confirm in MetaMask after the proof verifies."
+              : "Deposit to your maker’s USDC pool on Sepolia. Your wallet will verify the resulting inventory."}
           </p>
           {error && (
             <p className="form-error" role="alert">
@@ -491,7 +581,8 @@ export function Maker({ connected }: { connected: boolean }) {
               void deposit();
             }}
           >
-            {busy && <LoaderCircle size={15} className="spin" />}Confirm deposit
+            {busy && <LoaderCircle size={15} className="spin" />}
+            {funding && !connected ? "Prepare deposit" : "Confirm deposit"}
           </button>
         </Dialog>
       )}

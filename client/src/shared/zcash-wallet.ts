@@ -21,6 +21,28 @@ export interface ZcashState {
   error: string | null;
 }
 
+export interface PreparedDeposit {
+  version: 1;
+  chain_id: 11155111;
+  domain: string;
+  pool: string;
+  token: string;
+  owner: string;
+  amount: string;
+  units: string;
+  commitment: string;
+  witness: string;
+}
+export interface DepositCall {
+  chain_id: 11155111;
+  to: string;
+  token: string;
+  from: string;
+  units: string;
+  value: "0x0";
+  data: string;
+}
+
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -115,6 +137,65 @@ export class ZcashWallet {
   };
   stop(): void {
     this.disconnect();
+  }
+
+  private async invoke(method: string, params: Record<string, unknown>): Promise<unknown> {
+    const provider = this.active_provider;
+    const revision = this.revision;
+    if (!provider || !this.current.account) throw new Error("Connect your Zcash wallet first.");
+    const result = await provider.request({
+      method: "wallet_invokeSnap",
+      params: { snapId: zutti_snap, request: { method, params } },
+    });
+    if (revision !== this.revision || provider !== this.provider())
+      throw new Error("The connected Zcash wallet changed. Reconnect before continuing.");
+    return result;
+  }
+
+  async prepare_deposit(amount: string, owner: string): Promise<PreparedDeposit> {
+    const result = await this.invoke("zutti_prepareDeposit", { amount, owner });
+    if (
+      !object(result) ||
+      result.version !== 1 ||
+      result.chain_id !== 11155111 ||
+      result.domain !== this.current.account?.domain ||
+      result.owner !== owner.toLowerCase() ||
+      typeof result.units !== "string" ||
+      !/^[1-9][0-9]{0,19}$/.test(result.units) ||
+      typeof result.amount !== "string" ||
+      typeof result.pool !== "string" ||
+      !/^0x[0-9a-f]{40}$/.test(result.pool) ||
+      typeof result.token !== "string" ||
+      !/^0x[0-9a-f]{40}$/.test(result.token) ||
+      !encoded(result.commitment, 32) ||
+      typeof result.witness !== "string" ||
+      !/^(?:[0-9a-f]{2})+$/.test(result.witness) ||
+      result.witness.length > 32768
+    )
+      throw new Error("The wallet returned an invalid prepared deposit.");
+    return result as unknown as PreparedDeposit;
+  }
+
+  async verify_deposit(witness: string, receipt: string): Promise<DepositCall> {
+    const result = await this.invoke("zutti_verifyDeposit", { witness, receipt });
+    if (
+      !object(result) ||
+      result.chain_id !== 11155111 ||
+      result.value !== "0x0" ||
+      typeof result.to !== "string" ||
+      !/^0x[0-9a-f]{40}$/.test(result.to) ||
+      typeof result.token !== "string" ||
+      !/^0x[0-9a-f]{40}$/.test(result.token) ||
+      typeof result.from !== "string" ||
+      !/^0x[0-9a-f]{40}$/.test(result.from) ||
+      typeof result.units !== "string" ||
+      !/^[1-9][0-9]{0,19}$/.test(result.units) ||
+      typeof result.data !== "string" ||
+      !/^0x1d0a9b2e(?:[0-9a-f]{2})+$/.test(result.data) ||
+      result.data.length > 32768
+    )
+      throw new Error("The wallet returned an invalid verified deposit.");
+    return result as unknown as DepositCall;
   }
 
   async connect(domain: string): Promise<void> {
