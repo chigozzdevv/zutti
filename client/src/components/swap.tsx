@@ -8,6 +8,7 @@ interface SwapProps {
   set_amount: (value: string) => void;
   connected: boolean;
   ethereum_connected: boolean;
+  zcash_connected: boolean;
   loading: boolean;
   ready: boolean;
   now: number;
@@ -23,17 +24,20 @@ export function Swap(props: SwapProps) {
   const { amount, connected, loading, ready, quotes, selected, now, error } = props;
   const expired = !!selected && selected.deadline <= now;
   const invalid = amount_error(amount);
+  const unavailable = !connected && props.zcash_connected;
   const label = loading
     ? "Finding your quotes"
-    : !connected
-      ? props.ethereum_connected
-        ? "Connect Zcash wallet"
-        : "Connect wallet"
-      : expired
-        ? "Refresh quotes"
-        : selected
-          ? "Review swap"
-          : "Get quotes";
+    : unavailable
+      ? "Swaps unavailable"
+      : !connected
+        ? props.ethereum_connected
+          ? "Connect Zcash wallet"
+          : "Connect wallet"
+        : expired
+          ? "Refresh quotes"
+          : selected
+            ? "Review swap"
+            : "Get quotes";
   return (
     <section className="swap-view" aria-label="Swap ZEC for USDC">
       <div className="swap-panel">
@@ -43,7 +47,7 @@ export function Swap(props: SwapProps) {
         <form
           onSubmit={(event) => {
             event.preventDefault();
-            if (!ready || loading) return;
+            if (!ready || loading || unavailable) return;
             if (!connected) props.connect();
             else if (selected && !expired) props.review();
             else props.request();
@@ -161,7 +165,7 @@ export function Swap(props: SwapProps) {
           <button
             type="submit"
             className="primary-button swap-button"
-            disabled={!ready || loading || (connected && !!invalid)}
+            disabled={!ready || loading || unavailable || (connected && !!invalid)}
           >
             {loading ? <LoaderCircle size={18} className="spin" /> : null}
             {label}

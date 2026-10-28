@@ -3,11 +3,15 @@ import { ArrowRight, Check, Copy, LoaderCircle, LogOut, Wallet } from "lucide-re
 import type { WalletSession } from "@zutti/schema";
 import { sepolia_chain } from "../shared/ethereum-wallet.js";
 import type { EthereumState } from "../shared/ethereum-wallet.js";
+import type { ZcashState } from "../shared/zcash-wallet.js";
 import { short_id } from "../shared/format.js";
 import { Dialog } from "./dialog.js";
 
 interface WalletProps {
   ethereum: EthereumState;
+  zcash: ZcashState;
+  connect_zcash: () => void;
+  disconnect_zcash: () => void;
   connect_ethereum: () => void;
   disconnect_ethereum: () => void;
   switch_network: () => void;
@@ -22,10 +26,10 @@ interface WalletProps {
   close: () => void;
 }
 export function WalletDialog(props: WalletProps) {
-  const { ethereum, session } = props;
+  const { ethereum, zcash, session } = props;
   const [copied, set_copied] = useState<string | null>(null);
   const [copy_error, set_copy_error] = useState(false);
-  const connected = !!ethereum.account || session.connected;
+  const connected = !!ethereum.account || !!zcash.account || session.connected;
   return (
     <Dialog title={connected ? "Your wallets" : "Connect wallet"} close={props.close}>
       <div className="wallet-section-title">Ethereum</div>
@@ -124,6 +128,63 @@ export function WalletDialog(props: WalletProps) {
         </p>
       )}
       <div className="wallet-section-title wallet-zcash-title">Zcash</div>
+      <div className="wallet-option">
+        <span className="wallet-option-icon">
+          <Wallet size={22} />
+        </span>
+        <div>
+          <strong>Zutti Testnet</strong>
+          <span>MetaMask Flask</span>
+        </div>
+        <button
+          className="text-button"
+          disabled={zcash.pending || !ethereum.available}
+          onClick={zcash.account ? props.disconnect_zcash : props.connect_zcash}
+          aria-label={zcash.account ? "Disconnect Zcash wallet" : "Connect Zcash wallet"}
+        >
+          {zcash.pending ? (
+            <>
+              <LoaderCircle size={15} className="spin" /> Connecting…
+            </>
+          ) : zcash.account ? (
+            <LogOut size={15} />
+          ) : (
+            <>
+              Connect <ArrowRight size={14} />
+            </>
+          )}
+        </button>
+      </div>
+      {zcash.pending && (
+        <p className="dialog-caption" role="status">
+          Finish the request in Flask.
+        </p>
+      )}
+      {zcash.account && (
+        <div className="wallet-address">
+          <span title={zcash.account.zcash_address}>{short_id(zcash.account.zcash_address)}</span>
+          <button
+            className="text-button"
+            aria-label="Copy Zcash address"
+            onClick={() => {
+              void navigator.clipboard
+                .writeText(zcash.account!.zcash_address)
+                .then(() => {
+                  set_copied(zcash.account!.zcash_address);
+                  set_copy_error(false);
+                })
+                .catch(() => set_copy_error(true));
+            }}
+          >
+            {copied === zcash.account.zcash_address ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+        </div>
+      )}
+      {zcash.error && (
+        <p className="form-error" role="alert">
+          {zcash.error}
+        </p>
+      )}
       {session.connected || props.native_available ? (
         <>
           <div className="wallet-option">
@@ -151,9 +212,7 @@ export function WalletDialog(props: WalletProps) {
             <p className="dialog-caption">A swap is running in this wallet.</p>
           )}
         </>
-      ) : (
-        <p className="dialog-caption">A compatible Zcash Testnet signer is required for swaps.</p>
-      )}
+      ) : null}
       {props.error && (
         <p className="form-error" role="alert">
           {props.error}

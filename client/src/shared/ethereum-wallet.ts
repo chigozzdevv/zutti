@@ -1,5 +1,8 @@
 export interface EthereumProvider {
-  request(input: { method: string; params?: unknown[] }): Promise<unknown>;
+  request(input: {
+    method: string;
+    params?: unknown[] | Record<string, unknown>;
+  }): Promise<unknown>;
   on?(event: string, listener: (...values: unknown[]) => void): void;
   removeListener?(event: string, listener: (...values: unknown[]) => void): void;
   isMetaMask?: boolean;
@@ -64,6 +67,7 @@ export class EthereumWallet {
     this.browser = browser;
   }
   snapshot = (): EthereumState => this.current;
+  extension = (): EthereumProvider | null => this.provider;
   subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
     return () => {
@@ -109,7 +113,12 @@ export class EthereumWallet {
     if (!detail || typeof detail !== "object" || !("info" in detail) || !("provider" in detail))
       return;
     const info = detail.info;
-    if (!info || typeof info !== "object" || !("rdns" in info) || info.rdns !== "io.metamask")
+    if (
+      !info ||
+      typeof info !== "object" ||
+      !("rdns" in info) ||
+      (info.rdns !== "io.metamask" && info.rdns !== "io.metamask.flask")
+    )
       return;
     const provider = detail.provider;
     if (

@@ -27,11 +27,14 @@ import { Maker } from "../components/maker.js";
 import { WalletDialog } from "../components/wallet.js";
 import { EthereumWallet } from "../shared/ethereum-wallet.js";
 import type { WalletBrowser } from "../shared/ethereum-wallet.js";
+import { ZcashWallet } from "../shared/zcash-wallet.js";
 
 type Modal = "wallet" | "review" | "withdraw" | null;
 export function App() {
   const [ethereum_wallet] = useState(() => new EthereumWallet(window as unknown as WalletBrowser));
   const ethereum = useSyncExternalStore(ethereum_wallet.subscribe, ethereum_wallet.snapshot);
+  const [zcash_wallet] = useState(() => new ZcashWallet(ethereum_wallet.extension));
+  const zcash = useSyncExternalStore(zcash_wallet.subscribe, zcash_wallet.snapshot);
   const [path, set_path] = useState(location.pathname);
   const [information, set_information] = useState<AppInformation | null>(null);
   const [session, set_session] = useState<WalletSession>({ connected: false, label: null });
@@ -55,8 +58,11 @@ export function App() {
 
   useEffect(() => {
     ethereum_wallet.start();
-    return () => ethereum_wallet.stop();
-  }, [ethereum_wallet]);
+    return () => {
+      zcash_wallet.stop();
+      ethereum_wallet.stop();
+    };
+  }, [ethereum_wallet, zcash_wallet]);
   useEffect(() => {
     const navigate = () => set_path(location.pathname);
     addEventListener("popstate", navigate);
@@ -286,11 +292,15 @@ export function App() {
         </nav>
         <div className="header-actions">
           <button
-            className={`wallet-button${session.connected || ethereum.account ? " connected" : ""}`}
+            className={`wallet-button${session.connected || ethereum.account || zcash.account ? " connected" : ""}`}
             onClick={() => open_modal("wallet")}
           >
             <Wallet size={16} />
-            <span>{session.connected || ethereum.account ? "My wallet" : "Connect wallet"}</span>
+            <span>
+              {session.connected || ethereum.account || zcash.account
+                ? "My wallet"
+                : "Connect wallet"}
+            </span>
           </button>
         </div>
       </header>
@@ -345,6 +355,7 @@ export function App() {
             }}
             connected={session.connected}
             ethereum_connected={!!ethereum.account}
+            zcash_connected={!!zcash.account}
             loading={busy}
             ready={!!information}
             now={now}
@@ -363,6 +374,11 @@ export function App() {
       {modal === "wallet" && (
         <WalletDialog
           ethereum={ethereum}
+          zcash={zcash}
+          connect_zcash={() => {
+            if (information) void zcash_wallet.connect(information.profile.deployment_id);
+          }}
+          disconnect_zcash={zcash_wallet.disconnect}
           connect_ethereum={() => {
             void ethereum_wallet.connect();
           }}

@@ -43,6 +43,23 @@ function fixture() {
 }
 const tick = () => new Promise((resolve) => setTimeout(resolve, 5));
 
+test("MetaMask Flask is discovered through its own EIP-6963 identity", async () => {
+  const browser = new Browser();
+  const provider = new Provider();
+  browser.addEventListener("eip6963:requestProvider", () =>
+    browser.announce(provider, "io.metamask.flask"),
+  );
+  const wallet = new EthereumWallet(browser);
+  wallet.start();
+  try {
+    assert.equal(wallet.snapshot().available, true);
+    assert.equal(wallet.extension(), provider);
+    assert.deepEqual(provider.calls, []);
+  } finally {
+    wallet.stop();
+  }
+});
+
 test("MetaMask discovery ignores a Zcash provider that shadows window.ethereum", async () => {
   const { browser, wallet, provider } = fixture();
   const unrelated = new Provider();
