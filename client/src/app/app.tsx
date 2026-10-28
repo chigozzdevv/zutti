@@ -296,7 +296,7 @@ export function App() {
           </div>
         )}
         {is_maker ? (
-          <Maker connected={session.connected} connect={() => open_modal("wallet")} />
+          <Maker connected={session.connected} />
         ) : is_activity ? (
           <Activity
             items={session.connected ? wallet_activity : (information?.activity ?? [])}

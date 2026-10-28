@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowDownLeft, LoaderCircle, Pause, Play, Square, Wallet } from "lucide-react";
+import { ArrowDownLeft, LoaderCircle, Pause, Play, Square } from "lucide-react";
 import { maker_start_options } from "@zutti/schema";
 import type { MakerControl, MakerSnapshot, MakerStartOptions } from "@zutti/schema";
 import { api, error_message } from "../shared/api.js";
@@ -17,7 +17,7 @@ const defaults: MakerStartOptions = {
     max_active_swaps: 1,
   },
 };
-export function Maker({ connected, connect }: { connected: boolean; connect: () => void }) {
+export function Maker({ connected }: { connected: boolean }) {
   const [snapshot, set_snapshot] = useState<MakerSnapshot | null>(null);
   const [settings, set_settings] = useState<MakerStartOptions>(() => structuredClone(defaults));
   const [busy, set_busy] = useState(false);
@@ -116,17 +116,15 @@ export function Maker({ connected, connect }: { connected: boolean; connect: () 
   const editable = !working && (state === "stopped" || state === "unavailable");
   const enabled = connected && !!snapshot?.available && !working && !error;
   const action = state === "running" ? "pause" : state === "paused" ? "resume" : "start";
-  const label = !connected
-    ? "Connect wallet"
-    : !snapshot?.available
-      ? "Maker unavailable"
-      : working
-        ? "Updating…"
-        : state === "running"
-          ? "Pause quoting"
-          : state === "paused"
-            ? "Resume quoting"
-            : "Start quoting";
+  const label = !snapshot?.available
+    ? "Maker unavailable"
+    : working
+      ? "Updating…"
+      : state === "running"
+        ? "Pause quoting"
+        : state === "paused"
+          ? "Resume quoting"
+          : "Start quoting";
   const funding_pending = !!snapshot?.deposit && snapshot.deposit.state !== "confirmed";
   const trades = snapshot?.trades;
   return (
@@ -148,38 +146,37 @@ export function Maker({ connected, connect }: { connected: boolean; connect: () 
                   : "Not configured"}
           </span>
         </div>
-        <div className="maker-controls">
-          {(state === "running" || state === "paused") && (
+        {connected && (
+          <div className="maker-controls">
+            {(state === "running" || state === "paused") && (
+              <button
+                className="secondary-button"
+                disabled={working}
+                onClick={() => {
+                  void control("stop");
+                }}
+              >
+                <Square size={12} /> Stop
+              </button>
+            )}
             <button
-              className="secondary-button"
-              disabled={working}
+              className="primary-button"
+              disabled={!enabled}
               onClick={() => {
-                void control("stop");
+                void control(action);
               }}
             >
-              <Square size={12} /> Stop
+              {working ? (
+                <LoaderCircle className="spin" size={14} />
+              ) : state === "running" ? (
+                <Pause size={13} />
+              ) : (
+                <Play size={13} />
+              )}
+              {label}
             </button>
-          )}
-          <button
-            className="primary-button"
-            disabled={connected && !enabled}
-            onClick={() => {
-              if (!connected) connect();
-              else void control(action);
-            }}
-          >
-            {working ? (
-              <LoaderCircle className="spin" size={14} />
-            ) : !connected ? (
-              <Wallet size={14} />
-            ) : state === "running" ? (
-              <Pause size={13} />
-            ) : (
-              <Play size={13} />
-            )}
-            {label}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
       {error && (
         <p className="form-error" role="alert">
