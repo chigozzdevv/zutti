@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "network": "testnet",
-  "status": "deployed-awaiting-genuine-source-and-swap-proofs",
+  "status": "source-admitted-and-funded-awaiting-finalized-readiness",
   "deployment_allowed": true,
   "settlement_chain_id": "11155111",
   "pairs": [
@@ -86,9 +86,9 @@
   },
   "minimum_remaining": 64,
   "minimum_payment_remaining": 16,
-  "source_proof_verified": false,
-  "admission_proof_verified": false,
-  "source_admitted": false,
+  "source_proof_verified": true,
+  "admission_proof_verified": true,
+  "source_admitted": true,
   "funded_swap": false,
   "contracts_deployed": true,
   "source_execution": {

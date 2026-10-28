@@ -16,8 +16,8 @@
   "proof_profile_id": "49bb5355ad7d882f9730abad99a0e354d824bed704f1a9e54f9d0484ae748812",
   "domain": "3c062f84d3c2a22614398af31c84f1ee7d7f26d5b6b1d0f0920859f242d920a9",
   "domain_encoding": "5a55545449444f4d0100382c4a332661c7ed0671f32a34d724619f086c61873bce7c99859dd9920aa605a736aa0000000000c32e6cd02d9f53508632ef09ab69bc2e2e36e84d1c7d4b196cb0c7b01d743fbc6116a902379c72384bb5604f4ae4c18f51e97e7e9fd4362fc295c5f5bd26ac8a7236d0c679e39060ce5d400c3d0497455e5301177f7e1ac5e13dc2b5e85b714b82dc0c7b81e4632849bb5355ad7d882f9730abad99a0e354d824bed704f1a9e54f9d0484ae748812",
-  "source_height": 4550284,
-  "source_admitted": false,
+  "source_height": 4550367,
+  "source_admitted": true,
   "contracts_deployed": true,
   "code_hashes": {
     "registry": "0xbd134fb5af8189f014dc3def1a40e80758c503ec003c6bb5ba46dccbd8f45548",
@@ -39,12 +39,38 @@
       "gas_used": 16803589
     }
   },
-  "status": "deployed-awaiting-source-and-swap-proofs",
+  "status": "source-admitted-and-funded-awaiting-finalized-readiness",
   "source_profile": "source-profile.json",
   "program_verification_evidence": "../../source/optimized-admission/proof.json",
-  "maker_deposit_applied": false,
+  "maker_deposit_applied": true,
   "swap_executed": false,
   "ethereum_finality_verified": false,
   "deployment_checked_via_rpc": true,
-  "requires_live_freshness_check": true
+  "requires_live_freshness_check": true,
+  "setup_transactions": {
+    "deposit-approve": {
+      "transaction_id": "0xc2992a891abd8e4e0924a95bce9ab386fc66fb5bb68845778f2e7fdd47388a49",
+      "height": 12011247,
+      "block_hash": "0x8c73ee15c08c71820ffc00cb01aed118a89e6beeb538aa57f395538456190512",
+      "gas_used": 137757
+    },
+    "maker-deposit": {
+      "transaction_id": "0xf7dcad636c305374910ad6ea1dd38d55a091d1c0810f701b5f39ca4361c4a7a1",
+      "height": 12011264,
+      "block_hash": "0x58f797b3af860389a30a4a6935d36c0889b624b20b41511e575bbaf19594e28a",
+      "gas_used": 4518574
+    },
+    "source-submit": {
+      "transaction_id": "0x579f1e3ae3332c95058e9813d5ce88bbbeda36febb23b2f4ff383fc03872ef95",
+      "height": 12011271,
+      "block_hash": "0xc07855d1ef295821e5768cce3c3d9ea997016445631299a8f6cd409f2b4d3ca3",
+      "gas_used": 1831710
+    },
+    "source-finalize": {
+      "transaction_id": "0xf0879a9c32e74a74677013a7b20defd1d5562bba2d1c9851d7383b4eb1330a2a",
+      "height": 12011283,
+      "block_hash": "0x76a8f5c7af7f0fba0e47ee7790ed0b798e1f3eba7a1406a7a2dca00001d6e0cb",
+      "gas_used": 594290
+    }
+  }
 }
