@@ -52,8 +52,8 @@ crates/prover/spv/      active SPV host and proof regression tests
 crates/boundless/       proof-market submission and collection
 crates/recovery/        standalone recovery CLI
 contracts/             source registry and USDC-backed private pool
-packages/sdk/          application SDK
-packages/maker-sdk/    maker quoting SDK
+packages/sdk/           application SDK
+packages/maker-sdk/     maker quoting SDK
 packages/runtime/      encrypted RFQ and persistence
 packages/schema/       shared validation
 packages/bindings/     native and contract interfaces
@@ -82,8 +82,15 @@ These tests verify retained genuine receipts and replay finalized Ethereum evide
 
 RISC Zero supplies the proof programs and Boundless supplies remote compute. The owner coordinator retains requests and transaction identities across interruptions; confirmed operations are collected without resubmission. The test-run ledger is scoped to the completed trade and closes after authenticated withdrawal. No new spending is implicit in setup or verification.
 
+## Execution improvements
+
+The owner runtime now checks source admission and finalized spendable inventory before quoting, reuses fresh inventory evidence, and continues a retained operation after caller interruption. Payout proving overlaps source admission; source admission still gates the payout transaction. Exact-job execution checks and per-step timings are persisted.
+
+An optimized admission guest reuses the genuine payment-window receipt instead of validating its header range again. Local replay reduced this stage from **1.912 billion to 242.9 million cycles**. The new guest has not yet generated its own proof or been deployed. Its remote latency and the full optimized swap time remain unmeasured. Current Zcash confirmation depth and Ethereum finality are unchanged.
+
 ## Remaining work
 
-1. Package the application and wallet connectors around the demonstrated headless flow.
-2. Operate and measure a continuous source feed and multiuser maker/prover service.
-3. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).
+1. Prove and deploy the optimized admission program, then measure a fresh complete swap.
+2. Package the application and wallet connectors around the demonstrated headless flow.
+3. Operate and measure a continuous source feed and multiuser maker/prover service.
+4. Establish confidential proving transport and complete independent security review. Future nonpayment refunds remain gated by the [refund-window review](zutti.md#94-refund-security-review).
